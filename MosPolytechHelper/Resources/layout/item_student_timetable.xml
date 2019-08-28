@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:id="@+id/linear_layout_student_timetable"
+    android:layout_width="match_parent" 
+    android:layout_height="wrap_content" 
+    android:orientation="vertical" 
+    android:paddingBottom="2dp"
+    android:paddingHorizontal="5dp">
+    <RelativeLayout android:id="@+id/layout_student_timetable"
+        android:background="@drawable/item_border_lesson" 
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content">
+        <TextView android:layout_alignParentLeft="true" 
+            android:layout_alignParentTop="true" 
+            android:id="@+id/student_timetable_time" 
+            android:layout_width="wrap_content" 
+            android:layout_height="wrap_content" 
+            android:textSize="12sp" 
+            android:layout_marginRight="5dp"/>
+        <TextView android:layout_width="wrap_content" 
+            android:layout_alignParentTop="true"
+            android:layout_height="wrap_content" 
+            android:id="@+id/student_timetable_type" 
+            android:layout_toRightOf="@id/student_timetable_time" 
+            android:layout_marginRight="5dp"
+            android:textSize="12sp"/>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_auditoriums"
+            android:layout_toRightOf="@id/student_timetable_type" 
+            android:scrollbars="none"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView android:id="@+id/text_student_timetable_title" 
+            android:layout_width="match_parent" 
+            android:layout_height="wrap_content" 
+            android:layout_below="@id/student_timetable_type" 
+            android:hyphenationFrequency="full" 
+            android:textStyle="bold" 
+            android:breakStrategy="high_quality" 
+            android:textSize="16sp">
+        </TextView>
+        <TextView android:layout_below="@id/text_student_timetable_title" 
+            android:id="@+id/text_student_timetable_teachers" 
+            android:layout_width="match_parent"
+            android:textSize="13sp"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:layout_below="@id/text_student_timetable_teachers" 
+            android:id="@+id/text_student_timetable_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+        android:layout_alignParentRight="true"
+        android:textColor="#AAAAAA"/>
+        <TextView
+            android:layout_below="@id/text_student_timetable_teachers" 
+            android:id="@+id/text_student_timetable_module_and_week_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+        android:layout_alignParentLeft="true"
+        android:textColor="#AAAAAA"/>
+    </RelativeLayout>
+<View
+        android:id="@+id/line_student_timetable"
+        android:visibility="invisible"
+        
+    android:layout_width="match_parent"
+    android:layout_height="2dp"
+    android:background="#AAAAAA"/>
+</LinearLayout>
