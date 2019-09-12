@@ -13,12 +13,12 @@
 
     public class ViewPagerAdapter : PagerAdapter
     {
-        event Action<FullTimetable> OnTimetableChanged;
+        event Action<Schedule> OnScheduleChanged;
 
         ILoggerFactory loggerFactory;
         Context context;
 
-        FullTimetable fullTimetable;
+        Schedule fullSchedule;
         public int FirstPos { get; }
         //readonly Fragment[] fragments;
 
@@ -31,17 +31,17 @@
 
         //public override Fragment GetItem(int position) => this.fragments[position];
 
-        public ViewPagerAdapter(Context context, FullTimetable fullTimetable)
+        public ViewPagerAdapter(Context context, Schedule fullSchedule)
         {
             this.context = context;
             this.FirstPos = this.Count / 2;
-            this.fullTimetable = fullTimetable;
+            this.fullSchedule = fullSchedule;
         }
 
-        public void UpdateTimetable(FullTimetable fullTimetable)
+        public void UpdateSchedule(Schedule fullSchedule)
         {
-            this.fullTimetable = fullTimetable;
-            OnTimetableChanged.Invoke(fullTimetable);
+            this.fullSchedule = fullSchedule;
+            OnScheduleChanged.Invoke(fullSchedule);
         }
 
         // TODO: Below
@@ -55,20 +55,20 @@
         public override Object InstantiateItem(ViewGroup container, int position)
         {
             var inflater = LayoutInflater.From(this.context);
-            var layout = (ViewGroup)inflater.Inflate(Resource.Layout.fragment_timetable, container, false);
+            var layout = (ViewGroup)inflater.Inflate(Resource.Layout.fragment_schedule, container, false);
 
 
-            var recyclerView = layout.FindViewById<RecyclerView>(Resource.Id.recycler_student_timetable);
+            var recyclerView = layout.FindViewById<RecyclerView>(Resource.Id.recycler_student_schedule);
 
             // A LinearLayoutManager is used here, this will layout the elements in a similar fashion
             // to the way ListView would layout elements. The RecyclerView.LayoutManager defines how the
             // elements are laid out.
             recyclerView.SetLayoutManager(new LinearLayoutManager(this.context));
             var date = DateTime.Today.AddDays(position - this.FirstPos);
-            var adapter = new RecyclerTimetableAdapter(
-                layout.FindViewById<TextView>(Resource.Id.text_null_lesson), this.fullTimetable?.GetTimetable(date),
-                false, DateTime.MinValue, date); // TODO: Change it
-            OnTimetableChanged += adapter.BuildTimetable;
+            var adapter = new RecyclerScheduleAdapter(
+                layout.FindViewById<TextView>(Resource.Id.text_null_lesson), this.fullSchedule?.GetSchedule(date),
+                false, this.fullSchedule?.ScheduleFilter?.DateFitler == DateFilter.Desaturate, DateTime.MinValue, date); // TODO: Change it
+            OnScheduleChanged += adapter.BuildSchedule;
             // Set CustomAdapter as the adapter for RecycleView
             recyclerView.SetAdapter(adapter);
 

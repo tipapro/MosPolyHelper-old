@@ -4,32 +4,18 @@
     using System;
     using System.Threading.Tasks;
 
-    public static class TaskUtilities
-    {
-        public static async void FireAndForgetSafeAsync(this Task task, IErrorHandler handler = null)
-        {
-            try
-            {
-                await task;
-            }
-            catch (Exception ex)
-            {
-                handler?.HandleError(ex);
-            }
-        }
-    }
 
-    public class AsyncCommand : IAsyncCommand
+    public class Command : ICommand
     {
         public event EventHandler CanExecuteChanged;
 
         private bool isExecuting;
-        private readonly Func<Task> execute;
+        private readonly Action execute;
         private readonly Func<bool> canExecute;
         private readonly IErrorHandler errorHandler;
 
-        public AsyncCommand(
-            Func<Task> execute,
+        public Command(
+            Action execute,
             Func<bool> canExecute = null,
             IErrorHandler errorHandler = null)
         {
@@ -43,23 +29,6 @@
             return !this.isExecuting && (this.canExecute?.Invoke() ?? true);
         }
 
-        public async Task ExecuteAsync()
-        {
-            if (CanExecute())
-            {
-                try
-                {
-                    this.isExecuting = true;
-                    await this.execute();
-                }
-                finally
-                {
-                    this.isExecuting = false;
-                }
-            }
-
-            RaiseCanExecuteChanged();
-        }
 
         public void RaiseCanExecuteChanged()
         {
@@ -74,21 +43,28 @@
 
         void ICommand.Execute(object parameter)
         {
-            ExecuteAsync().FireAndForgetSafeAsync(this.errorHandler);
+            try
+            {
+                this.execute();
+            }
+            catch (Exception ex)
+            {
+                this.errorHandler?.HandleError(ex);
+            }
         }
         #endregion
     }
 
-    public class AsyncCommand<T> : IAsyncCommand<T>
+    public class Command<T> : ICommand<T>
     {
         public event EventHandler CanExecuteChanged;
 
         private bool isExecuting;
-        private readonly Func<T, Task> execute;
+        private readonly Action<T> execute;
         private readonly Func<T, bool> canExecute;
         private readonly IErrorHandler errorHandler;
 
-        public AsyncCommand(Func<T, Task> execute, Func<T, bool> canExecute = null, IErrorHandler errorHandler = null)
+        public Command(Action<T> execute, Func<T, bool> canExecute = null, IErrorHandler errorHandler = null)
         {
             this.execute = execute;
             this.canExecute = canExecute;
@@ -100,14 +76,14 @@
             return !this.isExecuting && (this.canExecute?.Invoke(parameter) ?? true);
         }
 
-        public async Task ExecuteAsync(T parameter)
+        public void Execute(T parameter)
         {
             if (CanExecute(parameter))
             {
                 try
                 {
                     this.isExecuting = true;
-                    await this.execute(parameter);
+                    this.execute(parameter);
                 }
                 finally
                 {
@@ -131,7 +107,14 @@
 
         void ICommand.Execute(object parameter)
         {
-            ExecuteAsync((T)parameter).FireAndForgetSafeAsync(this.errorHandler);
+            try
+            {
+                this.execute((T)parameter);
+            }
+            catch (Exception ex)
+            {
+                this.errorHandler?.HandleError(ex);
+            }
         }
         #endregion
     }

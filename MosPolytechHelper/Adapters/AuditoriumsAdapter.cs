@@ -1,5 +1,6 @@
 ﻿namespace MosPolytechHelper.Adapters
 {
+    using Android.Content.Res;
     using Android.Graphics;
     using Android.Support.V7.Widget;
     using Android.Views;
@@ -9,6 +10,8 @@
     public class AuditoriumsAdapter : RecyclerView.Adapter
     {
         Auditorium[] auditoriums;
+
+        public bool Enabled { get; set; }
         // Provide a reference to the type of views that you are using (custom ViewHolder)
         public class AuditoriumsViewHolder : RecyclerView.ViewHolder
         {
@@ -23,6 +26,7 @@
         // Initialize the dataset of the Adapter
         public AuditoriumsAdapter(Auditorium[] auditoriums)
         {
+            this.Enabled = true;
             this.auditoriums = auditoriums;
         }
 
@@ -36,11 +40,23 @@
         }
 
         // Replace the contents of a view (invoked by the layout manager)
-        public override void OnBindViewHolder(RecyclerView.ViewHolder viewHolder, int position)
+        public override void OnBindViewHolder(RecyclerView.ViewHolder vh, int position)
         {
+            var viewHolder = vh as AuditoriumsViewHolder;
             var aud = this.auditoriums[position];
-            (viewHolder as AuditoriumsViewHolder).TextAuditorium.SetTextColor(Color.ParseColor(aud.Color));
-            (viewHolder as AuditoriumsViewHolder).TextAuditorium.SetText(aud.Name, TextView.BufferType.Normal);
+            
+            if (this.Enabled)
+            {
+                var color = Color.ParseColor(aud.Color);
+                viewHolder.TextAuditorium.SetTextColor(color);
+            }
+            else
+            {
+                viewHolder.TextAuditorium.SetTextColor(new Color(225, 225, 225));
+                viewHolder.TextAuditorium.Enabled = this.Enabled;
+            }
+
+            (vh as AuditoriumsViewHolder).TextAuditorium.SetText(aud.Name, TextView.BufferType.Normal);
         }
 
         // Return the size of your dataset (invoked by the layout manager)
@@ -48,5 +64,7 @@
         {
             get => this.auditoriums?.Length ?? 0;
         }
+
+
     }
 }

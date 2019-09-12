@@ -3,9 +3,9 @@
     using MosPolytechHelper.Domain;
     using System.Threading.Tasks;
 
-    interface ITimetableConverter
+    public interface IScheduleConverter
     {
-        Task<FullTimetable> ConvertToFullTimetableAsync(string serializedObj);
+        Task<Schedule> ConvertToFullScheduleAsync(string serializedObj);
         Task<string[]> ConvertToGroupList(string serializedObj);
     }
 }

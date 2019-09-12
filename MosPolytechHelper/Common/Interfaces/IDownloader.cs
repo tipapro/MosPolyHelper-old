@@ -2,9 +2,9 @@
 {
     using System.Threading.Tasks;
 
-    interface IDownloader
+    public interface IDownloader
     {
-        Task<string> DownloadTimetable(string group);
+        Task<string> DownloadSchedule(string group);
 
         Task<string> DownloadGroupListAsync();
     }

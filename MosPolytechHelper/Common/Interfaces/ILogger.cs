@@ -2,7 +2,7 @@
 {
     using System;
 
-    interface ILogger
+    public interface ILogger
     {
         bool IsFatalEnabled { get; }
         bool IsWarnEnabled { get; }

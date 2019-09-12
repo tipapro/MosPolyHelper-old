@@ -37,6 +37,10 @@
     <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
     <AndroidLinkMode>None</AndroidLinkMode>
     <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
+    <AotAssemblies>false</AotAssemblies>
+    <EnableLLVM>false</EnableLLVM>
+    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+    <BundleAssemblies>false</BundleAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -64,6 +68,7 @@
     <Compile Include="Adapters\RecyclerTimetableAdapter.cs" />
     <Compile Include="Adapters\ViewPagerAdapter.cs" />
     <Compile Include="Common\AsyncCommand.cs" />
+    <Compile Include="Common\Command.cs" />
     <Compile Include="Common\DependencyInjector.cs" />
     <Compile Include="Common\Downloader.cs" />
     <Compile Include="Common\Interfaces\IAsyncCommand.cs" />
@@ -73,23 +78,30 @@
     <Compile Include="Common\Interfaces\IErrorHandler.cs" />
     <Compile Include="Common\Interfaces\ILogger.cs" />
     <Compile Include="Common\Interfaces\ILoggerFactory.cs" />
+    <Compile Include="Common\Interfaces\IMediator.cs" />
     <Compile Include="Common\Interfaces\ISerializer.cs" />
-    <Compile Include="Common\Interfaces\ITimetableConverter.cs" />
+    <Compile Include="Common\Interfaces\IScheduleConverter.cs" />
     <Compile Include="Common\JsonConverter.cs" />
     <Compile Include="Common\LoggerFactory.cs" />
+    <Compile Include="Common\Mediator.cs" />
     <Compile Include="Common\NLogger.cs" />
-    <Compile Include="Common\TimetableConverter.cs" />
+    <Compile Include="Common\ScheduleConverter.cs" />
     <Compile Include="Domain\Auditorium.cs" />
-    <Compile Include="Domain\DailyTimetable.cs" />
-    <Compile Include="Domain\FullTimetable.cs" />
+    <Compile Include="Domain\Schedule.Filter.cs" />
+    <Compile Include="Domain\Schedule.Daily.cs" />
+    <Compile Include="Domain\Schedule.cs" />
     <Compile Include="Domain\Group.cs" />
     <Compile Include="Domain\Lesson.cs" />
     <Compile Include="Domain\Module.cs" />
     <Compile Include="Domain\WeekType.cs" />
     <Compile Include="Features\Common\ViewModelBase.cs" />
-    <Compile Include="Features\StudentTimetable\TimetableModel.cs" />
-    <Compile Include="Features\StudentTimetable\TimetableView.cs" />
-    <Compile Include="Features\StudentTimetable\TimetableVm.cs" />
+    <Compile Include="Features\Common\ViewModels.cs" />
+    <Compile Include="Features\Common\VmMessage.cs" />
+    <Compile Include="Features\StudentSchedule\ScheduleFilterView.cs" />
+    <Compile Include="Features\StudentSchedule\ScheduleFilterVm.cs" />
+    <Compile Include="Features\StudentSchedule\ScheduleModel.cs" />
+    <Compile Include="Features\StudentSchedule\ScheduleView.cs" />
+    <Compile Include="Features\StudentSchedule\ScheduleVm.cs" />
     <Compile Include="Features\MainActivity.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -170,37 +182,19 @@
     <AndroidResource Include="Resources\drawable\ic_dashboard_black_24dp.xml" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\ic_home_black_24dp.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\drawable\ic_launcher_background.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\ic_notifications_black_24dp.xml" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\item_border_lesson.xml" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\tab_genres.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\tab_showtimes.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\tab_stream.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\tab_titles.png" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\drawable\xamarin.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\fragment_student_timetable.xml" />
+    <AndroidResource Include="Resources\layout\fragment_student_schedule.xml" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\fragment_timetable.xml" />
+    <AndroidResource Include="Resources\layout\fragment_schedule.xml" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\item_auditorium.xml" />
@@ -209,10 +203,36 @@
     <AndroidResource Include="Resources\layout\item_group_list.xml" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\item_student_timetable.xml" />
+    <AndroidResource Include="Resources\layout\item_student_schedule.xml" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\ic_filter_list_24dp.xml" />
+    <AndroidResource Include="Resources\drawable\ic_filter_24dp.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\border_lesson_type.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\popup_schedule_preferences.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\shape_schedule_preferences.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\popup_schedule_filter.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\ic_menu_schedule.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\ic_preferences_24dp.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

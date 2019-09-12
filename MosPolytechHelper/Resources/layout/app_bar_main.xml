@@ -2,7 +2,7 @@
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_width="match_parent" android:focusableInTouchMode="true"
     android:layout_height="match_parent">
 
     <android.support.design.widget.AppBarLayout
@@ -19,14 +19,13 @@
             <AutoCompleteTextView android:layout_width="match_parent" 
         android:layout_height="wrap_content" 
         android:inputType="text" 
-        android:hint="Group id" 
+        android:hint="@string/group_title" 
         android:maxLength="50"
         android:maxLines="1" 
         android:completionThreshold="1" 
-        android:completionHint="Enter your group"
         android:focusedByDefault="false"
-                
         android:id="@+id/text_group_title"/>
+          
         </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>

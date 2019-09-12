@@ -1,6 +1,6 @@
 ﻿namespace MosPolytechHelper.Common.Interfaces
 {
-    interface IDeserializer
+    public interface IDeserializer
     {
         T Deserialize<T>(string serializedObj);
     }

@@ -9,7 +9,7 @@
     using System.Linq;
     using System.Threading.Tasks;
 
-    class TimetableConverter : ITimetableConverter
+    class ScheduleConverter : IScheduleConverter
     {
         #region Constant Keys
         const string GroupListKey = "groups";
@@ -17,7 +17,7 @@
         const string StatusKey = "status";
         const string IsSession = "isSession";
         const string GroupInfoKey = "group";
-        const string TimetableGridKey = "grid";
+        const string ScheduleGridKey = "grid";
 
         const string GroupTitleKey = "title";
         const string GroupDateFromKey = "dateFrom";
@@ -43,9 +43,9 @@
 
         ILogger logger;
 
-        public TimetableConverter(ILoggerFactory loggerFactory)
+        public ScheduleConverter(ILoggerFactory loggerFactory)
         {
-            this.logger = loggerFactory.Create<TimetableConverter>();
+            this.logger = loggerFactory.Create<ScheduleConverter>();
         }
 
         public async Task<string[]> ConvertToGroupList(string serializedObj)
@@ -54,7 +54,7 @@
                 () => JObject.Parse(serializedObj)[GroupListKey]?.ToObject<JArray>()?.Values<string>().ToArray());
         }
 
-        public async Task<FullTimetable> ConvertToFullTimetableAsync(string serializedObj)
+        public async Task<Schedule> ConvertToFullScheduleAsync(string serializedObj)
         {
             return await Task.Run(() =>
             {
@@ -65,9 +65,9 @@
                 bool isSession = serObj[IsSession]?.ToObject<bool>() ??
                     throw new JsonException($"Key {IsSession} doesn't found");
                 var group = ConvertToGroup(serObj[GroupInfoKey]);
-                var timetable = ConvertToTimetableDict(serObj[TimetableGridKey]);
+                var (schedule, firstModuleLastDate, secondModuleEarlyDate) = ConvertToScheduleDict(serObj[ScheduleGridKey]);
 
-                return new FullTimetable(timetable, group, isSession);
+                return new Schedule(schedule, group, isSession, firstModuleLastDate, secondModuleEarlyDate);
             });
         }
 
@@ -97,27 +97,39 @@
             return new Group(title, dateFrom.Value, dateTo.Value, isEvening.Value, comment);
         }
 
-        public Dictionary<string, DailyTimetable> ConvertToTimetableDict(JToken jToken)
+        public (Dictionary<string, Schedule.Daily>, DateTime, DateTime) ConvertToScheduleDict(JToken jToken)
         {
-            var serTimetable = jToken?.ToObject<Dictionary<string, JToken>>() ??
-                throw new JsonException($"Key {TimetableGridKey} wasn't founded");
-            var timetable = new Dictionary<string, DailyTimetable>();
-            foreach (var (day, dailyTimetableToken) in serTimetable)
+            var serSchedule = jToken?.ToObject<Dictionary<string, JToken>>() ??
+                throw new JsonException($"Key {ScheduleGridKey} wasn't founded");
+            var firstModuleLastDate = DateTime.MinValue;
+            var secondModuleEarlyDate = DateTime.MaxValue;
+            var schedule = new Dictionary<string, Schedule.Daily>();
+            foreach (var (day, dailyScheduleToken) in serSchedule)
             {
                 var lessonList = new List<Lesson>();
-                var serDailyTimetable = dailyTimetableToken.ToObject<Dictionary<string, JArray>>();
-                foreach (var (index, serLessonList) in serDailyTimetable)
+                var serDailySchedule = dailyScheduleToken.ToObject<Dictionary<string, JArray>>();
+                foreach (var (index, serLessonList) in serDailySchedule)
                 {
                     foreach (var serLesson in serLessonList)
                     {
                         var lesson = ConvertToLesson(serLesson, index);
                         if (lesson != null)
+                        {
+                            if (lesson.Module == Module.First && firstModuleLastDate < lesson.DateTo)
+                            {
+                                firstModuleLastDate = lesson.DateTo;
+                            }
+                            else if (lesson.Module == Module.Second && secondModuleEarlyDate > lesson.DateTo)
+                            {
+                                secondModuleEarlyDate = lesson.DateFrom;
+                            }
                             lessonList.Add(lesson);
+                        }
                     }
                 }
-                timetable.Add(day, new DailyTimetable(lessonList.ToArray()));
+                schedule.Add(day, new Schedule.Daily(lessonList.ToArray()));
             }
-            return timetable;
+            return (schedule, firstModuleLastDate, firstModuleLastDate);
         }
 
         public Lesson ConvertToLesson(JToken jToken, string index)

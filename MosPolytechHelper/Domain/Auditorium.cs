@@ -2,7 +2,6 @@
 {
     public class Auditorium
     {
-
         public string Name { get; set; }
         public string Color { get; set; }
 

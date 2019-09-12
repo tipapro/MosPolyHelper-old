@@ -40,7 +40,7 @@
         }
         public IEnumerable<string> GetShortTeacherNames()
         {
-            foreach (var teacher in this.Teachers)
+            foreach (string[] teacher in this.Teachers)
             {
                 if (teacher[0].Length > 1 && char.IsUpper(teacher[0][0]) == char.IsUpper(teacher[0][1]))
                 {

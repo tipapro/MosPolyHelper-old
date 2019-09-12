@@ -1,20 +1,36 @@
 ﻿namespace MosPolytechHelper.Common
 {
     using MosPolytechHelper.Common.Interfaces;
+    using MosPolytechHelper.Features.Common;
 
-    static class DependencyInjector
+    public class DependencyInjector
     {
-        static JsonConverter jsonConverter;
+        JsonConverter jsonConverter;
+        Mediator<ViewModels, VmMessage> mediator;
 
-        static T GetSingleton<T>(ref T obj) where T : new()
+        DependencyInjector()
+        { }
+
+        T GetSingleton<T>(ref T obj) where T : new()
         {
             if (obj == null)
                 obj = new T();
             return obj;
         }
 
-        public static ILoggerFactory GetILoggerFactory() => new LoggerFactory();
-        public static ISerializer GetISerializer() => GetSingleton(ref jsonConverter);
-        public static IDeserializer GetIDeserializer() => GetSingleton(ref jsonConverter);
+        public ILoggerFactory GetILoggerFactory() => new LoggerFactory();
+        public ISerializer GetISerializer() => GetSingleton(ref this.jsonConverter);
+        public IDeserializer GetIDeserializer() => GetSingleton(ref this.jsonConverter);
+        public IMediator<ViewModels, VmMessage> GetIMediator() => GetSingleton(ref this.mediator);
+
+        public static void SetDiInstance(IMain mainClass)
+        {
+            mainClass.DependencyInjector = new DependencyInjector();
+        }
+    }
+
+    public interface IMain
+    {
+        DependencyInjector DependencyInjector { get; set; }
     }
 }

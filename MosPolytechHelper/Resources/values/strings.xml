@@ -2,5 +2,43 @@
     <string name="app_name">MosPolytechHelper</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="action_settings">Settings</string>
+    <string name="schedule_preferences">Настройки</string>
+  <string name="first_module">1-й модуль</string>
+  <string name="second_module">2-й модуль</string>
+  <string name="odd_week">нечётная неделя</string>
+  <string name="even_week">чётная неделя</string>
+  <string name="null_daily_schedule">В этот день нет занятий</string>
+  <string name="group_title">Название группы</string>
+  <string name="teacher_name">Имя преподавателя</string>
+  <string name="enter_group_title">Введите название гурппы</string>
+  <string name="enter_teacher_name">Введите имя преподавателя</string>
+  
+  <string name="schedule_preferences_title">Настройки расписания</string>
+  <string name="schedule_type_prompt">Тип расписания</string>
+  <string-array name="schedule_type_array">
+    <item>Обычное</item>
+    <item>Сессия</item>
+  </string-array>
+  <string name="schedule_target_prompt">Расписание для</string>
+  <string-array name="schedule_target_array">
+    <item>Студентов</item>
+    <item>Преподавателей</item>
+  </string-array>
+
+  <string name="schedule_filter_title">Фильтр расписания</string>
+  <string name="schedule_date_filter_prompt">Занятия других диапазонов дат</string>
+  <string-array name="schedule_date_filter_array">
+    <item>Показывать</item>
+    <item>Показывать бледными</item>
+    <item>Скрывать</item>
+  </string-array>
+  <string name="schedule_module_filter_prompt">Фильтр по модулю</string>
+  <string-array name="schedule_module_filter_array">
+    <item>Отключён</item>
+    <item>1-й модуль</item>
+    <item>2-й модуль</item>
+    <item>Авто</item>
+  </string-array>
+  <string name="schedule_session_filter">Скрыть зачёты и экзамены</string>
+  
 </resources>

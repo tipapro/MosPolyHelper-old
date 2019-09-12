@@ -47,11 +47,11 @@
             this.logger = loggerFactory.Create<Downloader>();
         }
 
-        public async Task<string> DownloadTimetable(string group)
+        public async Task<string> DownloadSchedule(string group)
         {
             if (this.cookieContainer == null)
                 await GetCookies();
-            this.logger.Debug("Request to download the timetable for {group} group", group);
+            this.logger.Debug("Request to download the schedule for {group} group", group);
             if (string.IsNullOrEmpty(group))
                 throw new ArgumentNullException("groupName");
             var uri = new UriBuilder($"https://rasp.dmami.ru/site/group?group={group}&session=0").Uri;
@@ -65,7 +65,7 @@
                 using (var reader = new StreamReader(response.GetResponseStream()))
                     serializedObj = await reader.ReadToEndAsync();
             }
-            this.logger.Debug("Timetable was downloaded successfully for {group} group", group);
+            this.logger.Debug("Schedule was downloaded successfully for {group} group", group);
             return serializedObj;
         }
 

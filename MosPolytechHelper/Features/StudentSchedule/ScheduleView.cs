@@ -1,4 +1,4 @@
-﻿namespace MosPolytechHelper.Features.StudentTimetable
+﻿namespace MosPolytechHelper.Features.StudentSchedule
 {
     using Android.OS;
     using Android.Support.V4.View;
@@ -6,25 +6,27 @@
     using Android.Views.InputMethods;
     using Android.Widget;
     using MosPolytechHelper.Adapters;
+    using MosPolytechHelper.Common;
     using MosPolytechHelper.Common.Interfaces;
+    using MosPolytechHelper.Features.Common;
     using System;
     using System.ComponentModel;
 
-    class TimetableView : Android.Support.V4.App.Fragment
+    class ScheduleView : Android.Support.V4.App.Fragment
     {
-        TimetableVm viewModel;
+        ScheduleVm viewModel;
         View view;
         ILogger logger;
         AutoCompleteTextView textGroupTitle;
         Android.Support.V4.App.Fragment[] fragments;
         ViewPager viewPager;
 
-        private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
+        void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
             {
-                case nameof(this.viewModel.FullTimetable):
-                    (this.viewPager.Adapter as ViewPagerAdapter).UpdateTimetable(this.viewModel.FullTimetable);
+                case nameof(this.viewModel.FullSchedule):
+                    (this.viewPager.Adapter as ViewPagerAdapter).UpdateSchedule(this.viewModel.FullSchedule);
                     break;
                 case nameof(this.viewModel.WeekType):
 
@@ -39,16 +41,13 @@
             }
         }
 
-        public TimetableView(ILoggerFactory loggerFactory)
+        public ScheduleView()
         {
-            this.viewModel = new TimetableVm(loggerFactory);
-            this.viewModel.PropertyChanged += OnPropertyChanged;
-            this.logger = loggerFactory.Create<TimetableView>();
         }
 
-        public static TimetableView NewInstance(ILoggerFactory loggerFactory)
+        public static ScheduleView NewInstance()
         {
-            var fragment = new TimetableView(loggerFactory);
+            var fragment = new ScheduleView();
             //fragment.Arguments = new Bundle();
             //fragment.Arguments.PutString("title", title);
             //fragment.Arguments.PutString("icon", icon);
@@ -58,24 +57,20 @@
         public override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-
-            //if (Arguments != null)
-            //{
-            //    if (Arguments.ContainsKey("title"))
-            //        this.title = (string)Arguments.Get("title");
-            //    if (Arguments.ContainsKey("icon"))
-            //        this.icon = (string)Arguments.Get("icon");
-            //}
+            var loggerFactory = (this.Context as MainActivity).GetILoggerFactory();
+            this.viewModel = new ScheduleVm(loggerFactory, (this.Context as MainActivity).GetIMediator());
+            this.viewModel.PropertyChanged += OnPropertyChanged;
+            this.logger = loggerFactory.Create<ScheduleView>();
         }
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
-            this.view = inflater.Inflate(Resource.Layout.fragment_student_timetable, container, false);
+            this.view = inflater.Inflate(Resource.Layout.fragment_student_schedule, container, false);
 
 
             this.viewPager = this.view.FindViewById<ViewPager>(Resource.Id.viewpager);
             //this.viewPager.PageSelected += ViewPager_PageSelected;
-            var viewPagerAdaper = new ViewPagerAdapter(this.Context, this.viewModel.FullTimetable);
+            var viewPagerAdaper = new ViewPagerAdapter(this.Context, this.viewModel.FullSchedule);
             this.viewPager.Adapter = viewPagerAdaper;
             this.viewPager.PageSelected += (obj, arg) =>
             {
@@ -106,6 +101,14 @@
                         inputManager.HideSoftInputFromWindow(currentFocus.WindowToken, HideSoftInputFlags.None);
                     }
                 };
+            this.textGroupTitle.KeyPress += (obj, arg) =>
+            {
+                if (arg.KeyCode != Keycode.Back)
+                    return;
+                if (arg.Event.Action != KeyEventActions.Up)
+                    return;
+                (this.view.Context as MainActivity).OnBackPressed();
+            };
             this.textGroupTitle.ItemClick += (obj, arg) =>
             {
                 this.viewModel.Submit.Execute(null);

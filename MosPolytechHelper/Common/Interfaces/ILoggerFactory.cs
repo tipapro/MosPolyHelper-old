@@ -1,6 +1,6 @@
 ﻿namespace MosPolytechHelper.Common.Interfaces
 {
-    interface ILoggerFactory
+    public interface ILoggerFactory
     {
         ILogger Create<T>();
     }
