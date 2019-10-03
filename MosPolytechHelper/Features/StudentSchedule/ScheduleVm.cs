@@ -5,7 +5,6 @@
     using MosPolytechHelper.Domain;
     using MosPolytechHelper.Features.Common;
     using System;
-    using System.ComponentModel;
 
     class ScheduleVm : ViewModelBase
     {
@@ -16,7 +15,6 @@
         bool isSession;
         string[] groupList;
         Schedule fullSchedule;
-        DateTime date;
         Schedule.Filter scheduleFilter;
 
 
@@ -29,31 +27,30 @@
                     switch (propName)
                     {
                         case "ModuleFilter" when message[1] is ModuleFilter moduleFilter:
-                            this.scheduleFilter.ModuleFilter = moduleFilter;
-                            OnPropertyChanged(nameof(FullSchedule));
+                            this.ScheduleFilter.ModuleFilter = moduleFilter;
+                            OnPropertyChanged(nameof(Schedule));
                             break;
                         case "DateFilter" when message[1] is DateFilter dateFilter:
-                            this.scheduleFilter.DateFitler = dateFilter;
-                            OnPropertyChanged(nameof(FullSchedule));
+                            this.ScheduleFilter.DateFitler = dateFilter;
+                            OnPropertyChanged(nameof(Schedule));
                             break;
                         case "SessionFilter" when message[1] is bool sessionFilter:
-                            this.scheduleFilter.SessionFilter = sessionFilter;
-                            OnPropertyChanged(nameof(FullSchedule));
+                            this.ScheduleFilter.SessionFilter = sessionFilter;
+                            OnPropertyChanged(nameof(Schedule));
+                            break;
+                        case "ScheduleType" when message[1] is ScheduleType scheduleType:
+                            this.IsSession = scheduleType == ScheduleType.Session;
+                            SetUpSchedule();
                             break;
                     }
                 }
             }
         }
 
-        public Schedule FullSchedule
+        public Schedule Schedule
         {
             get => this.fullSchedule;
             set => SetValue(ref this.fullSchedule, value);
-        }
-        public DateTime Date
-        {
-            get => this.date;
-            set => this.date = value;
         }
         public WeekType WeekType
         {
@@ -68,7 +65,10 @@
         public bool IsSession
         {
             get => this.isSession;
-            set => SetValue(ref this.isSession, value);
+            set
+            {
+                this.isSession = value;
+            }
         }
         public string[] GroupList
         {
@@ -76,18 +76,31 @@
             set => SetValue(ref this.groupList, value);
         }
         public ICommand Submit { get; private set; }
+        public Schedule.Filter ScheduleFilter
+        {
+            get => this.scheduleFilter;
+            set
+            {
+                this.scheduleFilter = value;
+            }
+        }
 
-        public ScheduleVm(ILoggerFactory loggerFactory, IMediator<ViewModels, VmMessage> mediator)
-            : base(mediator, ViewModels.Schedule)
+        public ScheduleVm(ILoggerFactory loggerFactory, IMediator<ViewModels, VmMessage> mediator, 
+            Schedule.Filter scheduleFilter) : base(mediator, ViewModels.Schedule)
         {
             this.model = new ScheduleModel(loggerFactory);
             this.groupList = new string[0];
             this.Submit = new Command(SubmitGroupTitle);
-            this.date = DateTime.Now;
-            this.scheduleFilter = Schedule.Filter.Empty;
+            // this.date = DateTime.Now;
+            this.ScheduleFilter = scheduleFilter;
             Subscribe(HandleMessage);
             GetGroupListAsync(true); // TODO: Offline mode
         }
+        public void SubscribeOnAnnouncement(Action<string> act)
+        {
+            this.model.Announce += act;
+        }
+
         public async void GetGroupListAsync(bool downloadNew)
         {
             this.GroupList = (await this.model.GetGroupListAsync(downloadNew)) ?? new string[0];
@@ -103,8 +116,12 @@
 
         public async void SetUpSchedule()
         {
-            await this.model.GetScheduleAsync(this.GroupTitle, this.isSession, true, this.scheduleFilter); // TODO: Offline mode
-            this.FullSchedule = this.model.Schedule;
+            if (string.IsNullOrEmpty(GroupTitle))
+            {
+                return;
+            }
+            await this.model.GetScheduleAsync(this.GroupTitle, this.isSession, true, this.ScheduleFilter); // TODO: Offline mode
+            this.Schedule = this.model.Schedule;
         }
     }
 

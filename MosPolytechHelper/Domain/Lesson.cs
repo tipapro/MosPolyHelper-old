@@ -1,5 +1,6 @@
 ﻿namespace MosPolytechHelper.Domain
 {
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
 
@@ -14,6 +15,9 @@
         public string Type { get; set; }
         public WeekType Week { get; set; }
         public Module Module { get; set; }
+
+        [JsonConstructor]
+        Lesson() { }
 
         public Lesson(int order, string subjectName, string[] teachers, DateTime dateFrom, DateTime dateTo,
             Auditorium[] auditoriums, string type, WeekType week, Module module)

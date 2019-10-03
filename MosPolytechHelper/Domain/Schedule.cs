@@ -1,70 +1,72 @@
 ﻿namespace MosPolytechHelper.Domain
 {
+    using Newtonsoft.Json;
     using System;
     using System.Collections;
     using System.Collections.Generic;
 
-    public partial class Schedule : IEnumerable<KeyValuePair<string, Schedule.Daily>>
+    [JsonObject]
+    public partial class Schedule : IEnumerable<Schedule.Daily>
     {
-        Dictionary<string, Daily> schedule { get; set; }
+        [JsonProperty]
+        Schedule.Daily[] schedule { get; set; }
 
-        public DateTime FirstModuleLastDate;
-        public DateTime SecondModuleEarlyDate;
-
+        [JsonIgnore]
+        public DateTime LastUpdate { get; set; }
+        [JsonProperty]
         public Group Group { get; set; }
+        [JsonProperty]
         public bool IsSession { get; set; }
+        [JsonIgnore]
+        public int Count => this.schedule?.Length ?? 0;
+        [JsonIgnore]
         public Schedule.Filter ScheduleFilter { get; set; }
         public Schedule()
         {
             this.Group = new Group();
-            this.schedule = new Dictionary<string, Daily>();
         }
 
-        public Schedule(Dictionary<string, Daily> schedule, Group group, bool isSession,
-            DateTime firstModuleLastDate, DateTime secondModuleEarlytDate)
+        public Schedule(Schedule.Daily[] schedule, Group group, bool isSession, DateTime lastUpdate)
         {
-            this.Group = group;
             this.schedule = schedule;
-            this.FirstModuleLastDate = firstModuleLastDate;
-            this.SecondModuleEarlyDate = secondModuleEarlytDate;
+            this.Group = group;
+            this.IsSession = isSession;
+            this.LastUpdate = lastUpdate;
         }
 
-        public Daily this[string index]
+        Daily this[long day]
         {
-            get => this.schedule[index];
-            set => this.schedule[index] = value;
-        }
-
-        IEnumerator<KeyValuePair<string, Daily>> IEnumerable<KeyValuePair<string, Daily>>.GetEnumerator() =>
-            this.schedule.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() =>
-            this.schedule.GetEnumerator();
-
-        public Daily GetSchedule(DateTime date)
-        {
-            if (this.IsSession)
+            get
             {
-                foreach (var (sessionDate, dailySchedule) in this.schedule)
+                foreach (var dailySchedule in this.schedule)
                 {
-                    // TODO: try - catch
-                    if (DateTime.Parse(sessionDate) == date.Date)
+                    if (dailySchedule.Day == day)
                     {
-                        return this.ScheduleFilter.GetFilteredSchedule(dailySchedule, date,
-                            this.FirstModuleLastDate, this.SecondModuleEarlyDate);
+                        return dailySchedule;
                     }
                 }
                 return null;
             }
-            else
+        }
+
+        IEnumerator<Daily> IEnumerable<Daily>.GetEnumerator() =>
+            this.schedule.GetEnumerator() as IEnumerator<Daily>;
+        IEnumerator IEnumerable.GetEnumerator() =>
+            this.schedule.GetEnumerator();
+
+        public Daily GetSchedule(int position)
+        {
+            return this.schedule[position];
+        }
+        public Daily GetSchedule(DateTime date)
+        {
+            if (this.IsSession)
             {
-                string index = (date.DayOfWeek == DayOfWeek.Sunday ?
-                    7 : (int)date.DayOfWeek).ToString();
-                if (this.schedule.ContainsKey(index))
-                {
-                    return this.ScheduleFilter.GetFilteredSchedule(this.schedule[index], date,
-                        this.FirstModuleLastDate, this.SecondModuleEarlyDate);
-                }
-                return null;
+                return this[date.ToBinary()];
+            }
+            else
+            {        
+                return ScheduleFilter.GetFilteredSchedule(this[(long)date.DayOfWeek], date);
             }
         }
     }

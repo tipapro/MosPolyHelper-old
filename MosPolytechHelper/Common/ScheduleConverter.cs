@@ -11,7 +11,7 @@
 
     class ScheduleConverter : IScheduleConverter
     {
-        #region Constant Keys
+        #region Constants
         const string GroupListKey = "groups";
 
         const string StatusKey = "status";
@@ -39,39 +39,14 @@
 
         const string AuditoriumTitleKey = "title";
         const string AuditoriumColorKey = "color";
-        #endregion Constant Keys
+
+        const int SessionDaysNumber = 20;
+        const int WeekDayNumber = 7;
+        #endregion Constants
 
         ILogger logger;
 
-        public ScheduleConverter(ILoggerFactory loggerFactory)
-        {
-            this.logger = loggerFactory.Create<ScheduleConverter>();
-        }
-
-        public async Task<string[]> ConvertToGroupList(string serializedObj)
-        {
-            return await Task.Run(
-                () => JObject.Parse(serializedObj)[GroupListKey]?.ToObject<JArray>()?.Values<string>().ToArray());
-        }
-
-        public async Task<Schedule> ConvertToFullScheduleAsync(string serializedObj)
-        {
-            return await Task.Run(() =>
-            {
-                var serObj = JObject.Parse(serializedObj);
-                if (serObj[StatusKey]?.ToObject<string>() != "ok")
-                    this.logger.Warn("Status of converted schedule is not \"ok\": {text}", serializedObj);
-
-                bool isSession = serObj[IsSession]?.ToObject<bool>() ??
-                    throw new JsonException($"Key {IsSession} doesn't found");
-                var group = ConvertToGroup(serObj[GroupInfoKey]);
-                var (schedule, firstModuleLastDate, secondModuleEarlyDate) = ConvertToScheduleDict(serObj[ScheduleGridKey]);
-
-                return new Schedule(schedule, group, isSession, firstModuleLastDate, secondModuleEarlyDate);
-            });
-        }
-
-        public Group ConvertToGroup(JToken jToken)
+        Group ConvertToGroup(JToken jToken)
         {
             string title = jToken[GroupTitleKey]?.ToObject<string>();
             var dateFrom = jToken[GroupDateFromKey]?.ToObject<DateTime>();
@@ -97,42 +72,48 @@
             return new Group(title, dateFrom.Value, dateTo.Value, isEvening.Value, comment);
         }
 
-        public (Dictionary<string, Schedule.Daily>, DateTime, DateTime) ConvertToScheduleDict(JToken jToken)
+        Schedule.Daily[] ConvertToScheduleArray(JToken jToken, bool isSession)
         {
-            var serSchedule = jToken?.ToObject<Dictionary<string, JToken>>() ??
+            var serSchedule = jToken as JObject ??
                 throw new JsonException($"Key {ScheduleGridKey} wasn't founded");
-            var firstModuleLastDate = DateTime.MinValue;
-            var secondModuleEarlyDate = DateTime.MaxValue;
-            var schedule = new Dictionary<string, Schedule.Daily>();
-            foreach (var (day, dailyScheduleToken) in serSchedule)
+            var schedule = new List<Schedule.Daily>(isSession ? SessionDaysNumber : WeekDayNumber);
+            var lessonList = new List<Lesson>();
+            // Cycle for each day
+            foreach (var (day, serDailySchedule) in serSchedule)
             {
-                var lessonList = new List<Lesson>();
-                var serDailySchedule = dailyScheduleToken.ToObject<Dictionary<string, JArray>>();
-                foreach (var (index, serLessonList) in serDailySchedule)
+                if (lessonList.Count != 0)
                 {
+                    lessonList = new List<Lesson>();
+                }
+                // Cycle for each position of lesson
+                foreach (var (index, serLessonList) in serDailySchedule as JObject)
+                {
+                    // Cycle for each lesson per position
                     foreach (var serLesson in serLessonList)
                     {
-                        var lesson = ConvertToLesson(serLesson, index);
-                        if (lesson != null)
+                        if (serLesson.Type == JTokenType.Null)
                         {
-                            if (lesson.Module == Module.First && firstModuleLastDate < lesson.DateTo)
-                            {
-                                firstModuleLastDate = lesson.DateTo;
-                            }
-                            else if (lesson.Module == Module.Second && secondModuleEarlyDate > lesson.DateTo)
-                            {
-                                secondModuleEarlyDate = lesson.DateFrom;
-                            }
-                            lessonList.Add(lesson);
+                            continue;
                         }
+                        var lesson = ConvertToLesson(serLesson, index);
+                        if (lesson == null)
+                        {
+                            continue;
+                        }
+                        lessonList.Add(lesson);
                     }
                 }
-                schedule.Add(day, new Schedule.Daily(lessonList.ToArray()));
+                if (lessonList.Count == 0)
+                {
+                    continue;
+                }
+                schedule.Add(new Schedule.Daily(lessonList.ToArray(),
+                    isSession ? DateTime.Parse(day).ToBinary() : long.Parse(day)));
             }
-            return (schedule, firstModuleLastDate, firstModuleLastDate);
+            return schedule.ToArray();
         }
 
-        public Lesson ConvertToLesson(JToken jToken, string index)
+        Lesson ConvertToLesson(JToken jToken, string index)
         {
             string subjectName = jToken[LessonSubjectKey]?.ToObject<string>();
             if (subjectName == null)
@@ -148,8 +129,14 @@
             var dateTo = jToken[LessonDateToKey]?.ToObject<DateTime>();
             if (!dateTo.HasValue)
             {
-                dateFrom = DateTime.MaxValue;
+                dateTo = DateTime.MaxValue;
                 this.logger.Warn($"Key {GroupDateToKey} wasn't founded");
+            }
+            if (dateTo < dateFrom)
+            {
+                var bufDateFrom = dateFrom;
+                dateFrom = dateTo;
+                dateTo = bufDateFrom;
             }
             var auditoriums = ConvertToAuditoriums(jToken[LessonAuditoriumsKey]);
             string type = jToken[LessonTypeKey]?.ToObject<string>();
@@ -160,7 +147,7 @@
                 auditoriums, type, week, module);
         }
 
-        public Module ConvertToModule(JToken jToken)
+        Module ConvertToModule(JToken jToken)
         {
             bool? firstModule = jToken[FirstModuleKey]?.ToObject<bool>();
             bool? secondModule = jToken[SecondModuleKey]?.ToObject<bool>();
@@ -174,7 +161,7 @@
             return Module.None;
         }
 
-        public string[] ConvertToTeachers(JToken jToken)
+        string[] ConvertToTeachers(JToken jToken)
         {
             string teacher = jToken?.ToObject<string>();
             if (string.IsNullOrEmpty(teacher))
@@ -182,7 +169,7 @@
             return teacher?.Split(',', StringSplitOptions.RemoveEmptyEntries);
         }
 
-        public Auditorium[] ConvertToAuditoriums(JToken jToken)
+        Auditorium[] ConvertToAuditoriums(JToken jToken)
         {
             var jArray = (JArray)jToken;
             var auditoriums = new Auditorium[jArray.Count];
@@ -195,7 +182,7 @@
             return auditoriums;
         }
 
-        public WeekType ConvertToWeekType(JToken jToken)
+        WeekType ConvertToWeekType(JToken jToken)
         {
             string week = jToken?.ToObject<string>();
             if (string.IsNullOrEmpty(week))
@@ -205,6 +192,34 @@
             if (week.Contains("even", StringComparison.OrdinalIgnoreCase))
                 return WeekType.Even;
             return WeekType.None;
+        }
+
+        public ScheduleConverter(ILoggerFactory loggerFactory)
+        {
+            this.logger = loggerFactory.Create<ScheduleConverter>();
+        }
+
+        public async Task<string[]> ConvertToGroupList(string serializedObj)
+        {
+            return await Task.Run(
+                () => JObject.Parse(serializedObj)[GroupListKey]?.ToObject<JArray>()?.Values<string>()?.ToArray());
+        }
+
+        public async Task<Schedule> ConvertToScheduleAsync(string serializedObj)
+        {
+            return await Task.Run(() =>
+            {
+                var serObj = JObject.Parse(serializedObj);
+                if (serObj[StatusKey]?.ToObject<string>() != "ok")
+                    this.logger.Warn("Status of converted schedule is not \"ok\": {text}", serializedObj);
+
+                bool isSession = serObj[IsSession]?.ToObject<bool>() ??
+                    throw new JsonException($"Key {IsSession} doesn't found");
+                var group = ConvertToGroup(serObj[GroupInfoKey]);
+                var schedule = ConvertToScheduleArray(serObj[ScheduleGridKey], isSession);
+
+                return new Schedule(schedule, group, isSession, DateTime.Now);
+            });
         }
     }
 }

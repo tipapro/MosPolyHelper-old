@@ -9,7 +9,6 @@
     {
         public event EventHandler CanExecuteChanged;
 
-        private bool isExecuting;
         private readonly Action execute;
         private readonly Func<bool> canExecute;
         private readonly IErrorHandler errorHandler;
@@ -26,7 +25,7 @@
 
         public bool CanExecute()
         {
-            return !this.isExecuting && (this.canExecute?.Invoke() ?? true);
+            return this.canExecute?.Invoke() ?? true;
         }
 
 

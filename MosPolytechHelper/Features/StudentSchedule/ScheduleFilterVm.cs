@@ -4,7 +4,6 @@
     using MosPolytechHelper.Common.Interfaces;
     using MosPolytechHelper.Domain;
     using MosPolytechHelper.Features.Common;
-    using System.Threading.Tasks;
 
     class ScheduleFilterVm : ViewModelBase
     {

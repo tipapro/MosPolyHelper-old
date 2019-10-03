@@ -4,7 +4,7 @@
 
     public interface IDownloader
     {
-        Task<string> DownloadSchedule(string group);
+        Task<string> DownloadSchedule(string group, bool isSession);
 
         Task<string> DownloadGroupListAsync();
     }

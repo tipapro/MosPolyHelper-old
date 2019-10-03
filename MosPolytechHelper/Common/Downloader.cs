@@ -3,7 +3,6 @@
     using MosPolytechHelper.Common.Interfaces;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Net;
     using System.Text.RegularExpressions;
@@ -14,7 +13,7 @@
         ILogger logger;
         CookieContainer cookieContainer;
 
-        async Task GetCookies()
+        async Task GetCookiesAsync()
         {
             var request = (HttpWebRequest)WebRequest.Create("https://rasp.dmami.ru");
             request.Referer = "https://rasp.dmami.ru";
@@ -28,10 +27,13 @@
                     serializedObj = await reader.ReadToEndAsync();
             }
 
-            var regex = new Regex("cookie=\".*?;");
+            var regex = new Regex("cookie=\".*?;"); // TODO: More effective algorithm
             var matches = regex.Matches(serializedObj);
             if (matches.Count == 0)
-                throw new Exception("Cookies ex");
+            {
+                this.logger.Warn("Cookies were not founded {serializedObj}", serializedObj);
+                return;
+            }
             string cookie = matches[0].Value;
             string[] str = cookie.Substring("cookie=\"".Length, cookie.Length - "cookie=\"".Length - 1)
                 .Split('=', StringSplitOptions.RemoveEmptyEntries);
@@ -47,14 +49,16 @@
             this.logger = loggerFactory.Create<Downloader>();
         }
 
-        public async Task<string> DownloadSchedule(string group)
+        public async Task<string> DownloadSchedule(string group, bool isSession)
         {
             if (this.cookieContainer == null)
-                await GetCookies();
+                await GetCookiesAsync();
             this.logger.Debug("Request to download the schedule for {group} group", group);
             if (string.IsNullOrEmpty(group))
                 throw new ArgumentNullException("groupName");
-            var uri = new UriBuilder($"https://rasp.dmami.ru/site/group?group={group}&session=0").Uri;
+            var uri = new UriBuilder($"https://rasp.dmami.ru/site/group?group={group}&session=" + (isSession ? 1 : 0)).Uri;
+            if (isSession)
+                uri = new UriBuilder("https://pastebin.com/raw/Z7ac1iCu").Uri;
             var request = (HttpWebRequest)WebRequest.Create(uri);
             request.CookieContainer = this.cookieContainer;
             request.Referer = uri.Scheme + uri.Host;
@@ -71,8 +75,8 @@
 
         public async Task<string> DownloadGroupListAsync()
         {
-            if(this.cookieContainer == null)
-                await GetCookies();
+            if (this.cookieContainer == null)
+                await GetCookiesAsync();
             var uri = new UriBuilder("https://rasp.dmami.ru/groups-list.json").Uri;
             var request = (HttpWebRequest)WebRequest.Create(uri);
             request.Referer = "https://rasp.dmami.ru/groups-list.json";

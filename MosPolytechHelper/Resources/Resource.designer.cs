@@ -3854,14 +3854,14 @@ namespace MosPolytechHelper
 			// aapt resource value: 0x7F0900B5
 			public const int text2 = 2131296437;
 			
+			// aapt resource value: 0x7F0900C1
+			public const int textinput_counter = 2131296449;
+			
 			// aapt resource value: 0x7F0900C2
-			public const int textinput_counter = 2131296450;
+			public const int textinput_error = 2131296450;
 			
 			// aapt resource value: 0x7F0900C3
-			public const int textinput_error = 2131296451;
-			
-			// aapt resource value: 0x7F0900C4
-			public const int textinput_helper_text = 2131296452;
+			public const int textinput_helper_text = 2131296451;
 			
 			// aapt resource value: 0x7F0900B6
 			public const int textSpacerNoButtons = 2131296438;
@@ -3873,97 +3873,94 @@ namespace MosPolytechHelper
 			public const int textStart = 2131296440;
 			
 			// aapt resource value: 0x7F0900B9
-			public const int textView = 2131296441;
+			public const int text_auditorium = 2131296441;
 			
 			// aapt resource value: 0x7F0900BA
-			public const int text_auditorium = 2131296442;
+			public const int text_group_title = 2131296442;
 			
 			// aapt resource value: 0x7F0900BB
-			public const int text_group_title = 2131296443;
+			public const int text_input_password_toggle = 2131296443;
 			
 			// aapt resource value: 0x7F0900BC
-			public const int text_input_password_toggle = 2131296444;
+			public const int text_null_lesson = 2131296444;
 			
 			// aapt resource value: 0x7F0900BD
-			public const int text_null_lesson = 2131296445;
+			public const int text_student_schedule_date = 2131296445;
 			
 			// aapt resource value: 0x7F0900BE
-			public const int text_student_schedule_date = 2131296446;
+			public const int text_student_schedule_module_and_week_type = 2131296446;
 			
 			// aapt resource value: 0x7F0900BF
-			public const int text_student_schedule_module_and_week_type = 2131296447;
+			public const int text_student_schedule_teachers = 2131296447;
 			
 			// aapt resource value: 0x7F0900C0
-			public const int text_student_schedule_teachers = 2131296448;
+			public const int text_student_schedule_title = 2131296448;
 			
-			// aapt resource value: 0x7F0900C1
-			public const int text_student_schedule_title = 2131296449;
+			// aapt resource value: 0x7F0900C4
+			public const int time = 2131296452;
 			
 			// aapt resource value: 0x7F0900C5
-			public const int time = 2131296453;
+			public const int title = 2131296453;
 			
 			// aapt resource value: 0x7F0900C6
-			public const int title = 2131296454;
+			public const int titleDividerNoCustom = 2131296454;
 			
 			// aapt resource value: 0x7F0900C7
-			public const int titleDividerNoCustom = 2131296455;
+			public const int title_template = 2131296455;
 			
 			// aapt resource value: 0x7F0900C8
-			public const int title_template = 2131296456;
+			public const int toolbar = 2131296456;
 			
 			// aapt resource value: 0x7F0900C9
-			public const int toolbar = 2131296457;
+			public const int top = 2131296457;
 			
 			// aapt resource value: 0x7F0900CA
-			public const int top = 2131296458;
+			public const int topPanel = 2131296458;
 			
 			// aapt resource value: 0x7F0900CB
-			public const int topPanel = 2131296459;
+			public const int touch_outside = 2131296459;
 			
 			// aapt resource value: 0x7F0900CC
-			public const int touch_outside = 2131296460;
+			public const int transition_current_scene = 2131296460;
 			
 			// aapt resource value: 0x7F0900CD
-			public const int transition_current_scene = 2131296461;
+			public const int transition_layout_save = 2131296461;
 			
 			// aapt resource value: 0x7F0900CE
-			public const int transition_layout_save = 2131296462;
+			public const int transition_position = 2131296462;
 			
 			// aapt resource value: 0x7F0900CF
-			public const int transition_position = 2131296463;
+			public const int transition_scene_layoutid_cache = 2131296463;
 			
 			// aapt resource value: 0x7F0900D0
-			public const int transition_scene_layoutid_cache = 2131296464;
+			public const int transition_transform = 2131296464;
 			
 			// aapt resource value: 0x7F0900D1
-			public const int transition_transform = 2131296465;
+			public const int uniform = 2131296465;
 			
 			// aapt resource value: 0x7F0900D2
-			public const int uniform = 2131296466;
+			public const int unlabeled = 2131296466;
 			
 			// aapt resource value: 0x7F0900D3
-			public const int unlabeled = 2131296467;
+			public const int up = 2131296467;
 			
 			// aapt resource value: 0x7F0900D4
-			public const int up = 2131296468;
-			
-			// aapt resource value: 0x7F0900D5
-			public const int useLogo = 2131296469;
-			
-			// aapt resource value: 0x7F0900D7
-			public const int viewpager = 2131296471;
+			public const int useLogo = 2131296468;
 			
 			// aapt resource value: 0x7F0900D6
-			public const int view_offset_helper = 2131296470;
+			public const int viewpager = 2131296470;
+			
+			// aapt resource value: 0x7F0900D5
+			public const int view_offset_helper = 2131296469;
+			
+			// aapt resource value: 0x7F0900D7
+			public const int visible = 2131296471;
 			
 			// aapt resource value: 0x7F0900D8
-			public const int visible = 2131296472;
+			public const int withText = 2131296472;
 			
 			// aapt resource value: 0x7F0900D9
-			public const int withText = 2131296473;
-			
-			// aapt resource value: 0x7F0900DA
-			public const int wrap_content = 2131296474;
+			public const int wrap_content = 2131296473;
 			
 			static Id()
 			{
@@ -4206,49 +4203,49 @@ namespace MosPolytechHelper
 			public const int fragment_schedule = 2131492911;
 			
 			// aapt resource value: 0x7F0C0030
-			public const int fragment_student_schedule = 2131492912;
+			public const int item_auditorium = 2131492912;
 			
 			// aapt resource value: 0x7F0C0031
-			public const int item_auditorium = 2131492913;
+			public const int item_group_list = 2131492913;
 			
 			// aapt resource value: 0x7F0C0032
-			public const int item_group_list = 2131492914;
+			public const int item_student_schedule = 2131492914;
 			
 			// aapt resource value: 0x7F0C0033
-			public const int item_student_schedule = 2131492915;
+			public const int mtrl_layout_snackbar = 2131492915;
 			
 			// aapt resource value: 0x7F0C0034
-			public const int mtrl_layout_snackbar = 2131492916;
+			public const int mtrl_layout_snackbar_include = 2131492916;
 			
 			// aapt resource value: 0x7F0C0035
-			public const int mtrl_layout_snackbar_include = 2131492917;
+			public const int nav_header_main = 2131492917;
 			
 			// aapt resource value: 0x7F0C0036
-			public const int nav_header_main = 2131492918;
+			public const int notification_action = 2131492918;
 			
 			// aapt resource value: 0x7F0C0037
-			public const int notification_action = 2131492919;
+			public const int notification_action_tombstone = 2131492919;
 			
 			// aapt resource value: 0x7F0C0038
-			public const int notification_action_tombstone = 2131492920;
+			public const int notification_template_custom_big = 2131492920;
 			
 			// aapt resource value: 0x7F0C0039
-			public const int notification_template_custom_big = 2131492921;
+			public const int notification_template_icon_group = 2131492921;
 			
 			// aapt resource value: 0x7F0C003A
-			public const int notification_template_icon_group = 2131492922;
+			public const int notification_template_part_chronometer = 2131492922;
 			
 			// aapt resource value: 0x7F0C003B
-			public const int notification_template_part_chronometer = 2131492923;
+			public const int notification_template_part_time = 2131492923;
 			
 			// aapt resource value: 0x7F0C003C
-			public const int notification_template_part_time = 2131492924;
+			public const int popup_schedule_filter = 2131492924;
 			
 			// aapt resource value: 0x7F0C003D
-			public const int popup_schedule_filter = 2131492925;
+			public const int popup_schedule_preferences = 2131492925;
 			
 			// aapt resource value: 0x7F0C003E
-			public const int popup_schedule_preferences = 2131492926;
+			public const int schedule = 2131492926;
 			
 			// aapt resource value: 0x7F0C003F
 			public const int select_dialog_item_material = 2131492927;

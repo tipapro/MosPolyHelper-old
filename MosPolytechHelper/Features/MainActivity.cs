@@ -1,8 +1,7 @@
 ﻿namespace MosPolytechHelper
 {
     using Android.App;
-    using Android.Graphics;
-    using Android.Graphics.Drawables;
+    using Android.Content.Res;
     using Android.OS;
     using Android.Runtime;
     using Android.Support.Design.Widget;
@@ -13,19 +12,16 @@
     using Android.Widget;
     using MosPolytechHelper.Common;
     using MosPolytechHelper.Common.Interfaces;
-    using MosPolytechHelper.Features.Common;
     using MosPolytechHelper.Features.StudentSchedule;
     using System.Threading.Tasks;
 
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
-    public class MainActivity : AppCompatActivity, NavigationView.IOnNavigationItemSelectedListener, IMain
+    public class MainActivity : AppCompatActivity, NavigationView.IOnNavigationItemSelectedListener
     {
         bool doubleBackToExitPressedOnce;
         ILoggerFactory loggerFactory;
         PopupWindow popupPreferences;
         ScheduleFilterView popupFilter;
-
-        DependencyInjector IMain.DependencyInjector { get; set; }
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -35,25 +31,23 @@
             Android.Support.V4.App.ActivityCompat.RequestPermissions(this,
                 new string[] { Android.Manifest.Permission.Internet }, 1234);
 
-            DependencyInjector.SetDiInstance(this);
-            this.loggerFactory = (this as IMain).DependencyInjector.GetILoggerFactory();
+            this.loggerFactory = DependencyInjector.GetILoggerFactory();
 
             SetContentView(Resource.Layout.activity_main);
             var toolbar = FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar);
-
             SetSupportActionBar(toolbar);
-
             var drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             var toggle = new ActionBarDrawerToggle(this, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
             drawer.AddDrawerListener(toggle);
             toggle.SyncState();
+
 
             var navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
             navigationView.SetNavigationItemSelectedListener(this);
             this.SupportFragmentManager.BeginTransaction().
                 Replace(Resource.Id.frame_schedule, ScheduleView.NewInstance()).Commit();
 
-            doubleBackToExitPressedOnce = false;
+            this.doubleBackToExitPressedOnce = false;
         }
 
         public override void OnBackPressed()
@@ -69,7 +63,7 @@
                 this.popupFilter.Dismiss();
                 actionDone = true;
             }
-            
+
             var drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             if (drawer.IsDrawerOpen(GravityCompat.Start))
             {
@@ -78,14 +72,14 @@
             }
             if (!actionDone)
             {
-                if (doubleBackToExitPressedOnce)
+                if (this.doubleBackToExitPressedOnce)
                 {
                     base.OnBackPressed();
                 }
                 else
                 {
                     Toast.MakeText(this, "Please click BACK again to exit", ToastLength.Short).Show();
-                    doubleBackToExitPressedOnce = true;
+                    this.doubleBackToExitPressedOnce = true;
                 }
                 UpdateExitFlag();
             }
@@ -94,13 +88,19 @@
         async void UpdateExitFlag()
         {
             await Task.Delay(2000);
-            doubleBackToExitPressedOnce = false;
+            this.doubleBackToExitPressedOnce = false;
         }
 
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
             this.MenuInflater.Inflate(Resource.Menu.menu_main, menu);
             return true;
+        }
+
+        public override void OnConfigurationChanged(Configuration newConfig)
+        {
+            this.loggerFactory = DependencyInjector.GetILoggerFactory();
+            base.OnConfigurationChanged(newConfig);
         }
 
         public override bool OnOptionsItemSelected(IMenuItem item)
@@ -112,9 +112,13 @@
                 {
                     var inflater = LayoutInflater.From(this);
                     var layout = inflater.Inflate(Resource.Layout.popup_schedule_preferences, null);
-                    this.popupPreferences = new PopupWindow(layout, LinearLayout.LayoutParams.WrapContent, LinearLayout.LayoutParams.WrapContent);
-                    //popupPreferences.ShowAtLocation(FindViewById<RelativeLayout>(Resource.Id.layout_main), GravityFlags.Top | GravityFlags.Right, 0, 0);
-                    this.popupPreferences.OutsideTouchable = true;
+                    this.popupPreferences = new SchedulePreferencesView(layout, LinearLayout.LayoutParams.WrapContent, 
+                        LinearLayout.LayoutParams.WrapContent, this.loggerFactory, DependencyInjector.GetIMediator())
+                    {
+                        //popupPreferences.ShowAtLocation(FindViewById<RelativeLayout>(Resource.Id.layout_main), GravityFlags.Top | GravityFlags.Right, 0, 0);
+                        OutsideTouchable = true,
+                        Focusable = true
+                    };
                 }
                 if (!this.popupPreferences.IsShowing)
                 {
@@ -134,9 +138,12 @@
                 {
                     var inflater = LayoutInflater.From(this);
                     var layout = inflater.Inflate(Resource.Layout.popup_schedule_filter, null);
-                    this.popupFilter = new ScheduleFilterView(layout, LinearLayout.LayoutParams.WrapContent, 
-                        LinearLayout.LayoutParams.WrapContent, loggerFactory, (this as IMain).DependencyInjector.GetIMediator());
-                    this.popupFilter.OutsideTouchable = true;
+                    this.popupFilter = new ScheduleFilterView(layout, LinearLayout.LayoutParams.WrapContent,
+                        LinearLayout.LayoutParams.WrapContent, this.loggerFactory, DependencyInjector.GetIMediator())
+                    {
+                        OutsideTouchable = true,
+                        Focusable = true
+                    };
                 }
                 if (!this.popupFilter.IsShowing)
                 {
@@ -175,15 +182,6 @@
             Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-
-        public ILoggerFactory GetILoggerFactory()
-        {
-            return loggerFactory;
-        }
-        public IMediator<ViewModels, VmMessage> GetIMediator()
-        {
-            return (this as IMain).DependencyInjector.GetIMediator();
         }
     }
 }

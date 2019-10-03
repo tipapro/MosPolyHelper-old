@@ -20,12 +20,10 @@
         #endregion LessonTypeConstants
 
         TextView nullMessage;
-        Schedule.Daily schedule;
+        Schedule.Daily dailySchedule;
         bool desaturateOtherDates;
-        bool isSession;
         DateTime groupDateFrom;
-        DateTime date;
-        (Color, Color)[] colors = new (Color, Color)[]
+        readonly (Color, Color)[] colors = new (Color, Color)[]
         {
             (new Color(233, 89, 73), new Color(248, 214, 211)),   // Red
             (new Color(15, 189, 88), new Color(215, 244, 228)),  // Green
@@ -34,7 +32,7 @@
             (new Color(199, 90, 242), new Color(246, 233, 252)), // Purple
             (new Color(160, 170, 171), new Color(241, 243, 243)),    // DarkGrey
         };
-        Color[] lessonTypeColors = new Color[]
+        readonly Color[] lessonTypeColors = new Color[]
         {
             new Color(246, 96, 171)/* Credit - Pink*/, new Color(248, 79, 22)/* Exam - Red */,
             new Color(59, 185, 255)/* Practice - Blue */, new Color(255, 182, 133)/* Lecture - Yellow */,
@@ -128,25 +126,128 @@
                 lessonLayoutBack.SetStroke(padding2InPx, Color.LightGray);
                 lessonTimeBack.SetStroke(padding2InPx, Color.LightGray);
             }
-
         }
 
-        public void BuildSchedule(Schedule fullSchedule)
+        public override int ItemCount => 
+            this.dailySchedule?.Count ?? 0;
+
+        public DateTime Date { get; set; }
+
+        public RecyclerScheduleAdapter(TextView nullMessage, Schedule.Daily dailySchedule,
+            bool desaturateOtherDates, DateTime groupDateFrom, DateTime date)
         {
-            this.schedule = fullSchedule?.GetSchedule(this.date);
-            this.desaturateOtherDates = fullSchedule?.ScheduleFilter?.DateFitler == DateFilter.Desaturate;
-            if (this.schedule != null && this.schedule.Count != 0)
-            {
-                this.nullMessage.Visibility = ViewStates.Invisible;
-            }
-            else
-            {
-                this.nullMessage.Visibility = ViewStates.Visible;
-            }
+            this.nullMessage = nullMessage;
+            this.dailySchedule = dailySchedule;
+            this.nullMessage.Visibility = this.dailySchedule != null && this.dailySchedule.Count != 0 ?
+                ViewStates.Invisible : ViewStates.Visible;
+            this.desaturateOtherDates = desaturateOtherDates;
+            this.groupDateFrom = groupDateFrom;
+            this.Date = date;
+        }
+
+        public void BuildSchedule(Schedule.Daily dailySchedule, Schedule.Filter scheduleFilter, DateTime date)
+        {
+            this.dailySchedule = dailySchedule;
+            this.Date = date;
+            this.desaturateOtherDates = scheduleFilter?.DateFitler == DateFilter.Desaturate;
+            this.nullMessage.Visibility = this.dailySchedule != null && this.dailySchedule.Count != 0 ?
+                ViewStates.Invisible : ViewStates.Visible;
             NotifyDataSetChanged();
         }
 
-        // Provide a reference to the type of views that you are using (custom ViewHolder)
+        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup viewGroup, int position)
+        {
+            var view = LayoutInflater.From(viewGroup.Context)
+                .Inflate(Resource.Layout.item_student_schedule, viewGroup, false);
+            view.Enabled = false;
+            return new ScheduleViewHolder(view);
+        }
+
+        public override void OnBindViewHolder(RecyclerView.ViewHolder vh, int position)
+        {
+            var lesson = this.dailySchedule?[position];
+            if (lesson == null)
+            {
+                return;
+            }
+            var viewHolder = vh as ScheduleViewHolder;
+
+            if (position == 0)
+            {
+                float scale = viewHolder.LessonLayout.Context.Resources.DisplayMetrics.Density;
+                int padding5InPx = (int)(5 * scale + 0.5f);
+                var layoutParams = viewHolder.LessonLayout.LayoutParameters as LinearLayout.LayoutParams;
+                layoutParams.SetMargins(0, padding5InPx, 0, padding5InPx);
+                viewHolder.LessonLayout.LayoutParameters = layoutParams;
+            }
+
+            var auditoriumsAdapter = new AuditoriumsAdapter(lesson.Auditoriums);
+            SetUpColors(lesson.DateFrom <= this.Date && lesson.DateTo >= this.Date || !this.desaturateOtherDates,
+                viewHolder, auditoriumsAdapter, lesson);
+            // Display dates
+            if (lesson.DateFrom != DateTime.MinValue && lesson.DateTo != DateTime.MaxValue)
+            {
+                string date;
+                if (lesson.DateFrom == lesson.DateTo)
+                {
+                    date = lesson.DateFrom.ToString("d MMM");
+                }
+                else
+                {
+                    date = lesson.DateFrom.ToString("d MMM") + " - " + lesson.DateTo.ToString("d MMM");
+                }
+                viewHolder.LessonDate.SetText(date, TextView.BufferType.Normal);
+            }
+            // Display time
+            string timeStart, timeEnd;
+            (timeStart, timeEnd) = Schedule.Daily.GetLessonTime(lesson.Order, false, this.groupDateFrom);  // To fix
+            string time = timeStart + " - " + timeEnd;
+            viewHolder.LessonTime.SetText(time, TextView.BufferType.Normal);
+            // Display lesson title
+            string title = lesson.SubjectName;
+            viewHolder.LessonTitle.SetText(title, TextView.BufferType.Normal);
+            // Display type of lesson
+            string type = lesson.Type;
+            viewHolder.LessonType.SetText(type, TextView.BufferType.Normal);
+            // Display teachers
+            string teachers = string.Join(", ", lesson.GetShortTeacherNames());
+            viewHolder.LessonTeachers.SetText(teachers, TextView.BufferType.Normal);
+            // Display auditoriums
+            viewHolder.RecyclerAuditorium.SetLayoutManager(
+                new LinearLayoutManager(viewHolder.RecyclerAuditorium.Context, LinearLayoutManager.Horizontal, false));
+            viewHolder.RecyclerAuditorium.SetAdapter(auditoriumsAdapter);
+            // Display type of week
+            string moduleAndWeelType = string.Empty;
+            if (lesson.Week != WeekType.None)
+            {
+                if (lesson.Week == WeekType.Odd)
+                {
+                    moduleAndWeelType = viewHolder.LessonLayout.
+                       Context.Resources.GetString(Resource.String.odd_week);
+                }
+                else
+                {
+                    moduleAndWeelType = viewHolder.LessonLayout.
+                       Context.Resources.GetString(Resource.String.even_week);
+                }
+            }
+            // Display module
+            if (lesson.Module != Module.None)
+            {
+                string module = viewHolder.LessonLayout.Context.Resources.GetString(lesson.Module == Module.First ?
+                    Resource.String.first_module : Resource.String.second_module);
+                if (moduleAndWeelType == string.Empty)
+                {
+                    moduleAndWeelType = module;
+                }
+                else
+                {
+                    moduleAndWeelType = ", " + module;
+                }
+            }
+            viewHolder.LessonModuleAndWeekType.SetText(moduleAndWeelType, TextView.BufferType.Normal);
+        }
+
         public class ScheduleViewHolder : RecyclerView.ViewHolder
         {
             public TextView LessonTime { get; }
@@ -157,7 +258,6 @@
             public RecyclerView RecyclerAuditorium { get; }
             public TextView LessonModuleAndWeekType { get; }
             public TextView LessonDate { get; }
-            //public View LessonLine { get; }
 
             public ScheduleViewHolder(View view) : base(view)
             {
@@ -172,128 +272,6 @@
                 this.LessonLayout = view.FindViewById<RelativeLayout>(Resource.Id.layout_student_schedule);
                 //this.LessonLine = view.FindViewById<View>(Resource.Id.line_student_schedule);
             }
-        }
-
-        // Initialize the dataset of the Adapter
-        public RecyclerScheduleAdapter(TextView nullMessage, Schedule.Daily schedule,
-            bool isSession, bool desaturateOtherDates, DateTime groupDateFrom, DateTime date)
-        {
-            this.nullMessage = nullMessage;
-            this.schedule = schedule;
-            if (this.schedule == null || schedule.Count == 0)
-                this.nullMessage.Visibility = ViewStates.Visible;
-            this.isSession = isSession;
-            this.desaturateOtherDates = desaturateOtherDates;
-            this.groupDateFrom = groupDateFrom;
-            this.date = date;
-        }
-
-        // Create new views (invoked by the layout manager)
-        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup viewGroup, int position)
-        {
-            var view = LayoutInflater.From(viewGroup.Context)
-                .Inflate(Resource.Layout.item_student_schedule, viewGroup, false);
-            view.Enabled = false;
-            return new ScheduleViewHolder(view);
-        }
-
-        // Replace the contents of a view (invoked by the layout manager)
-        public override void OnBindViewHolder(RecyclerView.ViewHolder vh, int position)
-        {
-            var viewHolder = vh as ScheduleViewHolder;
-            // Get element from your dataset at this position and replace the contents of the view
-            // with that element
-            var temp = this.schedule?[position];
-            if (temp == null)
-            {
-                return;
-            }
-
-            string moduleAndWeelType = string.Empty;
-
-            float scale = viewHolder.LessonLayout.
-                   Context.Resources.DisplayMetrics.Density;
-            int padding5InPx = (int)(5 * scale + 0.5f);
-            int padding2InPx = (int)(2 * scale + 0.5f);
-
-            var adapter = new AuditoriumsAdapter(temp.Auditoriums);
-
-            if (position == 0)
-            {
-                var layoutParams = viewHolder.LessonLayout.LayoutParameters as LinearLayout.LayoutParams;
-                layoutParams.SetMargins(0, padding5InPx, 0, padding5InPx);
-                viewHolder.LessonLayout.LayoutParameters = layoutParams;
-            }
-
-            SetUpColors(temp.DateFrom <= this.date && temp.DateTo >= this.date || !this.desaturateOtherDates,
-                viewHolder, adapter, temp);
-
-
-            if (temp.Week == WeekType.Odd)
-            {
-                moduleAndWeelType = viewHolder.LessonLayout.
-                   Context.Resources.GetString(Resource.String.odd_week);
-            }
-            else if (temp.Week == WeekType.Even)
-            {
-                moduleAndWeelType = viewHolder.LessonLayout.
-                   Context.Resources.GetString(Resource.String.even_week);
-            }
-
-            if (temp.Module == Module.First)
-            {
-                string firstModule = viewHolder.LessonLayout.
-                   Context.Resources.GetString(Resource.String.first_module);
-
-                if (moduleAndWeelType == string.Empty)
-                    moduleAndWeelType = firstModule;
-                else
-                    moduleAndWeelType = ", " + firstModule;
-            }
-            else if (temp.Module == Module.Second)
-            {
-                string secondModule = viewHolder.LessonLayout.
-                   Context.Resources.GetString(Resource.String.second_module);
-
-                if (moduleAndWeelType == string.Empty)
-                    moduleAndWeelType = secondModule;
-                else
-                    moduleAndWeelType = ", " + secondModule;
-            }
-            string date;
-            if (temp.DateFrom == temp.DateTo)
-            {
-                date = temp.DateFrom.ToString("d MMM");
-            }
-            else
-            {
-                date = temp.DateFrom.ToString("d MMM") + " - " + temp.DateTo.ToString("d MMM");
-            }
-            string title = temp.SubjectName;
-
-            string timeStart;
-
-            string timeEnd;
-            (timeStart, timeEnd) = Schedule.Daily.GetLessonTime(temp.Order, this.isSession, this.groupDateFrom);
-            string type = temp.Type;
-            string teachers = string.Join(", ", temp.GetShortTeacherNames());
-
-            viewHolder.RecyclerAuditorium.SetLayoutManager(
-                new LinearLayoutManager(viewHolder.LessonTime.Context, LinearLayoutManager.Horizontal, false));
-            viewHolder.RecyclerAuditorium.SetAdapter(adapter);
-            viewHolder.LessonTitle.SetText(title, TextView.BufferType.Normal);
-            string time = timeStart + " - " + timeEnd;
-            viewHolder.LessonTime.SetText(time, TextView.BufferType.Normal);
-            viewHolder.LessonType.SetText(type, TextView.BufferType.Normal);
-            viewHolder.LessonTeachers.SetText(teachers, TextView.BufferType.Normal);
-            viewHolder.LessonModuleAndWeekType.SetText(moduleAndWeelType, TextView.BufferType.Normal);
-            viewHolder.LessonDate.SetText(date, TextView.BufferType.Normal);
-        }
-
-        // Return the size of your dataset (invoked by the layout manager)
-        public override int ItemCount
-        {
-            get => this.schedule?.Count ?? 0;
         }
     }
 }

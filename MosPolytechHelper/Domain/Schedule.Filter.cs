@@ -3,26 +3,55 @@
     using System;
     using System.Collections.Generic;
 
-    public partial class Schedule : IEnumerable<KeyValuePair<string, Schedule.Daily>>
+    public partial class Schedule : IEnumerable<Schedule.Daily>
     {
         public class Filter
         {
-            static Filter empty;
-
-
-            Module DetermineModule(DateTime date, DateTime firstModuleLastDate, DateTime secondModuleEarlyDate)
+            Module DetermineModule(Schedule.Daily dailySchedule, DateTime date)
             {
-                if (firstModuleLastDate == DateTime.MinValue && secondModuleEarlyDate == DateTime.MaxValue)
+                (int Currently, int Outdated) firstModuleCounter = (0, 0), secondModuleCounter = (0, 0);
+                foreach (var lesson in dailySchedule)
                 {
-                    return Module.None;
+                    if (lesson.Module == Module.None)
+                    {
+                        continue;
+                    }
+                    if (date >= lesson.DateFrom && date <= lesson.DateTo)
+                    {
+                        if (lesson.Module == Module.First)
+                        {
+                            firstModuleCounter.Currently++;
+                        }
+                        else
+                        {
+                            secondModuleCounter.Currently++;
+                        }
+                    }
+                    else
+                    {
+                        if (lesson.Module == Module.First)
+                        {
+                            firstModuleCounter.Outdated++;
+                        }
+                        else
+                        {
+                            secondModuleCounter.Outdated++;
+                        }
+                    }
                 }
-                if (date <= firstModuleLastDate)
+                if (secondModuleCounter.Currently == 0)
                 {
-                    return Module.First;
+                    if (firstModuleCounter.Currently != 0 || secondModuleCounter.Outdated != 0)
+                    {
+                        return Module.First;
+                    }
                 }
-                if (date >= secondModuleEarlyDate)
+                if (firstModuleCounter.Currently == 0)
                 {
-                    return Module.Second;
+                    if (secondModuleCounter.Currently != 0 || firstModuleCounter.Outdated != 0)
+                    {
+                        return Module.Second;
+                    }
                 }
                 return Module.None;
             }
@@ -36,7 +65,7 @@
                 const int FirstDay = 213;   // 1st August (or 31st July for leap year) 
                 int firstDayYear = date.Year - FirstDay / date.DayOfYear;
                 var firstDayDate = new DateTime(firstDayYear, 8, 1);
-                var timeSpan = (GetFirstWeekDay(firstDayDate) - GetFirstWeekDay(date)).Days;
+                int timeSpan = (GetFirstWeekDay(firstDayDate) - GetFirstWeekDay(date)).Days;
                 if ((timeSpan % 2 == 0) == (this.FirstWeekType == WeekType.Even))
                 {
                     return WeekType.Even;
@@ -56,17 +85,8 @@
                 return date.AddDays((int)DayOfWeek.Monday - (int)dayOfWeek);
             }
 
-            public static Filter Empty
-            {
-                get
-                {
-                    if (empty == null)
-                    {
-                        empty = new Filter(DateFilter.Show, ModuleFilter.Off, WeekFilter.Off, false, WeekType.None);
-                    }
-                    return empty;
-                }
-            }
+            public static Filter Empty =>
+                new Filter(DateFilter.Show, ModuleFilter.Off, WeekFilter.Off, false, WeekType.None);
 
             public DateFilter DateFitler { get; set; }
             public ModuleFilter ModuleFilter { get; set; }
@@ -74,11 +94,14 @@
             public WeekType FirstWeekType { get; set; }
             public bool SessionFilter { get; set; }
 
-            public Schedule.Daily GetFilteredSchedule(Schedule.Daily dailySchedule, DateTime date,
-                DateTime firstModuleLastDate, DateTime secondModuleEarlyDate)
+            public Schedule.Daily GetFilteredSchedule(Schedule.Daily dailySchedule, DateTime date)
             {
+                if (dailySchedule == null)
+                {
+                    return null;
+                }
                 var lessonList = new List<Lesson>(dailySchedule.Count);
-                var currModule = DetermineModule(date, firstModuleLastDate, secondModuleEarlyDate);
+                var currModule = DetermineModule(dailySchedule, date);
                 var currWeek = DetermineWeekType(date);
                 foreach (var lesson in dailySchedule)
                 {
@@ -123,11 +146,9 @@
                         }
                     }
 
-
-                        lessonList.Add(lesson);
-                    
+                    lessonList.Add(lesson);
                 }
-                return new Schedule.Daily(lessonList.ToArray());
+                return new Schedule.Daily(lessonList.ToArray(), dailySchedule.Day);
             }
 
             public Filter(DateFilter dateFilter, ModuleFilter moduleFilter, WeekFilter weekFilter, bool sessionFilter, WeekType firstWeekType)

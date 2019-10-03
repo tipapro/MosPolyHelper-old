@@ -1,20 +1,27 @@
 ﻿namespace MosPolytechHelper.Domain
 {
+    using Newtonsoft.Json;
     using System;
     using System.Collections;
     using System.Collections.Generic;
 
-    public partial class Schedule : IEnumerable<KeyValuePair<string, Schedule.Daily>>
+    public partial class Schedule : IEnumerable<Schedule.Daily>
     {
+        [JsonObject]
         public class Daily : IEnumerable<Lesson>
         {
+            [JsonProperty]
             Lesson[] schedule { get; set; }
 
+            [JsonProperty]
+            public long Day { get; set; }
+            [JsonIgnore]
             public int Count => this.schedule.Length;
 
-            public Daily(Lesson[] schedule)
+            public Daily(Lesson[] schedule, long day)
             {
                 this.schedule = schedule;
+                this.Day = day;
             }
 
             public override bool Equals(object obj)

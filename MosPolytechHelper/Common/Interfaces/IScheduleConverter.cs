@@ -5,7 +5,7 @@
 
     public interface IScheduleConverter
     {
-        Task<Schedule> ConvertToFullScheduleAsync(string serializedObj);
+        Task<Schedule> ConvertToScheduleAsync(string serializedObj);
         Task<string[]> ConvertToGroupList(string serializedObj);
     }
 }
