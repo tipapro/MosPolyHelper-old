@@ -12,6 +12,7 @@
         SchedulePreferencesVm viewModel;
         Spinner scheduleTargetPreference;
         Spinner scheduleTypePreference;
+        Button scheduleGoToScheduleManager;
 
         void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -19,10 +20,10 @@
             {
                 // TODO: Replace on properties
                 case nameof(this.viewModel.ScheduleTarget):
-                    scheduleTargetPreference.SetSelection((int)this.viewModel.ScheduleTarget);
+                    this.scheduleTargetPreference.SetSelection((int)this.viewModel.ScheduleTarget);
                     break;
                 case nameof(this.viewModel.ScheduleType):
-                    scheduleTypePreference.SetSelection((int)this.viewModel.ScheduleType);
+                    this.scheduleTypePreference.SetSelection((int)this.viewModel.ScheduleType);
                     break;
                 default:
                     // TODO: Change this
@@ -36,16 +37,12 @@
             : base(contentView, width, height)
         {
             this.viewModel = new SchedulePreferencesVm(loggerFactory, mediator);
-        }
 
 
-        public override void ShowAsDropDown(View anchor, int xoff, int yoff, [GeneratedEnum] GravityFlags gravity)
-        {
-            var prefs = this.ContentView.Context.GetSharedPreferences("SchedulePreferences", Android.Content.FileCreationMode.Private);
-            var prefsEditor = prefs.Edit();
+            var prefs = contentView.Context.GetSharedPreferences("SchedulePreferences", Android.Content.FileCreationMode.Private);
 
-            this.scheduleTargetPreference = this.ContentView.FindViewById<Spinner>(Resource.Id.spinner_schedule_target);
-            var dateFilter = prefs.GetInt("ScheduleTargetPreference", 0);
+            this.scheduleTargetPreference = contentView.FindViewById<Spinner>(Resource.Id.spinner_schedule_target);
+            int dateFilter = prefs.GetInt("ScheduleTargetPreference", 0);
             this.scheduleTargetPreference.SetSelection(dateFilter);
             this.scheduleTargetPreference.ItemSelected += (obj, arg) =>
             {
@@ -53,13 +50,12 @@
                 if (dateFilter != arg.Position)
                 {
                     dateFilter = arg.Position;
-                    prefsEditor.PutInt("ScheduleTargetPreference", arg.Position);
-                    prefsEditor.Apply();
+                    prefs.Edit().PutInt("ScheduleTargetPreference", arg.Position).Apply();
                 }
             };
 
-            this.scheduleTypePreference = this.ContentView.FindViewById<Spinner>(Resource.Id.spinner_schedule_type);
-            var moduleFilter = prefs.GetInt("ScheduleTypePreference", 0);
+            this.scheduleTypePreference = contentView.FindViewById<Spinner>(Resource.Id.spinner_text_schedule_type);
+            int moduleFilter = prefs.GetInt("ScheduleTypePreference", 0);
             this.scheduleTypePreference.SetSelection(moduleFilter);
             this.scheduleTypePreference.ItemSelected += (obj, arg) =>
             {
@@ -67,11 +63,16 @@
                 if (moduleFilter != arg.Position)
                 {
                     moduleFilter = arg.Position;
-                    prefsEditor.PutInt("ScheduleTypePreference", arg.Position);
-                    prefsEditor.Apply();
+                    prefs.Edit().PutInt("ScheduleTypePreference", arg.Position).Apply();
                 }
             };
-            base.ShowAsDropDown(anchor, xoff, yoff, gravity);
+
+            this.scheduleGoToScheduleManager = contentView.FindViewById<Button>(Resource.Id.button_goto_schedule_manager);
+            this.scheduleGoToScheduleManager.Click += (obj, arg) =>
+            {
+                this.viewModel.ButtonGoToScheduleManagerClicked.Execute(null);
+                Dismiss();
+            };
         }
     }
 }

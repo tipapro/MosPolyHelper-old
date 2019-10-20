@@ -1,38 +1,43 @@
 ﻿namespace MosPolytechHelper.Domain
 {
     using Newtonsoft.Json;
+    using ProtoBuf;
     using System;
     using System.Collections;
     using System.Collections.Generic;
 
     public partial class Schedule : IEnumerable<Schedule.Daily>
     {
-        [JsonObject]
-        public class Daily : IEnumerable<Lesson>
+        [ProtoContract(IgnoreListHandling = true)]
+        public class Daily// : IEnumerable<Lesson>
         {
-            [JsonProperty]
-            Lesson[] schedule { get; set; }
+            [ProtoMember(1)]
+            Lesson[] lessons { get; set; }
 
-            [JsonProperty]
-            public long Day { get; set; }
-            [JsonIgnore]
-            public int Count => this.schedule.Length;
-
-            public Daily(Lesson[] schedule, long day)
+            Daily()
             {
-                this.schedule = schedule;
+            }
+
+            [ProtoMember(2)]
+            public long Day { get; set; }
+            [ProtoIgnore]
+            public int Count => this.lessons.Length;
+
+            public Daily(Lesson[] lessons, long day)
+            {
+                this.lessons = lessons;
                 this.Day = day;
             }
 
             public override bool Equals(object obj)
             {
-                if (!(obj is Daily otherSchedule))
+                if (!(obj is Daily dailySch2))
                     return false;
-                if (this.schedule.Length != otherSchedule.schedule.Length)
+                if (this.lessons.Length != dailySch2.lessons.Length)
                     return false;
-                for (int i = 0; i < this.schedule.Length; i++)
+                for (int i = 0; i < this.lessons.Length; i++)
                 {
-                    if (!this.schedule[i].Equals(otherSchedule.schedule[i]))
+                    if (!this.lessons[i].Equals(dailySch2.lessons[i]))
                         return false;
                 }
                 return true;
@@ -40,70 +45,30 @@
             public override int GetHashCode()
             {
                 string hashCode = string.Empty;
-                foreach (var lesson in this.schedule)
+                foreach (var lesson in this.lessons)
                 {
-                    hashCode += lesson.SubjectName;
+                    hashCode += lesson.GetHashCode();
                 }
-
-                return hashCode.GetHashCode();
+                return (hashCode + this.Day).GetHashCode();
             }
 
-            IEnumerator<Lesson> IEnumerable<Lesson>.GetEnumerator() =>
-                ((IEnumerable<Lesson>)this.schedule).GetEnumerator();
-            IEnumerator IEnumerable.GetEnumerator() =>
-                this.schedule.GetEnumerator();
+            public Lesson GetLesson(int position)
+            {
+                return this[position];
+            }
+
+            public IEnumerator<Lesson> GetEnumerator()
+            {
+                foreach (var lesson in this.lessons)
+                {
+                    yield return lesson;
+                }
+            }
 
             public Lesson this[int index]
             {
-                get => this.schedule[index];
-                set => this.schedule[index] = value;
-            }
-
-            public static (string, string) GetLessonTime(int lessonPosition, bool groupIsEvening, DateTime groupDateFrom)
-            {
-                switch (lessonPosition)
-                {
-                    case 0:
-                        return ("9:00", "10:30");
-                    case 1:
-                        return ("10:40", "12:10");
-                    case 2:
-                        return ("12:20", "13:50");
-                    case 3:
-                        return ("14:30", "16:00");
-                    case 4:
-                        return ("16:10", "17:40");
-                    case 5:
-                        if (groupIsEvening)
-                        {
-                            // TODO: Fix for evening 1
-                            if (groupDateFrom >= new DateTime(2018, 1, 22))
-                                return ("18:30", "20:00"); // TODO: 2018 year!!! Fix
-                            return ("18:20", "19:40");
-                        }
-                        else
-                        {
-                            return ("17:50", "19:20");
-                        }
-
-                    case 6:
-                        if (groupIsEvening)
-                        {
-                            // TODO: Fix for evening 2
-                            if (groupDateFrom >= new DateTime(2018, 1, 22))
-                                return ("20:10", "21:40");  // TODO: 2018 year!!! Fix
-                            return ("19:50", "21:10");
-                        }
-                        else
-                        {
-                            return ("19:30", "21:00");
-                        }
-
-                    default:
-                        //this.logger.Warn("Suspicious behavior: Unplanned lesson number {num}. " +
-                        //"Additional data: {groupIsEvening}, {groupDateFrom}", lessonPosition, groupIsEvening, groupDateFrom);
-                        return (null, null);
-                }
+                get => this.lessons[index];
+                set => this.lessons[index] = value;
             }
         }
     }

@@ -85,7 +85,7 @@
                 return date.AddDays((int)DayOfWeek.Monday - (int)dayOfWeek);
             }
 
-            public static Filter Empty =>
+            public static Filter DefaultFilter =>
                 new Filter(DateFilter.Show, ModuleFilter.Off, WeekFilter.Off, false, WeekType.None);
 
             public DateFilter DateFitler { get; set; }
@@ -93,6 +93,19 @@
             public WeekFilter WeekFilter { get; set; }
             public WeekType FirstWeekType { get; set; }
             public bool SessionFilter { get; set; }
+
+            public Filter() : this(DateFilter.Show, ModuleFilter.Off, WeekFilter.Off, false, WeekType.None)
+            {
+            }
+
+            public Filter(DateFilter dateFilter, ModuleFilter moduleFilter, WeekFilter weekFilter, 
+                bool sessionFilter, WeekType firstWeekType)
+            {
+                this.DateFitler = dateFilter;
+                this.ModuleFilter = moduleFilter;
+                this.WeekFilter = weekFilter;
+                this.SessionFilter = sessionFilter;
+            }
 
             public Schedule.Daily GetFilteredSchedule(Schedule.Daily dailySchedule, DateTime date)
             {
@@ -150,15 +163,6 @@
                 }
                 return new Schedule.Daily(lessonList.ToArray(), dailySchedule.Day);
             }
-
-            public Filter(DateFilter dateFilter, ModuleFilter moduleFilter, WeekFilter weekFilter, bool sessionFilter, WeekType firstWeekType)
-            {
-                this.DateFitler = dateFilter;
-                this.ModuleFilter = moduleFilter;
-                this.WeekFilter = weekFilter;
-                this.SessionFilter = sessionFilter;
-            }
-
         }
     }
     public enum ModuleFilter

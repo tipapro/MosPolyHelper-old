@@ -1,6 +1,5 @@
 ﻿namespace MosPolytechHelper.Features.StudentSchedule
 {
-    using Android.Content;
     using Android.Runtime;
     using Android.Views;
     using Android.Widget;
@@ -21,13 +20,13 @@
             {
                 // TODO: Replace on properties
                 case nameof(this.viewModel.DateFilter):
-                    scheduleDateFilter.SetSelection((int)this.viewModel.DateFilter);
+                    this.scheduleDateFilter.SetSelection((int)this.viewModel.DateFilter);
                     break;
                 case nameof(this.viewModel.ModuleFilter):
-                    scheduleModuleFilter.SetSelection((int)this.viewModel.ModuleFilter);
+                    this.scheduleModuleFilter.SetSelection((int)this.viewModel.ModuleFilter);
                     break;
                 case nameof(this.viewModel.SessionFilter):
-                    scheduleSessionFilter.Checked = this.viewModel.SessionFilter;
+                    this.scheduleSessionFilter.Checked = this.viewModel.SessionFilter;
                     break;
                 default:
                     // TODO: Change this
@@ -41,17 +40,10 @@
             : base(contentView, width, height)
         {
             this.viewModel = new ScheduleFilterVm(loggerFactory, mediator);
-        }
+            var prefs = contentView.Context.GetSharedPreferences("SchedulePreferences", Android.Content.FileCreationMode.Private);
 
-
-
-        public override void ShowAsDropDown(View anchor, int xoff, int yoff, [GeneratedEnum] GravityFlags gravity)
-        {
-            var prefs = this.ContentView.Context.GetSharedPreferences("SchedulePreferences", Android.Content.FileCreationMode.Private);
-            var prefsEditor = prefs.Edit();
-
-            this.scheduleDateFilter = this.ContentView.FindViewById<Spinner>(Resource.Id.spinner_schedule_date_filter);
-            var dateFilter = prefs.GetInt("ScheduleDateFilter", 0);
+            this.scheduleDateFilter = contentView.FindViewById<Spinner>(Resource.Id.spinner_schedule_date_filter);
+            int dateFilter = prefs.GetInt("ScheduleDateFilter", 0);
             this.scheduleDateFilter.SetSelection(dateFilter);
             this.scheduleDateFilter.ItemSelected += (obj, arg) =>
             {
@@ -59,13 +51,12 @@
                 if (dateFilter != arg.Position)
                 {
                     dateFilter = arg.Position;
-                    prefsEditor.PutInt("ScheduleDateFilter", arg.Position);
-                    prefsEditor.Apply();
+                    prefs.Edit().PutInt("ScheduleDateFilter", arg.Position).Apply();
                 }
             };
 
-            this.scheduleModuleFilter = this.ContentView.FindViewById<Spinner>(Resource.Id.spinner_schedule_module_filter);
-            var moduleFilter = prefs.GetInt("ScheduleModuleFilter", 0);
+            this.scheduleModuleFilter = contentView.FindViewById<Spinner>(Resource.Id.spinner_schedule_module_filter);
+            int moduleFilter = prefs.GetInt("ScheduleModuleFilter", 0);
             this.scheduleModuleFilter.SetSelection(moduleFilter);
             this.scheduleModuleFilter.ItemSelected += (obj, arg) =>
             {
@@ -73,13 +64,12 @@
                 if (moduleFilter != arg.Position)
                 {
                     moduleFilter = arg.Position;
-                    prefsEditor.PutInt("ScheduleModuleFilter", arg.Position);
-                    prefsEditor.Apply();
+                    prefs.Edit().PutInt("ScheduleModuleFilter", arg.Position).Apply();
                 }
             };
 
-            this.scheduleSessionFilter = this.ContentView.FindViewById<Switch>(Resource.Id.switch_schedule_session_filter);
-            var sessionFilter = prefs.GetBoolean("ScheduleSessionFilter", false);
+            this.scheduleSessionFilter = contentView.FindViewById<Switch>(Resource.Id.switch_schedule_session_filter);
+            bool sessionFilter = prefs.GetBoolean("ScheduleSessionFilter", false);
             this.scheduleSessionFilter.Checked = sessionFilter;
             this.scheduleSessionFilter.CheckedChange += (obj, arg) =>
             {
@@ -87,14 +77,9 @@
                 if (sessionFilter != arg.IsChecked)
                 {
                     sessionFilter = arg.IsChecked;
-                    prefsEditor.PutBoolean("ScheduleSessionFilter", arg.IsChecked);
-                    prefsEditor.Apply();
+                    prefs.Edit().PutBoolean("ScheduleSessionFilter", arg.IsChecked).Apply();
                 }
             };
-
-            base.ShowAsDropDown(anchor, xoff, yoff, gravity);
-
-
         }
     }
 }

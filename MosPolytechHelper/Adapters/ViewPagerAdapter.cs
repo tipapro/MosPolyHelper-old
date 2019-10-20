@@ -20,12 +20,35 @@
         {
             if (isSession)
             {
+                if (this.schedule != null)
+                {
+                    var firstDailySchedule = this.schedule.GetSchedule(0);
+                    var lastDailySchedule = this.schedule.GetSchedule(this.schedule.Count - 1);
+                    if (firstDailySchedule == null || lastDailySchedule == null)
+                    {
+                        this.FirstPos = 0;
+                        return;
+                    }
+                    var firstDay = DateTime.FromBinary(firstDailySchedule.Day);
+                    var lastDay = DateTime.FromBinary(lastDailySchedule.Day);
+                    if (DateTime.Today < firstDay)
+                    {
+                        this.FirstPos = 0;
+                        return;
+                    }
+                    if (DateTime.Today > lastDay)
+                    {
+                        this.FirstPos = this.count - 1;
+                        return;
+                    }
+                    this.FirstPos = (DateTime.Today - firstDay).Days;
+                    return;
+                }
                 this.FirstPos = 0;
+                return;
             }
-            else
-            {
-                this.FirstPos = DateTime.Today.DayOfYear;
-            }
+            this.FirstPos = 366;
+            return;
         }
 
         public int FirstPos { get; private set; }
@@ -47,27 +70,16 @@
             var prev = this.schedule;
             this.schedule = schedule;
             SetCount(schedule);
-            SetFirstPos(schedule.IsSession);
-
+            if (this.schedule != null)
+            {
+                SetFirstPos(schedule.IsSession);
+            }
             if (prev == null && schedule != null)
             {
                 NotifyDataSetChanged();
             }
-
         }
 
-        public void UpdateSchedule2(Schedule schedule)
-        {
-            //this.recyclerAdapter[0]?.BuildSchedule(schedule?.GetSchedule(this.recyclerAdapter[0].Date),
-            //    schedule.ScheduleFilter);
-            //this.recyclerAdapter[1]?.BuildSchedule(schedule?.GetSchedule(this.recyclerAdapter[1].Date),
-            //    schedule.ScheduleFilter);
-            //this.recyclerAdapter[2]?.BuildSchedule(schedule?.GetSchedule(this.recyclerAdapter[2].Date),
-            //    schedule.ScheduleFilter);
-            NotifyDataSetChanged();
-        }
-
-        // TODO: Below
         public override int Count
         {
             get
@@ -89,7 +101,7 @@
             }
             else
             {
-                this.count = 400;
+                this.count = 366 * 2;
             }
             NotifyDataSetChanged();
         }
@@ -110,13 +122,13 @@
                 return new Java.Lang.String(DateTime.Today.AddDays(position - this.FirstPos).ToString("ddd d MMM"));
             }
         }
-        int counter;
+
         public override Object InstantiateItem(ViewGroup container, int position)
         {
             if (this.views[position % 3] == null)
             {
                 var inflater = LayoutInflater.From(container.Context);
-                var layout = (ViewGroup)inflater.Inflate(Resource.Layout.schedule, container, false);
+                var layout = (ViewGroup)inflater.Inflate(Resource.Layout.page_schedule, container, false);
                 this.views[position % 3] = layout;
                 container.AddView(this.views[position % 3]);
             }
@@ -127,19 +139,21 @@
                         DateTime.Today.AddDays(position - this.FirstPos);
             if (this.recyclerAdapter[position % 3] == null)
             {
-                
                 var recyclerAdapter = new RecyclerScheduleAdapter(
-                       this.views[position % 3].FindViewById<TextView>(Resource.Id.text_null_lesson), this.schedule?.GetSchedule(date),
-                        this.schedule?.ScheduleFilter?.DateFitler == DateFilter.Desaturate, DateTime.MinValue, date); // TODO: Change it
+                       this.views[position % 3].FindViewById<TextView>(Resource.Id.text_null_lesson),
+                       this.schedule?.GetSchedule(date),
+                       this.schedule?.ScheduleFilter?.DateFitler == DateFilter.Desaturate,
+                       DateTime.MinValue, date, this.schedule?.Group.IsEvening ?? false); // TODO: Change it
                 this.recyclerAdapter[position % 3] = recyclerAdapter;
-                var recyclerView = this.views[position % 3].FindViewById<RecyclerView>(Resource.Id.recycler_student_schedule);
+                var recyclerView = this.views[position % 3].FindViewById<RecyclerView>(Resource.Id.recycler_schedule);
+                recyclerView.SetItemAnimator(null);
                 recyclerView.SetLayoutManager(new LinearLayoutManager(container.Context));
                 recyclerView.SetAdapter(this.recyclerAdapter[position % 3]);
             }
             else
             {
-                this.recyclerAdapter[position % 3].BuildSchedule(schedule?.GetSchedule(date),
-                schedule.ScheduleFilter, date);
+                this.recyclerAdapter[position % 3].BuildSchedule(this.schedule?.GetSchedule(date),
+                this.schedule.ScheduleFilter, date);
             }
             return this.views[position % 3];
         }

@@ -34,16 +34,16 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
+    <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
     <AndroidLinkMode>None</AndroidLinkMode>
-    <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
     <AotAssemblies>false</AotAssemblies>
     <EnableLLVM>false</EnableLLVM>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
     <BundleAssemblies>false</BundleAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugSymbols>True</DebugSymbols>
+    <DebugSymbols>false</DebugSymbols>
     <DebugType>portable</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -53,7 +53,12 @@
     <AndroidManagedSymbols>true</AndroidManagedSymbols>
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
     <AndroidLinkMode>SdkOnly</AndroidLinkMode>
-    <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <AotAssemblies>false</AotAssemblies>
+    <EnableLLVM>false</EnableLLVM>
+    <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
+    <BundleAssemblies>false</BundleAssemblies>
+    <MandroidI18n />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -64,8 +69,8 @@
     <Reference Include="System.Numerics.Vectors" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Adapters\AuditoriumsAdapter.cs" />
     <Compile Include="Adapters\RecyclerScheduleAdapter.cs" />
+    <Compile Include="Adapters\RecyclerScheduleManagerAdapter.cs" />
     <Compile Include="Adapters\ViewPagerAdapter.cs" />
     <Compile Include="Common\AsyncCommand.cs" />
     <Compile Include="Common\Command.cs" />
@@ -85,6 +90,7 @@
     <Compile Include="Common\LoggerFactory.cs" />
     <Compile Include="Common\Mediator.cs" />
     <Compile Include="Common\NLogger.cs" />
+    <Compile Include="Common\ProtoConverter.cs" />
     <Compile Include="Common\ScheduleConverter.cs" />
     <Compile Include="Domain\Auditorium.cs" />
     <Compile Include="Domain\Schedule.Filter.cs" />
@@ -93,12 +99,17 @@
     <Compile Include="Domain\Group.cs" />
     <Compile Include="Domain\Lesson.cs" />
     <Compile Include="Domain\Module.cs" />
+    <Compile Include="Domain\Teacher.cs" />
     <Compile Include="Domain\WeekType.cs" />
+    <Compile Include="Features\Common\FragmentBase.cs" />
     <Compile Include="Features\Common\ViewModelBase.cs" />
     <Compile Include="Features\Common\ViewModels.cs" />
     <Compile Include="Features\Common\VmMessage.cs" />
+    <Compile Include="Features\StudentSchedule\Common\ScheduleFragments.cs" />
     <Compile Include="Features\StudentSchedule\ScheduleFilterView.cs" />
     <Compile Include="Features\StudentSchedule\ScheduleFilterVm.cs" />
+    <Compile Include="Features\StudentSchedule\ScheduleManagerView.cs" />
+    <Compile Include="Features\StudentSchedule\ScheduleManagerVm.cs" />
     <Compile Include="Features\StudentSchedule\ScheduleModel.cs" />
     <Compile Include="Features\StudentSchedule\SchedulePreferencesView.cs" />
     <Compile Include="Features\StudentSchedule\SchedulePreferencesVm.cs" />
@@ -141,7 +152,7 @@
     <AndroidResource Include="Resources\drawable-v21\ic_menu_share.xml" />
     <AndroidResource Include="Resources\drawable-v21\ic_menu_slideshow.xml" />
     <AndroidResource Include="Resources\menu\activity_main_drawer.xml" />
-    <AndroidResource Include="Resources\menu\menu_main.xml" />
+    <AndroidResource Include="Resources\menu\menu_schedule.xml" />
     <AndroidResource Include="Resources\mipmap-anydpi-v26\ic_launcher.xml" />
     <AndroidResource Include="Resources\mipmap-anydpi-v26\ic_launcher_round.xml" />
     <AndroidResource Include="Resources\mipmap-hdpi\ic_launcher.png" />
@@ -167,17 +178,20 @@
     <PackageReference Include="NLog">
       <Version>4.6.7</Version>
     </PackageReference>
+    <PackageReference Include="protobuf-net">
+      <Version>3.0.0-alpha.91</Version>
+    </PackageReference>
     <PackageReference Include="Xamarin.Android.Support.Core.Utils">
-      <Version>28.0.0.1</Version>
+      <Version>28.0.0.3</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Android.Support.CustomTabs">
-      <Version>28.0.0.1</Version>
+      <Version>28.0.0.3</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Android.Support.Design">
-      <Version>28.0.0.1</Version>
+      <Version>28.0.0.3</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Essentials">
-      <Version>1.3.0</Version>
+      <Version>1.3.1</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -196,24 +210,16 @@
     <AndroidResource Include="Resources\layout\fragment_schedule.xml" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\schedule.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\layout\item_auditorium.xml" />
+    <AndroidResource Include="Resources\layout\page_schedule.xml" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\item_group_list.xml" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\item_student_schedule.xml" />
+    <AndroidResource Include="Resources\layout\item_schedule.xml" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\ic_filter_24dp.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\border_lesson_type.xml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\popup_schedule_preferences.xml">
@@ -235,6 +241,42 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\ic_preferences_24dp.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\toolbar_schedule.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\menu\menu_main.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\fragment_schedule_manager.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\item_schedule_manager.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\refresh_24px.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\delete_24px.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\expand_less_24px.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\expand_more_24px.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\border_lesson_time.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

@@ -1,6 +1,7 @@
 ﻿using MosPolytechHelper.Common;
 using MosPolytechHelper.Common.Interfaces;
 using MosPolytechHelper.Features.Common;
+using MosPolytechHelper.Features.StudentSchedule.Common;
 
 namespace MosPolytechHelper.Features.StudentSchedule
 {
@@ -24,6 +25,7 @@ namespace MosPolytechHelper.Features.StudentSchedule
 
         public ICommand ScheduleTargetSelected { get; set; }
         public ICommand ScheduleTypeSelected { get; set; }
+        public ICommand ButtonGoToScheduleManagerClicked { get; set; }
 
         public SchedulePreferencesVm(ILoggerFactory loggerFactory, IMediator<ViewModels, VmMessage> mediator)
             : base(mediator, ViewModels.SchedulePreferences)
@@ -31,6 +33,7 @@ namespace MosPolytechHelper.Features.StudentSchedule
             this.logger = loggerFactory.Create<SchedulePreferencesVm>();
             this.ScheduleTargetSelected = new Command<ScheduleTarget>(ChangeScheduleTarget);
             this.ScheduleTypeSelected = new Command<ScheduleType>(ChangeScheduleType);
+            this.ButtonGoToScheduleManagerClicked = new Command(GoToScheduleManagerFrament);
         }
 
         public void ChangeScheduleTarget(ScheduleTarget scheduleTarget)
@@ -42,6 +45,10 @@ namespace MosPolytechHelper.Features.StudentSchedule
         {
             this.scheduleType = scheduleType;
             Send(ViewModels.Schedule, nameof(this.ScheduleType), scheduleType);
+        }
+        public void GoToScheduleManagerFrament()
+        {
+            this.Send(ViewModels.Schedule, "ChangeFragment", ScheduleFragments.ScheduleManager);
         }
     }
 

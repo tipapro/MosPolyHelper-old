@@ -6,7 +6,7 @@
     public static class DependencyInjector
     {
         static LoggerFactory loggerFactory;
-        static JsonConverter jsonConverter;
+        static ProtoConverter converter;
         static Mediator<ViewModels, VmMessage> mediator;
 
 
@@ -17,9 +17,14 @@
             return obj;
         }
 
-        public static ILoggerFactory GetILoggerFactory() => GetSingleton(ref loggerFactory);
-        public static ISerializer GetISerializer() => GetSingleton(ref jsonConverter);
-        public static IDeserializer GetIDeserializer() => GetSingleton(ref jsonConverter);
+        public static ILoggerFactory GetILoggerFactory()
+        {
+            if (loggerFactory == null)
+                loggerFactory = new LoggerFactory();
+            return loggerFactory;
+        }
+    public static ISerializer GetISerializer() => GetSingleton(ref converter);
+        public static IDeserializer GetIDeserializer() => GetSingleton(ref converter);
         public static IMediator<ViewModels, VmMessage> GetIMediator() => GetSingleton(ref mediator);
     }
 }

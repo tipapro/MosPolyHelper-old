@@ -2,6 +2,7 @@
 {
     public interface ILoggerFactory
     {
+        void CanWriteToFileChanged(bool state, string path);
         ILogger Create<T>();
     }
 }

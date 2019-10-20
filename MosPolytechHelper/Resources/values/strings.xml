@@ -1,7 +1,8 @@
 <resources>
-    <string name="app_name">MosPolytechHelper</string>
+    <string name="app_name">MosPolyHelper</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+  <string name="nav_schedule">Расписание</string>
     <string name="schedule_preferences">Настройки</string>
   <string name="first_module">1-й модуль</string>
   <string name="second_module">2-й модуль</string>
@@ -12,17 +13,19 @@
   <string name="teacher_name">Имя преподавателя</string>
   <string name="enter_group_title">Введите название гурппы</string>
   <string name="enter_teacher_name">Введите имя преподавателя</string>
+  <string name="null_schedule">Сохранённые расписания отсутствуют</string>
+  <string name="goto_schedule_manager">Менеджер расписаний</string>
   
   <string name="schedule_preferences_title">Настройки расписания</string>
-  <string name="schedule_type_prompt">Тип расписания</string>
-  <string-array name="schedule_type_array">
+  <string name="text_schedule_type_prompt">Тип расписания</string>
+  <string-array name="text_schedule_type_array">
     <item>Обычное</item>
     <item>Сессия</item>
   </string-array>
   <string name="schedule_target_prompt">Расписание для</string>
   <string-array name="schedule_target_array">
     <item>Студентов</item>
-    <item>Преподавателей</item>
+    <!--<item>Преподавателей</item>-->
   </string-array>
 
   <string name="schedule_filter_title">Фильтр расписания</string>

@@ -5,7 +5,9 @@
 
     class NLogger : ILogger
     {
-        readonly NLog.ILogger logger;
+        NLog.ILogger logger;
+        readonly Type type;
+        bool isCreated;
 
         public NLogger(Type type)
         {

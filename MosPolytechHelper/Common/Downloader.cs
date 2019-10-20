@@ -57,8 +57,6 @@
             if (string.IsNullOrEmpty(group))
                 throw new ArgumentNullException("groupName");
             var uri = new UriBuilder($"https://rasp.dmami.ru/site/group?group={group}&session=" + (isSession ? 1 : 0)).Uri;
-            if (isSession)
-                uri = new UriBuilder("https://pastebin.com/raw/Z7ac1iCu").Uri;
             var request = (HttpWebRequest)WebRequest.Create(uri);
             request.CookieContainer = this.cookieContainer;
             request.Referer = uri.Scheme + uri.Host;

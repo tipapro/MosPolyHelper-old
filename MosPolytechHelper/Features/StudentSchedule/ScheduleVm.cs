@@ -4,6 +4,7 @@
     using MosPolytechHelper.Common.Interfaces;
     using MosPolytechHelper.Domain;
     using MosPolytechHelper.Features.Common;
+    using MosPolytechHelper.Features.StudentSchedule.Common;
     using System;
 
     class ScheduleVm : ViewModelBase
@@ -14,9 +15,8 @@
         WeekType weekType;
         bool isSession;
         string[] groupList;
-        Schedule fullSchedule;
+        Schedule schedule;
         Schedule.Filter scheduleFilter;
-
 
         void HandleMessage(VmMessage message)
         {
@@ -40,17 +40,23 @@
                             break;
                         case "ScheduleType" when message[1] is ScheduleType scheduleType:
                             this.IsSession = scheduleType == ScheduleType.Session;
-                            SetUpSchedule();
+                            SetUpScheduleAsync(true);
+                            break;
+                        case "ChangeFragment" when message[1] is ScheduleFragments scheduleFragment:
+                            FragmentChanged?.Invoke(scheduleFragment);
                             break;
                     }
                 }
             }
         }
 
+
+        public event Action<ScheduleFragments> FragmentChanged;
+
         public Schedule Schedule
         {
-            get => this.fullSchedule;
-            set => SetValue(ref this.fullSchedule, value);
+            get => this.schedule;
+            set => SetValue(ref this.schedule, value);
         }
         public WeekType WeekType
         {
@@ -85,17 +91,18 @@
             }
         }
 
-        public ScheduleVm(ILoggerFactory loggerFactory, IMediator<ViewModels, VmMessage> mediator, 
+        public ScheduleVm(ILoggerFactory loggerFactory, IMediator<ViewModels, VmMessage> mediator, bool isSession,
             Schedule.Filter scheduleFilter) : base(mediator, ViewModels.Schedule)
         {
             this.model = new ScheduleModel(loggerFactory);
             this.groupList = new string[0];
+            this.isSession = isSession;
             this.Submit = new Command(SubmitGroupTitle);
-            // this.date = DateTime.Now;
             this.ScheduleFilter = scheduleFilter;
             Subscribe(HandleMessage);
-            GetGroupListAsync(true); // TODO: Offline mode
+            GetGroupListAsync(true);
         }
+
         public void SubscribeOnAnnouncement(Action<string> act)
         {
             this.model.Announce += act;
@@ -111,16 +118,20 @@
         }
         public void SubmitGroupTitle()
         {
-            SetUpSchedule();
+            SetUpScheduleAsync(true);
         }
 
-        public async void SetUpSchedule()
+        public async void SetUpScheduleAsync(bool downloadNew)
         {
             if (string.IsNullOrEmpty(GroupTitle))
             {
                 return;
             }
-            await this.model.GetScheduleAsync(this.GroupTitle, this.isSession, true, this.ScheduleFilter); // TODO: Offline mode
+            await this.model.GetScheduleAsync(this.GroupTitle, this.isSession, downloadNew, this.ScheduleFilter);
+            if (this.model.Schedule == null && !downloadNew)
+            {
+                await this.model.GetScheduleAsync(this.GroupTitle, this.isSession, !downloadNew, this.ScheduleFilter);
+            }
             this.Schedule = this.model.Schedule;
         }
     }
