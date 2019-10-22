@@ -1,1 +1,1 @@
-# MosPolytechHelper
+# MosPolyHelper
