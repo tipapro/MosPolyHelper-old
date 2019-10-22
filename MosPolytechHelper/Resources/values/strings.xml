@@ -6,8 +6,8 @@
     <string name="schedule_preferences">Настройки</string>
   <string name="first_module">1-й модуль</string>
   <string name="second_module">2-й модуль</string>
-  <string name="odd_week">нечётная неделя</string>
-  <string name="even_week">чётная неделя</string>
+  <string name="odd_week">нечёт. нед.</string>
+  <string name="even_week">чёт. нед.</string>
   <string name="null_daily_schedule">В этот день нет занятий</string>
   <string name="group_title">Название группы</string>
   <string name="teacher_name">Имя преподавателя</string>

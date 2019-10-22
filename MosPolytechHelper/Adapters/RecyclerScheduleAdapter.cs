@@ -87,17 +87,17 @@
                 (viewHolder.LessonLayout.Background as GradientDrawable).SetColor(new Color(255, 255, 255));  // White
             }
 
-            float scale = viewHolder.LessonLayout.
-                   Context.Resources.DisplayMetrics.Density;
-            int padding1InPx = (int)(1 * scale + 0.5f);
+            //float scale = viewHolder.LessonLayout.
+            //       Context.Resources.DisplayMetrics.Density;
+            //int padding1InPx = (int)(1 * scale + 0.5f);
 
             viewHolder.LessonTime.Enabled = enabled;
             viewHolder.LessonTitle.Enabled = enabled;
             viewHolder.LessonAuditoriums.Enabled = enabled;
             viewHolder.LessonType.Enabled = enabled;
             viewHolder.LessonTeachers.Enabled = enabled;
-            viewHolder.LessonModuleAndWeekType.Enabled = enabled;
-            viewHolder.LessonDate.Enabled = enabled;
+            //viewHolder.LessonModuleAndWeekType.Enabled = enabled;
+            viewHolder.LessonOtherInfo.Enabled = enabled;
             viewHolder.LessonLayout.Enabled = enabled;
 
             var lessonTimeBackground = (viewHolder.LessonTime.Background as GradientDrawable);
@@ -105,9 +105,9 @@
             if (enabled)
             {
                 viewHolder.LessonTime.SetTextColor(Color.White);
-                viewHolder.LessonModuleAndWeekType.SetTextColor(new Color(170, 170, 170));
+                //viewHolder.LessonModuleAndWeekType.SetTextColor(new Color(170, 170, 170));
                 viewHolder.LessonType.SetTextColor(GetLessonTypeColor(lesson.Type));
-                viewHolder.LessonDate.SetTextColor(new Color(170, 170, 170));
+                viewHolder.LessonOtherInfo.SetTextColor(new Color(170, 170, 170));
                 viewHolder.LessonTitle.SetTextColor(new Color(110, 110, 110));
                 lessonTimeBackground.SetColor(this.lessonTimeColors[lesson.Order % this.lessonTimeColors.Length].Item1);
 
@@ -126,9 +126,9 @@
             else
             {
                 viewHolder.LessonTime.SetTextColor(new Color(250, 250, 250));
-                viewHolder.LessonModuleAndWeekType.SetTextColor(new Color(230, 230, 230));
+                //viewHolder.LessonModuleAndWeekType.SetTextColor(new Color(230, 230, 230));
                 viewHolder.LessonType.SetTextColor(new Color(225, 225, 225));
-                viewHolder.LessonDate.SetTextColor(new Color(230, 230, 230));
+                viewHolder.LessonOtherInfo.SetTextColor(new Color(230, 230, 230));
                 viewHolder.LessonTitle.SetTextColor(new Color(215, 215, 215));
                 lessonTimeBackground.SetColor(this.lessonTimeColors[lesson.Order % this.lessonTimeColors.Length].Item2);
 
@@ -211,10 +211,45 @@
             var auditoriums = new SpannableStringBuilder();
             SetUpColors(lesson.DateFrom <= this.Date && lesson.DateTo >= this.Date || !this.desaturateOtherDates,
                 viewHolder, lesson, auditoriums);
+            string moduleAndWeek = string.Empty;
+            // Display type of week
+            if (lesson.Week != WeekType.None)
+            {
+                moduleAndWeek = viewHolder.LessonLayout.Context.Resources.GetString(lesson.Week == WeekType.Odd ?
+                   Resource.String.odd_week : Resource.String.even_week);
+            }
+            // Display module
+            if (lesson.Module != Module.None)
+            {
+                if (moduleAndWeek == string.Empty)
+                {
+                    moduleAndWeek = viewHolder.LessonLayout.Context.Resources.GetString(lesson.Module == Module.First ?
+                    Resource.String.first_module : Resource.String.second_module);
+                }
+                else
+                {
+                    moduleAndWeek += "\n" + viewHolder.LessonLayout.Context.Resources.GetString(lesson.Module == Module.First ?
+                    Resource.String.first_module : Resource.String.second_module);
+                }
+            }
+            if (!string.IsNullOrEmpty(moduleAndWeek))
+            {
+                moduleAndWeek += "\n";
+            }
+            //if (string.IsNullOrEmpty(""))
+            //{
+            //    viewHolder.LessonModuleAndWeekType.Visibility = ViewStates.Gone;
+            //}
+            //else
+            //{
+            //    viewHolder.LessonModuleAndWeekType.SetText(module, TextView.BufferType.Normal);
+            //    viewHolder.LessonModuleAndWeekType.Visibility = ViewStates.Visible;
+            //}
+
             // Display dates
+            string date = string.Empty;
             if (lesson.DateFrom != DateTime.MinValue && lesson.DateTo != DateTime.MaxValue)
             {
-                string date;
                 if (lesson.DateFrom == lesson.DateTo)
                 {
                     date = lesson.DateFrom.ToString("d MMM");
@@ -223,22 +258,27 @@
                 {
                     date = lesson.DateFrom.ToString("d MMM") + " - " + lesson.DateTo.ToString("d MMM");
                 }
-                viewHolder.LessonDate.SetText(date, TextView.BufferType.Normal);
-                viewHolder.LessonDate.Visibility = ViewStates.Visible;
+            }
+            
+            string otherInfo = moduleAndWeek + date;
+            if (string.IsNullOrEmpty(otherInfo))
+            {
+                viewHolder.LessonOtherInfo.Visibility = ViewStates.Gone;
             }
             else
             {
-                viewHolder.LessonDate.Visibility = ViewStates.Gone;
+                viewHolder.LessonOtherInfo.SetText(otherInfo, TextView.BufferType.Normal);
+                viewHolder.LessonOtherInfo.Visibility = ViewStates.Visible;
             }
             // Display time
             var (timeStart, timeEnd) = Lesson.GetLessonTime(this.Date, lesson.Order, this.GroupIsEvening, this.groupDateFrom);
             string time = timeStart + " - " + timeEnd;
             viewHolder.LessonTime.SetText(time, TextView.BufferType.Normal);
             // Display lesson title
-            var title = lesson.Title;
+            string title = lesson.Title;
             viewHolder.LessonTitle.SetText(title, TextView.BufferType.Normal);
             // Display lesson type
-            var type = lesson.Type;
+            string type = lesson.Type;
             viewHolder.LessonType.SetText(type, TextView.BufferType.Normal);
             // Display teachers
             string teachers = string.Join(", ", viewHolder.ShowFullTeacherName ?
@@ -254,45 +294,7 @@
             }
             // Display auditoriums
             viewHolder.LessonAuditoriums.SetText(auditoriums, TextView.BufferType.Normal);
-            //viewHolder.LessonAuditoriums.Ellipsize = TextUtils.TruncateAt.Marquee;
-            // Display type of week
-            string moduleAndWeelType = string.Empty;
-            if (lesson.Week != WeekType.None)
-            {
-                if (lesson.Week == WeekType.Odd)
-                {
-                    moduleAndWeelType = viewHolder.LessonLayout.
-                       Context.Resources.GetString(Resource.String.odd_week);
-                }
-                else
-                {
-                    moduleAndWeelType = viewHolder.LessonLayout.
-                       Context.Resources.GetString(Resource.String.even_week);
-                }
-            }
-            // Display module
-            if (lesson.Module != Module.None)
-            {
-                string module = viewHolder.LessonLayout.Context.Resources.GetString(lesson.Module == Module.First ?
-                    Resource.String.first_module : Resource.String.second_module);
-                if (moduleAndWeelType == string.Empty)
-                {
-                    moduleAndWeelType = module;
-                }
-                else
-                {
-                    moduleAndWeelType = ", " + module;
-                }
-            }
-            if (string.IsNullOrEmpty(moduleAndWeelType))
-            {
-                viewHolder.LessonModuleAndWeekType.Visibility = ViewStates.Gone;
-            }
-            else
-            {
-                viewHolder.LessonModuleAndWeekType.SetText(moduleAndWeelType, TextView.BufferType.Normal);
-                viewHolder.LessonModuleAndWeekType.Visibility = ViewStates.Visible;
-            }
+            
         }
 
 
@@ -305,8 +307,8 @@
             public TextView LessonAuditoriums { get; }
             public TextView LessonTeachers { get; }
             public RelativeLayout LessonLayout { get; }
-            public TextView LessonModuleAndWeekType { get; }
-            public TextView LessonDate { get; }
+            //public TextView LessonModuleAndWeekType { get; }
+            public TextView LessonOtherInfo { get; }
             public ScheduleViewHolder(View view, Action<int> OnItemClick) : base(view)
             {
                 this.ShowFullTeacherName = false;
@@ -320,8 +322,8 @@
                     this.LessonAuditoriums.Selected = true;
                     var a = this.LessonAuditoriums.Ellipsize;
                 };
-                this.LessonModuleAndWeekType = view.FindViewById<TextView>(Resource.Id.text_schedule_module_and_week_type);
-                this.LessonDate = view.FindViewById<TextView>(Resource.Id.text_schedule_date);
+                //this.LessonModuleAndWeekType = view.FindViewById<TextView>(Resource.Id.text_schedule_module_and_week_type);
+                this.LessonOtherInfo = view.FindViewById<TextView>(Resource.Id.text_schedule_other_info);
                 this.LessonLayout = view.FindViewById<RelativeLayout>(Resource.Id.layout_schedule);
                 this.LessonLayout.Click += (obj, arg) =>
                 {

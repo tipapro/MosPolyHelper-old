@@ -6,7 +6,7 @@
     public static class DependencyInjector
     {
         static LoggerFactory loggerFactory;
-        static ProtoConverter converter;
+        static ProtofubConverter converter;
         static Mediator<ViewModels, VmMessage> mediator;
 
 

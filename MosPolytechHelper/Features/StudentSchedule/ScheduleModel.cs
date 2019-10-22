@@ -14,12 +14,12 @@
     class ScheduleModel
     {
         const string CurrentExtension = ".current";
-        const string OldExtension = ".old";
+        const string OldExtension = ".backup";
         const string CustomExtension = ".custom";
         const string ScheduleFolder = "cashed_schedules";
 
         ILogger logger;
-        IDownloader downloader;
+        IScheduleDownloader downloader;
         IScheduleConverter scheduleConverter;
         ISerializer serializer;
         IDeserializer deserializer;
@@ -223,20 +223,13 @@
         public ScheduleModel(ILoggerFactory loggerFactory)
         {
             this.logger = loggerFactory.Create<ScheduleModel>();
-            this.downloader = new Downloader(loggerFactory);
+            this.downloader = new ScheduleDownloader(loggerFactory);
             this.scheduleConverter = new ScheduleConverter(loggerFactory);
-            var converter = new ProtoConverter();
+            var converter = new ProtofubConverter();
             this.serializer = converter;
             this.deserializer = converter;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="group"></param>
-        /// <param name="date"></param>
-        /// <param name="isSession"></param>
-        /// <returns>Schedule for a concrete date or null if it is not founded</returns>
         public async Task<Schedule> GetScheduleAsync(string group, bool isSession, bool downloadNew, Schedule.Filter scheduleFilter)
         {
             if (downloadNew)

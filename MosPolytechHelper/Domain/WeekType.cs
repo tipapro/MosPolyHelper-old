@@ -5,8 +5,8 @@
     [ProtoContract]
     public enum WeekType
     {
-        Odd,
-        Even,
-        None
+        None = 0,
+        Odd = 1,
+        Even = 2
     }
 }

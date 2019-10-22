@@ -2,7 +2,6 @@
 {
     using MosPolytechHelper.Common.Interfaces;
     using System;
-    using System.Threading.Tasks;
 
 
     public class Command : ICommand
@@ -34,7 +33,6 @@
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        #region Explicit implementations
         bool ICommand.CanExecute(object parameter)
         {
             return CanExecute();
@@ -51,7 +49,6 @@
                 this.errorHandler?.HandleError(ex);
             }
         }
-        #endregion
     }
 
     public class Command<T> : ICommand<T>
@@ -98,7 +95,6 @@
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        #region Explicit implementations
         bool ICommand.CanExecute(object parameter)
         {
             return CanExecute((T)parameter);
@@ -115,6 +111,5 @@
                 this.errorHandler?.HandleError(ex);
             }
         }
-        #endregion
     }
 }

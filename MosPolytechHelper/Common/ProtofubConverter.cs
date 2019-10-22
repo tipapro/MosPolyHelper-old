@@ -1,12 +1,11 @@
 ﻿namespace MosPolytechHelper.Common
 {
-    using System.Buffers.Text;
-    using System.IO;
-    using System.Threading.Tasks;
     using MosPolytechHelper.Common.Interfaces;
     using ProtoBuf;
+    using System.IO;
+    using System.Threading.Tasks;
 
-    class ProtoConverter : ISerializer, IDeserializer
+    class ProtofubConverter : ISerializer, IDeserializer
     {
         MemoryStream GenerateStreamFromString(string s)
         {
@@ -20,26 +19,17 @@
 
         public Task<T> DeserializeAsync<T>(string serializedObj)
         {
-            return Task.Run(() =>
-            {
-                var stream = GenerateStreamFromString(serializedObj);
-                T res;
-                    res = Serializer.Deserialize<T>(stream);
-                
-                return res;
-            });
+            return Task.Run(() => Serializer.Deserialize<T>(GenerateStreamFromString(serializedObj)));
         }
 
         public Task<T> DeserializeAsync<T>(Stream serializedStream)
         {
             return Task.Run(() =>
             {
-                T res;
                 using (serializedStream)
                 {
-                    res = Serializer.Deserialize<T>(serializedStream);
+                    return Serializer.Deserialize<T>(serializedStream);
                 }
-                return res;
             });
         }
 
@@ -48,12 +38,10 @@
             var stream = new MemoryStream();
             Serializer.Serialize(stream, obj);
             stream.Position = 0;
-            string res;
             using (var sr = new StreamReader(stream))
             {
-                res = sr.ReadToEnd();
+                return sr.ReadToEnd();
             }
-            return res;
         }
 
         public void Serialize<T>(string filePath, T obj)

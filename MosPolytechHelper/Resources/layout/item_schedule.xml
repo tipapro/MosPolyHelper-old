@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/linear_layout_schedule"
     android:layout_width="match_parent" 
@@ -21,25 +21,10 @@
             android:paddingLeft="3dp"
             android:paddingRight="3dp"
             android:paddingBottom="2dp"
-            android:textSize="13sp" 
+            android:textSize="12.5sp" 
             android:background="@drawable/border_lesson_time"
             android:layout_marginRight="4dp"/>
-        <TextView
-            android:textStyle="bold"
-            android:textSize="12.5sp"
-            android:ellipsize="marquee"
-            android:marqueeRepeatLimit="marquee_forever"
-            android:singleLine="true"
-            android:scrollHorizontally="true" 
-            android:maxLines="1"
-    android:focusable="true" 
-    android:focusableInTouchMode="true" 
-            android:layout_marginTop="1dp"
-            android:id="@+id/text_schedule_auditoriums"
-            android:layout_toRightOf="@id/text_schedule_type" 
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-                <TextView android:layout_width="wrap_content" 
+        <TextView android:layout_width="wrap_content" 
             android:layout_alignParentTop="true" 
             android:layout_height="wrap_content" 
             android:textColor="@android:color/white"
@@ -48,40 +33,63 @@
             android:layout_marginRight="5dp"
             android:textStyle="bold"
             android:textSize="12.5sp"/>
-        <TextView android:id="@+id/text_schedule_title" 
-            android:layout_width="match_parent"
+        <TextView
+            android:textStyle="bold"
+            android:textSize="12.5sp"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:scrollHorizontally="true" 
+            android:maxLines="1"
+            android:focusable="true" 
+            android:focusableInTouchMode="true" 
+            android:layout_marginTop="1dp"
+            android:id="@+id/text_schedule_auditoriums"
+            android:layout_toRightOf="@id/text_schedule_type" 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>  
+        <LinearLayout
             android:layout_marginLeft="3dp"
-            android:layout_height="wrap_content" 
             android:layout_below="@id/text_schedule_auditoriums" 
+            android:layout_toLeftOf="@id/text_schedule_other_info"
+            android:layout_marginRight="2dp"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        <TextView android:id="@+id/text_schedule_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" 
             android:hyphenationFrequency="full" 
             android:textStyle="bold" 
-            android:breakStrategy="high_quality" 
-            android:textSize="16sp">
+            android:breakStrategy="balanced" 
+            android:textSize="14.5sp">
         </TextView>
-        <TextView android:layout_below="@id/text_schedule_title"
-            android:layout_marginLeft="3dp"
+        <TextView
             android:id="@+id/text_schedule_teachers" 
             android:layout_width="match_parent"
-            android:textSize="13sp"
+            android:textSize="12sp"
+                android:hyphenationFrequency="full" 
+            android:breakStrategy="balanced" 
             android:layout_height="wrap_content"/>
+            </LinearLayout>
         <TextView
-            android:layout_below="@id/text_schedule_teachers" 
-            android:id="@+id/text_schedule_date"
+            android:layout_below="@id/text_schedule_type"
+            android:id="@+id/text_schedule_other_info"
+            android:gravity="center_horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="11sp"
+            android:textSize="10sp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
             android:textStyle="bold" 
-        android:layout_alignParentRight="true"
         android:textColor="#AAAAAA"/>
-        <TextView
-            android:layout_marginLeft="3dp"
-            android:layout_below="@id/text_schedule_teachers" 
+<!--        <TextView
             android:id="@+id/text_schedule_module_and_week_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="11sp"
             android:textStyle="bold" 
-        android:layout_alignParentLeft="true"
-        android:textColor="#AAAAAA"/>
+        
+        android:textColor="#AAAAAA"/>-->
     </RelativeLayout>
 </LinearLayout>

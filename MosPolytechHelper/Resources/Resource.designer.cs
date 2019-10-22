@@ -3872,14 +3872,14 @@ namespace MosPolytechHelper
 			// aapt resource value: 0x7F0900B7
 			public const int text2 = 2131296439;
 			
+			// aapt resource value: 0x7F0900C8
+			public const int textinput_counter = 2131296456;
+			
 			// aapt resource value: 0x7F0900C9
-			public const int textinput_counter = 2131296457;
+			public const int textinput_error = 2131296457;
 			
 			// aapt resource value: 0x7F0900CA
-			public const int textinput_error = 2131296458;
-			
-			// aapt resource value: 0x7F0900CB
-			public const int textinput_helper_text = 2131296459;
+			public const int textinput_helper_text = 2131296458;
 			
 			// aapt resource value: 0x7F0900B8
 			public const int textSpacerNoButtons = 2131296440;
@@ -3906,100 +3906,97 @@ namespace MosPolytechHelper
 			public const int text_schedule_auditoriums = 2131296447;
 			
 			// aapt resource value: 0x7F0900C0
-			public const int text_schedule_date = 2131296448;
+			public const int text_schedule_manager_files_number = 2131296448;
 			
 			// aapt resource value: 0x7F0900C1
-			public const int text_schedule_manager_files_number = 2131296449;
+			public const int text_schedule_manager_title = 2131296449;
 			
 			// aapt resource value: 0x7F0900C2
-			public const int text_schedule_manager_title = 2131296450;
+			public const int text_schedule_manager_type = 2131296450;
 			
 			// aapt resource value: 0x7F0900C3
-			public const int text_schedule_manager_type = 2131296451;
+			public const int text_schedule_other_info = 2131296451;
 			
 			// aapt resource value: 0x7F0900C4
-			public const int text_schedule_module_and_week_type = 2131296452;
+			public const int text_schedule_teachers = 2131296452;
 			
 			// aapt resource value: 0x7F0900C5
-			public const int text_schedule_teachers = 2131296453;
+			public const int text_schedule_time = 2131296453;
 			
 			// aapt resource value: 0x7F0900C6
-			public const int text_schedule_time = 2131296454;
+			public const int text_schedule_title = 2131296454;
 			
 			// aapt resource value: 0x7F0900C7
-			public const int text_schedule_title = 2131296455;
+			public const int text_schedule_type = 2131296455;
 			
-			// aapt resource value: 0x7F0900C8
-			public const int text_schedule_type = 2131296456;
+			// aapt resource value: 0x7F0900CB
+			public const int time = 2131296459;
 			
 			// aapt resource value: 0x7F0900CC
-			public const int time = 2131296460;
+			public const int title = 2131296460;
 			
 			// aapt resource value: 0x7F0900CD
-			public const int title = 2131296461;
+			public const int titleDividerNoCustom = 2131296461;
 			
 			// aapt resource value: 0x7F0900CE
-			public const int titleDividerNoCustom = 2131296462;
+			public const int title_template = 2131296462;
 			
 			// aapt resource value: 0x7F0900CF
-			public const int title_template = 2131296463;
+			public const int toolbar = 2131296463;
 			
 			// aapt resource value: 0x7F0900D0
-			public const int toolbar = 2131296464;
+			public const int toolbar_m = 2131296464;
 			
 			// aapt resource value: 0x7F0900D1
-			public const int toolbar_m = 2131296465;
+			public const int top = 2131296465;
 			
 			// aapt resource value: 0x7F0900D2
-			public const int top = 2131296466;
+			public const int topPanel = 2131296466;
 			
 			// aapt resource value: 0x7F0900D3
-			public const int topPanel = 2131296467;
+			public const int touch_outside = 2131296467;
 			
 			// aapt resource value: 0x7F0900D4
-			public const int touch_outside = 2131296468;
+			public const int transition_current_scene = 2131296468;
 			
 			// aapt resource value: 0x7F0900D5
-			public const int transition_current_scene = 2131296469;
+			public const int transition_layout_save = 2131296469;
 			
 			// aapt resource value: 0x7F0900D6
-			public const int transition_layout_save = 2131296470;
+			public const int transition_position = 2131296470;
 			
 			// aapt resource value: 0x7F0900D7
-			public const int transition_position = 2131296471;
+			public const int transition_scene_layoutid_cache = 2131296471;
 			
 			// aapt resource value: 0x7F0900D8
-			public const int transition_scene_layoutid_cache = 2131296472;
+			public const int transition_transform = 2131296472;
 			
 			// aapt resource value: 0x7F0900D9
-			public const int transition_transform = 2131296473;
+			public const int uniform = 2131296473;
 			
 			// aapt resource value: 0x7F0900DA
-			public const int uniform = 2131296474;
+			public const int unlabeled = 2131296474;
 			
 			// aapt resource value: 0x7F0900DB
-			public const int unlabeled = 2131296475;
+			public const int up = 2131296475;
 			
 			// aapt resource value: 0x7F0900DC
-			public const int up = 2131296476;
-			
-			// aapt resource value: 0x7F0900DD
-			public const int useLogo = 2131296477;
-			
-			// aapt resource value: 0x7F0900DF
-			public const int viewpager = 2131296479;
+			public const int useLogo = 2131296476;
 			
 			// aapt resource value: 0x7F0900DE
-			public const int view_offset_helper = 2131296478;
+			public const int viewpager = 2131296478;
+			
+			// aapt resource value: 0x7F0900DD
+			public const int view_offset_helper = 2131296477;
+			
+			// aapt resource value: 0x7F0900DF
+			public const int visible = 2131296479;
 			
 			// aapt resource value: 0x7F0900E0
-			public const int visible = 2131296480;
+			public const int withText = 2131296480;
 			
 			// aapt resource value: 0x7F0900E1
-			public const int withText = 2131296481;
-			
-			// aapt resource value: 0x7F0900E2
-			public const int wrap_content = 2131296482;
+			public const int wrap_content = 2131296481;
 			
 			static Id()
 			{

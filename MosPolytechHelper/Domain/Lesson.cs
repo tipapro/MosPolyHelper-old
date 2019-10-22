@@ -91,11 +91,11 @@
         [ProtoMember(9)]
         public Module Module { get; set; }
 
-        public Lesson(int order, string subjectName, string[] teachers, DateTime dateFrom, DateTime dateTo,
+        public Lesson(int order, string subjectTitle, string[] teachers, DateTime dateFrom, DateTime dateTo,
             Auditorium[] auditoriums, string type, WeekType week, Module module)
         {
             this.Order = order;
-            this.Title = subjectName;
+            this.Title = subjectTitle;
             this.Teachers = new Teacher[teachers.Length];
             for (int i = 0; i < teachers.Length; i++)
             {

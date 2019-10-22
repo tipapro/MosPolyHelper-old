@@ -115,9 +115,11 @@
 
         Lesson ConvertToLesson(JToken jToken, string index)
         {
-            string subjectName = jToken[LessonSubjectKey]?.ToObject<string>();
-            if (subjectName == null)
+            string subjectTitle = jToken[LessonSubjectKey]?.ToObject<string>();
+            if (subjectTitle == null)
+            {
                 return null;
+            }
             int order = int.Parse(index) - 1;
             string[] teachers = ConvertToTeachers(jToken[LessonTeacherKey]);
             var dateFrom = jToken[LessonDateFromKey]?.ToObject<DateTime>();
@@ -143,7 +145,7 @@
             var week = ConvertToWeekType(jToken[LessonWeekKey]);
             var module = ConvertToModule(jToken);
 
-            return new Lesson(order, subjectName, teachers, dateFrom.Value, dateTo.Value,
+            return new Lesson(order, subjectTitle, teachers, dateFrom.Value, dateTo.Value,
                 auditoriums, type, week, module);
         }
 
@@ -153,11 +155,17 @@
             bool? secondModule = jToken[SecondModuleKey]?.ToObject<bool>();
             bool? noModule = jToken[NoModuleKey]?.ToObject<bool>();
             if (noModule.HasValue && noModule.Value)
+            {
                 return Module.None;
+            }
             if (firstModule.HasValue && firstModule.Value)
+            {
                 return Module.First;
+            }
             if (secondModule.HasValue && secondModule.Value)
+            {
                 return Module.Second;
+            }
             return Module.None;
         }
 
@@ -165,7 +173,9 @@
         {
             string teacher = jToken?.ToObject<string>();
             if (string.IsNullOrEmpty(teacher))
+            {
                 this.logger.Warn($"Key {LessonTeacherKey} wasn't founded");
+            }
             return teacher?.Split(',', StringSplitOptions.RemoveEmptyEntries);
         }
 
@@ -186,13 +196,43 @@
         {
             string week = jToken?.ToObject<string>();
             if (string.IsNullOrEmpty(week))
+            {
                 return WeekType.None;
+            }
             if (week.Contains("odd", StringComparison.OrdinalIgnoreCase))
+            {
                 return WeekType.Odd;
+            }
             if (week.Contains("even", StringComparison.OrdinalIgnoreCase))
+            {
                 return WeekType.Even;
+            }
             return WeekType.None;
         }
+
+        //string GetLessonSubgroup(string subjectTitle)
+        //{
+        //    char[] charArray = subjectTitle.ToCharArray();
+        //    for (int i = charArray.Length - 1; i >= 2; i--)
+        //    {
+        //        // Находим сочетание "...п/г..."
+        //        if (charArray[i] != 'г' || charArray[i - 1] != '/' || charArray[i - 2] != 'п')
+        //            continue;
+        //        // Находим номер группы "...п/г 123 ..."
+        //        var resCharArr = new List<char>(10);
+        //        bool flag = false;
+        //        for (int j = i + 1; !flag && j < charArray.Length - 1; j++)
+        //        {
+        //            if (char.IsWhiteSpace(charArray[j]))
+        //                continue;
+        //            flag = true;
+        //            resCharArr.Add(charArray[j]);
+        //            continue;
+        //        }
+        //        return new string(resCharArr.ToArray());
+        //    }
+        //    return null;
+        //}
 
         public ScheduleConverter(ILoggerFactory loggerFactory)
         {
@@ -211,7 +251,9 @@
             {
                 var serObj = JObject.Parse(serializedObj);
                 if (serObj[StatusKey]?.ToObject<string>() != "ok")
-                    this.logger.Warn("Status of converted schedule is not \"ok\": {text}", serializedObj);
+                {
+                    this.logger.Warn($"Status of converting schedule is not \"ok\": {nameof(serializedObj)}", serializedObj);
+                }
 
                 bool isSession = serObj[IsSession]?.ToObject<bool>() ??
                     throw new JsonException($"Key {IsSession} doesn't found");
