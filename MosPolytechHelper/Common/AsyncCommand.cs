@@ -1,6 +1,6 @@
-﻿namespace MosPolytechHelper.Common
+﻿namespace MosPolyHelper.Common
 {
-    using MosPolytechHelper.Common.Interfaces;
+    using MosPolyHelper.Common.Interfaces;
     using System;
     using System.Threading.Tasks;
 

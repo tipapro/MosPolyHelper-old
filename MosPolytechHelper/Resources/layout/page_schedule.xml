@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" 
-    android:orientation="vertical"
+    android:orientation="vertical" 
     android:layout_width="match_parent" 
     android:layout_height="match_parent">
     <android.support.v7.widget.RecyclerView android:layout_below="@id/text_group_title" 
         android:id="@+id/recycler_schedule" 
-        android:scrollbars="none"
-        android:background="#dfe5ec"
-        android:layout_width="match_parent"
+        android:scrollbars="none" 
+        android:background="#eff3f6" 
+        android:layout_width="match_parent" 
         android:layout_height="match_parent">
     </android.support.v7.widget.RecyclerView>
     <TextView android:id="@+id/text_null_lesson" 
-        android:visibility="invisible"  
+        android:visibility="invisible" 
         android:layout_width="wrap_content" 
         android:layout_height="wrap_content" 
         android:text="@string/null_daily_schedule" 

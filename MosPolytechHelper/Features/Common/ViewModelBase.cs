@@ -1,11 +1,11 @@
-﻿namespace MosPolytechHelper.Features.Common
+﻿namespace MosPolyHelper.Features.Common
 {
-    using MosPolytechHelper.Common.Interfaces;
+    using MosPolyHelper.Common.Interfaces;
     using System;
     using System.ComponentModel;
     using System.Runtime.CompilerServices;
 
-    abstract class ViewModelBase : INotifyPropertyChanged
+    public abstract class ViewModelBase : INotifyPropertyChanged
     {
         readonly ViewModels vm;
         IMediator<ViewModels, VmMessage> mediator;

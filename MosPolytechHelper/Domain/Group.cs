@@ -1,4 +1,4 @@
-﻿namespace MosPolytechHelper.Domain
+﻿namespace MosPolyHelper.Domain
 {
     using ProtoBuf;
     using System;
@@ -30,7 +30,7 @@
 
         public override bool Equals(object obj)
         {
-            if(!(obj is Group group2))
+            if (!(obj is Group group2))
             {
                 return false;
             }

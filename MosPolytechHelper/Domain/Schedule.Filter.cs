@@ -1,4 +1,4 @@
-﻿namespace MosPolytechHelper.Domain
+﻿namespace MosPolyHelper.Domain
 {
     using System;
     using System.Collections.Generic;
@@ -7,9 +7,10 @@
     {
         public class Filter
         {
-            Module DetermineModule(Schedule.Daily dailySchedule, DateTime date)
+            Module? DetermineModule(Schedule.Daily dailySchedule, DateTime date)
             {
-                (int Currently, int Outdated) firstModuleCounter = (0, 0), secondModuleCounter = (0, 0);
+                (bool Currently, bool NotStarted) firstModuleCounter = (false, false),
+                    secondModuleCounter = (false, false);
                 foreach (var lesson in dailySchedule)
                 {
                     if (lesson.Module == Module.None)
@@ -20,38 +21,49 @@
                     {
                         if (lesson.Module == Module.First)
                         {
-                            firstModuleCounter.Currently++;
+                            firstModuleCounter.Currently = true;
                         }
                         else
                         {
-                            secondModuleCounter.Currently++;
+                            secondModuleCounter.Currently = true;
                         }
                     }
-                    else
+                    else if (date < lesson.DateFrom)
                     {
                         if (lesson.Module == Module.First)
                         {
-                            firstModuleCounter.Outdated++;
+                            firstModuleCounter.NotStarted = true;
                         }
                         else
                         {
-                            secondModuleCounter.Outdated++;
+                            secondModuleCounter.NotStarted = true;
                         }
                     }
                 }
-                if (secondModuleCounter.Currently == 0)
+
+                if (firstModuleCounter.Currently && secondModuleCounter.Currently)
                 {
-                    if (firstModuleCounter.Currently != 0 || secondModuleCounter.Outdated != 0)
-                    {
-                        return Module.First;
-                    }
+                    return null;
                 }
-                if (firstModuleCounter.Currently == 0)
+                if (firstModuleCounter.Currently)
                 {
-                    if (secondModuleCounter.Currently != 0 || firstModuleCounter.Outdated != 0)
-                    {
-                        return Module.Second;
-                    }
+                    return Module.First;
+                }
+                if (secondModuleCounter.Currently)
+                {
+                    return Module.Second;
+                }
+                if (firstModuleCounter.NotStarted && secondModuleCounter.NotStarted)
+                {
+                    return null;
+                }
+                if (firstModuleCounter.NotStarted)
+                {
+                    return Module.First;
+                }
+                if (secondModuleCounter.NotStarted)
+                {
+                    return Module.Second;
                 }
                 return Module.None;
             }
@@ -63,6 +75,7 @@
                     return WeekType.None;
                 }
                 const int FirstDay = 213;   // 1st August (or 31st July for leap year) 
+                // FirstDay / date.DayOfYear == 1 if FirstDay > date.DayOfYear and 0 if FirstDay < date.DayOfYear
                 int firstDayYear = date.Year - FirstDay / date.DayOfYear;
                 var firstDayDate = new DateTime(firstDayYear, 8, 1);
                 int timeSpan = (GetFirstWeekDay(firstDayDate) - GetFirstWeekDay(date)).Days;
@@ -98,13 +111,14 @@
             {
             }
 
-            public Filter(DateFilter dateFilter, ModuleFilter moduleFilter, WeekFilter weekFilter, 
+            public Filter(DateFilter dateFilter, ModuleFilter moduleFilter, WeekFilter weekFilter,
                 bool sessionFilter, WeekType firstWeekType)
             {
                 this.DateFitler = dateFilter;
                 this.ModuleFilter = moduleFilter;
                 this.WeekFilter = weekFilter;
                 this.SessionFilter = sessionFilter;
+                this.FirstWeekType = firstWeekType;
             }
 
             public Schedule.Daily GetFilteredSchedule(Schedule.Daily dailySchedule, DateTime date)
@@ -120,7 +134,14 @@
                 {
                     if (this.DateFitler == DateFilter.Hide)
                     {
-                        if (date < lesson.DateFrom || date > lesson.DateTo)
+                        if (date > lesson.DateTo)
+                        {
+                            continue;
+                        }
+                        if (date < lesson.DateFrom &&
+                            !lesson.Type.Contains("зачет", StringComparison.OrdinalIgnoreCase) &&
+                            !lesson.Type.Contains("экзамен", StringComparison.OrdinalIgnoreCase) &&
+                            !lesson.Type.Contains("зачёт", StringComparison.OrdinalIgnoreCase))
                         {
                             continue;
                         }
@@ -130,8 +151,7 @@
                         if (lesson.Module != Module.None &&
                             ((this.ModuleFilter == ModuleFilter.First && lesson.Module != Module.First) ||
                             (this.ModuleFilter == ModuleFilter.Second && lesson.Module != Module.Second) ||
-                            (this.ModuleFilter == ModuleFilter.Auto && currModule != Module.None &&
-                            lesson.Module != currModule)))   // Auto
+                            (this.ModuleFilter == ModuleFilter.Auto && currModule != null && lesson.Module != currModule)))
                         {
                             continue;
                         }
@@ -139,9 +159,10 @@
 
                     if (this.SessionFilter)
                     {
-                        if (lesson.Type.Contains("зачет", StringComparison.OrdinalIgnoreCase) ||
+                        if ((date < lesson.DateFrom || date > lesson.DateTo)
+                            && (lesson.Type.Contains("зачет", StringComparison.OrdinalIgnoreCase) ||
                             lesson.Type.Contains("экзамен", StringComparison.OrdinalIgnoreCase) ||
-                            lesson.Type.Contains("зачёт", StringComparison.OrdinalIgnoreCase))
+                            lesson.Type.Contains("зачёт", StringComparison.OrdinalIgnoreCase)))
                         {
                             continue;
                         }
@@ -162,6 +183,25 @@
                     lessonList.Add(lesson);
                 }
                 return new Schedule.Daily(lessonList.ToArray(), dailySchedule.Day);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is Schedule.Filter filter2))
+                {
+                    return false;
+                }
+                return this.DateFitler == filter2.DateFitler && this.ModuleFilter == filter2.ModuleFilter
+                    && this.SessionFilter == filter2.SessionFilter && this.WeekFilter == filter2.WeekFilter
+                    && this.FirstWeekType == filter2.FirstWeekType;
+            }
+
+            public override int GetHashCode()
+            {
+                string hash = string.Empty;
+                hash += this.DateFitler.GetHashCode() + this.FirstWeekType.GetHashCode() +
+                    this.ModuleFilter.GetHashCode() + this.SessionFilter.GetHashCode() + this.WeekFilter.GetHashCode();
+                return hash.GetHashCode();
             }
         }
     }

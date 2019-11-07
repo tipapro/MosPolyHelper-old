@@ -1,4 +1,4 @@
-﻿namespace MosPolytechHelper.Features.Common
+﻿namespace MosPolyHelper.Features.Common
 {
     abstract class FragmentBase : Android.Support.V4.App.Fragment
     {

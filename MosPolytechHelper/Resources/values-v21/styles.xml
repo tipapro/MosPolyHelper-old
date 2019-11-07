@@ -5,4 +5,12 @@
         <item name="windowNoTitle">true</item>
         <!--<item name="android:statusBarColor">@android:color/transparent</item>-->
     </style>
+
+  <style name="AppTheme.Splash">
+    <item name="android:windowBackground">@drawable/splash_screen</item>
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:windowFullscreen">false</item>
+    <item name="android:windowContentOverlay">@null</item>
+    <item name="android:windowActionBar">true</item>
+  </style>
 </resources>

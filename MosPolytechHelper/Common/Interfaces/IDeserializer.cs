@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 
-namespace MosPolytechHelper.Common.Interfaces
+namespace MosPolyHelper.Common.Interfaces
 {
     public interface IDeserializer
     {

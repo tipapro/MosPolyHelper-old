@@ -1,6 +1,6 @@
-﻿namespace MosPolytechHelper.Common.Interfaces
+﻿namespace MosPolyHelper.Common.Interfaces
 {
-    using MosPolytechHelper.Domain;
+    using MosPolyHelper.Domain;
     using System.Threading.Tasks;
 
     public interface IScheduleConverter

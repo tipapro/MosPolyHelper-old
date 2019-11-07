@@ -2,20 +2,21 @@
     <string name="app_name">MosPolyHelper</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-  <string name="nav_schedule">Расписание</string>
+  <string name="nav_schedule">Расписание пар</string>
     <string name="schedule_preferences">Настройки</string>
   <string name="first_module">1-й модуль</string>
   <string name="second_module">2-й модуль</string>
   <string name="odd_week">нечёт. нед.</string>
   <string name="even_week">чёт. нед.</string>
-  <string name="null_daily_schedule">В этот день нет занятий</string>
+  <string name="null_daily_schedule">В этот день нет пар</string>
   <string name="group_title">Название группы</string>
   <string name="teacher_name">Имя преподавателя</string>
   <string name="enter_group_title">Введите название гурппы</string>
   <string name="enter_teacher_name">Введите имя преподавателя</string>
   <string name="null_schedule">Сохранённые расписания отсутствуют</string>
   <string name="goto_schedule_manager">Менеджер расписаний</string>
-  
+
+  <!--Schedule Preferences-->
   <string name="schedule_preferences_title">Настройки расписания</string>
   <string name="text_schedule_type_prompt">Тип расписания</string>
   <string-array name="text_schedule_type_array">
@@ -27,9 +28,12 @@
     <item>Студентов</item>
     <!--<item>Преподавателей</item>-->
   </string-array>
+  <string name="schedule_show_empty_lessons">Показывать пустые пары</string>
+  <string name="schedule_show_colored_lessons">Цветные шапки пар</string>
 
+  <!--Schedule Filter-->
   <string name="schedule_filter_title">Фильтр расписания</string>
-  <string name="schedule_date_filter_prompt">Занятия других диапазонов дат</string>
+  <string name="schedule_date_filter_prompt">Неначавшиеся/прошедшие предметы</string>
   <string-array name="schedule_date_filter_array">
     <item>Показывать</item>
     <item>Показывать бледными</item>
@@ -44,4 +48,14 @@
   </string-array>
   <string name="schedule_session_filter">Скрыть зачёты и экзамены</string>
   
+  <!--Other-->
+  <string name="click_back_again">Нажмите НАЗАД ещё раз, чтобы выйти</string>
+
+  <!--ModelMsgs-->
+  <string name="schedule_not_found">Не удалось скачать расписание</string>
+  <string name="offline_schedule_not_found">Не удалось найти сохранённое расписание</string>
+  <string name="offline_schedule_found">Сохранённое расписание найдено</string>
+  <string name="group_list_not_found">Не удалось скачать список групп</string>
+  <string name="offline_group_list_not_found">Не удалось найти сохранённый список групп</string>
+  <string name="offline_group_list_found">Сохранённый список групп найден</string>
 </resources>

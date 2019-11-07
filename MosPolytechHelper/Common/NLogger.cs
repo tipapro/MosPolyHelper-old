@@ -1,6 +1,6 @@
-﻿namespace MosPolytechHelper.Common
+﻿namespace MosPolyHelper.Common
 {
-    using MosPolytechHelper.Common.Interfaces;
+    using MosPolyHelper.Common.Interfaces;
     using System;
 
     class NLogger : ILogger
@@ -12,6 +12,13 @@
             if (type == null)
                 throw new ArgumentNullException("type");
             this.logger = NLog.LogManager.GetCurrentClassLogger(type);
+        }
+
+        public NLogger(string name)
+        {
+            if (name == null)
+                throw new ArgumentNullException("name");
+            this.logger = NLog.LogManager.GetLogger(name);
         }
 
         public bool IsFatalEnabled => this.logger.IsFatalEnabled;

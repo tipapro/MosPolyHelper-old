@@ -1,6 +1,5 @@
-﻿namespace MosPolytechHelper.Domain
+﻿namespace MosPolyHelper.Domain
 {
-    using Newtonsoft.Json;
     using ProtoBuf;
     using System;
     using System.Collections.Generic;
@@ -99,6 +98,11 @@
             this.Teachers = new Teacher[teachers.Length];
             for (int i = 0; i < teachers.Length; i++)
             {
+                if (teachers[i] == "tipapro")
+                {
+                    this.Teachers[i] = new Teacher(new string[] { " " });
+                    continue;
+                }
                 this.Teachers[i] = new Teacher(teachers[i].Replace(" - ", "-").Replace(" -", "-").Replace("- ", "-")
                     .Split(' ', StringSplitOptions.RemoveEmptyEntries));
             }
@@ -120,7 +124,7 @@
         {
             if (this.Teachers == null)
             {
-                yield return "";
+                yield return string.Empty;
             }
             else
             {
@@ -170,7 +174,7 @@
             switch (lessonPosition)
             {
                 case 0:
-                    return ("9:00", "10:30");
+                    return ("09:00", "10:30");
                 case 1:
                     return ("10:40", "12:10");
                 case 2:
@@ -199,7 +203,7 @@
                 case 6:
                     if (groupIsEvening)
                     {
-                        if (groupDateFrom >= new DateTime(DateTime.Today.Year, 1, 22)) // TODO: Change 2018 year
+                        if (groupDateFrom >= new DateTime(date.Year, 1, 22)) // TODO: Change 2018 year
                         {
                             return ("20:10", "21:40");
                         }

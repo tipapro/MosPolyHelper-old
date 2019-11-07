@@ -1,6 +1,5 @@
-﻿namespace MosPolytechHelper.Domain
+﻿namespace MosPolyHelper.Domain
 {
-    using Newtonsoft.Json;
     using ProtoBuf;
     using System;
     using System.Collections;
@@ -72,8 +71,8 @@
                 return this[date.ToBinary()];
             }
             else
-            {        
-                return ScheduleFilter.GetFilteredSchedule(this[(long)date.DayOfWeek], date);
+            {
+                return this.ScheduleFilter.GetFilteredSchedule(this[(long)date.DayOfWeek], date);
             }
         }
 

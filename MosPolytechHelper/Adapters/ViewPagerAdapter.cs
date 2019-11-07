@@ -1,11 +1,11 @@
-﻿namespace MosPolytechHelper.Adapters
+﻿namespace MosPolyHelper.Adapters
 {
     using Android.Support.V4.View;
     using Android.Support.V7.Widget;
     using Android.Views;
     using Android.Widget;
     using Java.Lang;
-    using MosPolytechHelper.Domain;
+    using MosPolyHelper.Domain;
     using System;
     using Object = Java.Lang.Object;
 
@@ -14,6 +14,8 @@
         readonly View[] views;
         readonly RecyclerScheduleAdapter[] recyclerAdapter;
         Schedule schedule;
+        bool showEmptyLessons;
+        bool showColoredLessons;
         int count;
 
         void SetFirstPos(bool isSession)
@@ -53,9 +55,11 @@
 
         public int FirstPos { get; private set; }
 
-        public ViewPagerAdapter(Schedule schedule)
+        public ViewPagerAdapter(Schedule schedule, bool showEmptyLessons, bool showColoredLessons)
         {
             this.schedule = schedule;
+            this.showEmptyLessons = showEmptyLessons;
+            this.showColoredLessons = showColoredLessons;
             SetCount(schedule);
             if (this.schedule != null)
             {
@@ -114,12 +118,13 @@
             }
             if (this.schedule.IsSession)
             {
-                return new Java.Lang.String(
-                    DateTime.FromBinary(this.schedule.GetSchedule(0).Day).AddDays(position).ToString("ddd d MMM"));
+                return new Java.Lang.String(DateTime.FromBinary(this.schedule.GetSchedule(0).Day)
+                    .AddDays(position).ToString(" ddd d MMM ").Replace('.', '\0'));
             }
             else
             {
-                return new Java.Lang.String(DateTime.Today.AddDays(position - this.FirstPos).ToString("ddd d MMM"));
+                return new Java.Lang.String(DateTime.Today
+                    .AddDays(position - this.FirstPos).ToString(" ddd d MMM ").Replace('.', '\0'));
             }
         }
 
@@ -142,8 +147,8 @@
                 var recyclerAdapter = new RecyclerScheduleAdapter(
                        this.views[position % 3].FindViewById<TextView>(Resource.Id.text_null_lesson),
                        this.schedule?.GetSchedule(date),
-                       this.schedule?.ScheduleFilter?.DateFitler == DateFilter.Desaturate,
-                       DateTime.MinValue, date, this.schedule?.Group.IsEvening ?? false); // TODO: Change it
+                       this.schedule?.ScheduleFilter?.DateFitler == DateFilter.Desaturate, date, this.schedule?.Group,
+                       this.showEmptyLessons, this.showColoredLessons);
                 this.recyclerAdapter[position % 3] = recyclerAdapter;
                 var recyclerView = this.views[position % 3].FindViewById<RecyclerView>(Resource.Id.recycler_schedule);
                 recyclerView.SetItemAnimator(null);
@@ -153,23 +158,18 @@
             else
             {
                 this.recyclerAdapter[position % 3].BuildSchedule(this.schedule?.GetSchedule(date),
-                this.schedule.ScheduleFilter, date);
+                    this.schedule.ScheduleFilter, date, this.schedule?.Group, this.showEmptyLessons, this.showColoredLessons);
             }
             return this.views[position % 3];
         }
 
         public override void DestroyItem(ViewGroup container, int position, Object @object)
         {
-            //container.RemoveView(@object as View);
         }
 
         public override bool IsViewFromObject(View view, Object @object)
         {
             return view == @object;
-        }
-        public override void SetPrimaryItem(ViewGroup container, int position, Object @object)
-        {
-            base.SetPrimaryItem(container, position, @object);
         }
         public override int GetItemPosition(Object @object)
         {

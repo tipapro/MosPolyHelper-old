@@ -1,9 +1,6 @@
-﻿namespace MosPolytechHelper.Domain
+﻿namespace MosPolyHelper.Domain
 {
-    using Newtonsoft.Json;
     using ProtoBuf;
-    using System;
-    using System.Collections;
     using System.Collections.Generic;
 
     public partial class Schedule : IEnumerable<Schedule.Daily>
@@ -12,7 +9,7 @@
         public class Daily// : IEnumerable<Lesson>
         {
             [ProtoMember(1)]
-            Lesson[] lessons { get; set; }
+            Lesson[] lessons;
 
             Daily()
             {

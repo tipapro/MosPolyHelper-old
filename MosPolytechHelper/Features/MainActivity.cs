@@ -1,6 +1,7 @@
-﻿namespace MosPolytechHelper
+﻿namespace MosPolyHelper.Features
 {
     using Android.App;
+    using Android.Content.PM;
     using Android.OS;
     using Android.Runtime;
     using Android.Support.Design.Widget;
@@ -9,17 +10,18 @@
     using Android.Support.V7.App;
     using Android.Views;
     using Android.Widget;
-    using MosPolytechHelper.Common;
-    using MosPolytechHelper.Common.Interfaces;
-    using MosPolytechHelper.Domain;
-    using MosPolytechHelper.Features.Common;
-    using MosPolytechHelper.Features.StudentSchedule;
+    using MosPolyHelper.Common;
+    using MosPolyHelper.Common.Interfaces;
+    using MosPolyHelper.Features.Common;
+    using MosPolyHelper.Features.Schedule;
     using System;
     using System.Threading.Tasks;
 
-    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
+    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = false,
+    ScreenOrientation = ScreenOrientation.Portrait)]
     public class MainActivity : AppCompatActivity, NavigationView.IOnNavigationItemSelectedListener
     {
+        string clickBackAgain;
         bool doubleBackToExitPressedOnce;
         Fragments curFragmentId = Fragments.Other;
         Fragments prevFragmentId = Fragments.Other;
@@ -28,30 +30,6 @@
         ILogger logger;
         PopupWindow popupPreferences;
         ScheduleFilterView popupFilter;
-
-        ScheduleVm PrepareSchdeuleVm(ILoggerFactory loggerFactory)
-        {
-            var prefs = GetSharedPreferences("SchedulePreferences", Android.Content.FileCreationMode.Private);
-            string groupTitle = prefs.GetString("ScheduleGroupTitle", null);
-            if (groupTitle == null)
-            {
-                return null;
-            }
-
-            var scheduleFilter = new Schedule.Filter();
-            scheduleFilter.DateFitler = (DateFilter)prefs.GetInt("ScheduleDateFilter", (int)scheduleFilter.DateFitler);
-            scheduleFilter.ModuleFilter = (ModuleFilter)prefs.GetInt("ScheduleModuleFilter", (int)scheduleFilter.ModuleFilter);
-            scheduleFilter.SessionFilter = prefs.GetBoolean("ScheduleSessionFilter", scheduleFilter.SessionFilter);
-
-            bool isSession = prefs.GetInt("ScheduleTypePreference", 0) == 1;
-
-            var viewModel = new ScheduleVm(loggerFactory, DependencyInjector.GetIMediator(), isSession, scheduleFilter)
-            {
-                GroupTitle = groupTitle
-            };
-            viewModel.SetUpScheduleAsync(false);
-            return viewModel;
-        }
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -62,24 +40,28 @@
             {
                 this.loggerFactory = DependencyInjector.GetILoggerFactory();
             }
-            var scheduleVm = PrepareSchdeuleVm(this.loggerFactory);
-
+            StringProvider.SetUpLogger(loggerFactory);
+            var scheduleVm = SplashActivity.ScheduleVmPreloadTask.GetAwaiter().GetResult();
+            SplashActivity.ScheduleVmPreloadTask = null;
             ChangeFragment(ScheduleView.NewInstance(scheduleVm), Fragments.ScheduleMain, false);
 
             Android.Support.V4.App.ActivityCompat.RequestPermissions(this,
                 new string[] { Android.Manifest.Permission.Internet }, 123);
 
-            Android.Support.V4.App.ActivityCompat.RequestPermissions(this,
-                new string[] { Android.Manifest.Permission.Internet , Android.Manifest.Permission.WriteExternalStorage
-                , Android.Manifest.Permission.ReadExternalStorage }, 1234);
             this.logger = this.loggerFactory.Create<MainActivity>();
-            
+
 
             var navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
             navigationView.SetNavigationItemSelectedListener(this);
-
+            this.clickBackAgain = GetString(Resource.String.click_back_again);
             this.doubleBackToExitPressedOnce = false;
-            logger.Debug("MainActivity OnCreate Successful");
+            this.logger.Debug("MainActivity created successfully");
+        }
+
+        protected override void OnResume()
+        {
+            base.OnResume();
+            StringProvider.Context = this;
         }
 
         public override void OnBackPressed()
@@ -107,10 +89,11 @@
                 if (this.doubleBackToExitPressedOnce)
                 {
                     base.OnBackPressed();
+                    Finish();
                 }
                 else
                 {
-                    Toast.MakeText(this, "Please click BACK again to exit", ToastLength.Short).Show();
+                    Toast.MakeText(this, this.clickBackAgain, ToastLength.Short).Show();
                     this.doubleBackToExitPressedOnce = true;
                 }
                 UpdateExitFlag();
@@ -132,8 +115,8 @@
                 {
                     var inflater = LayoutInflater.From(this);
                     var layout = inflater.Inflate(Resource.Layout.popup_schedule_preferences, null);
-                    this.popupPreferences = new SchedulePreferencesView(layout, LinearLayout.LayoutParams.WrapContent,
-                        LinearLayout.LayoutParams.WrapContent, this.loggerFactory, DependencyInjector.GetIMediator())
+                    this.popupPreferences = new SchedulePreferencesView(layout, WindowManagerLayoutParams.WrapContent,
+                        WindowManagerLayoutParams.WrapContent, this.loggerFactory, DependencyInjector.GetIMediator())
                     {
                         //popupPreferences.ShowAtLocation(FindViewById<RelativeLayout>(Resource.Id.layout_main), GravityFlags.Top | GravityFlags.Right, 0, 0);
                         OutsideTouchable = true,
@@ -158,8 +141,8 @@
                 {
                     var inflater = LayoutInflater.From(this);
                     var layout = inflater.Inflate(Resource.Layout.popup_schedule_filter, null);
-                    this.popupFilter = new ScheduleFilterView(layout, LinearLayout.LayoutParams.WrapContent,
-                        LinearLayout.LayoutParams.WrapContent, this.loggerFactory, DependencyInjector.GetIMediator())
+                    this.popupFilter = new ScheduleFilterView(layout, WindowManagerLayoutParams.WrapContent,
+                        WindowManagerLayoutParams.WrapContent, this.loggerFactory, DependencyInjector.GetIMediator())
                     {
                         OutsideTouchable = true,
                         Focusable = true
@@ -167,10 +150,8 @@
                 }
                 if (!this.popupFilter.IsShowing)
                 {
-                    float scale = this.Resources.DisplayMetrics.Density;
-                    int padding12InPx = (int)(12 * scale + 0.5f);
                     this.popupFilter.ShowAsDropDown(
-                            FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar), padding12InPx * 9, 0, GravityFlags.AxisXShift);
+                            FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar), 0, 0, GravityFlags.Right);
                 }
                 else
                 {
@@ -214,39 +195,18 @@
             return true;
         }
 
-        //public override bool OnSupportNavigateUp()
-        //{
-        //    ChangeFragment(this.prevFragment, this.prevFragment.FragmentType, true);
-        //    return true;
-        //}
-
-        //Func<Android.Support.V4.App.Fragment> GetFragmentCreatorById(Fragments fragmentId)
-        //{
-        //    switch (fragmentId)
-        //    {
-        //        case Fragments.ScheduleMain:
-        //            return () => ScheduleView.NewInstance();
-        //        default:
-        //            return null;
-        //    }
-        //}
-
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
         {
             Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
-            if (requestCode == 1234 && (grantResults.Length == 0 || grantResults.Length == 2 && grantResults[0] == Android.Content.PM.Permission.Granted
-                && grantResults[1] == Android.Content.PM.Permission.Granted))
-            {
-                if (this.loggerFactory == null)
-                {
-                    this.loggerFactory = DependencyInjector.GetILoggerFactory();
-                }
-                this.loggerFactory.CanWriteToFileChanged(true, 
-                    GetExternalFilesDir(Android.OS.Environment.DataDirectory.AbsolutePath).AbsolutePath);
-            }
+            //if (requestCode == 1234 && (grantResults.Length == 0 || grantResults.Length == 2 && grantResults[0] == Android.Content.PM.Permission.Granted
+            //    && grantResults[1] == Android.Content.PM.Permission.Granted))
+            //{
+            //    if (this.loggerFactory == null)
+            //    {
+            //        this.loggerFactory = DependencyInjector.GetILoggerFactory();
+            //    }
+            //}
         }
 
         public void ChangeFragment(Android.Support.V4.App.Fragment fragment, Fragments fragmentId, bool disposePrevious)
@@ -263,8 +223,14 @@
 
         protected override void OnDestroy()
         {
-            NLog.LogManager.Shutdown();
+            NLog.LogManager.Flush();
             base.OnDestroy();
+        }
+
+        protected override void OnStop()
+        {
+            NLog.LogManager.Flush();
+            base.OnStop();
         }
     }
 }

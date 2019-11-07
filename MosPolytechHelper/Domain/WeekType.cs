@@ -1,4 +1,4 @@
-﻿namespace MosPolytechHelper.Domain
+﻿namespace MosPolyHelper.Domain
 {
     using ProtoBuf;
 

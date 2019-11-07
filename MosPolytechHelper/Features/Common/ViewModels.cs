@@ -1,4 +1,4 @@
-﻿namespace MosPolytechHelper.Features.Common
+﻿namespace MosPolyHelper.Features.Common
 {
     public enum ViewModels
     {

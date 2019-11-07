@@ -1,4 +1,4 @@
-﻿namespace MosPolytechHelper.Common.Interfaces
+﻿namespace MosPolyHelper.Common.Interfaces
 {
     public interface ISerializer
     {

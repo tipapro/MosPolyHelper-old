@@ -1,7 +1,7 @@
-﻿namespace MosPolytechHelper.Common
+﻿namespace MosPolyHelper.Common
 {
-    using MosPolytechHelper.Common.Interfaces;
-    using MosPolytechHelper.Domain;
+    using MosPolyHelper.Common.Interfaces;
+    using MosPolyHelper.Domain;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;

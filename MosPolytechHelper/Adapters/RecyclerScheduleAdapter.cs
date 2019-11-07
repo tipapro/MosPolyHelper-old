@@ -1,4 +1,4 @@
-﻿namespace MosPolytechHelper.Adapters
+﻿namespace MosPolyHelper.Adapters
 {
     using Android.Graphics;
     using Android.Graphics.Drawables;
@@ -7,46 +7,55 @@
     using Android.Text.Style;
     using Android.Views;
     using Android.Widget;
-    using MosPolytechHelper.Domain;
+    using MosPolyHelper.Domain;
     using System;
+    using System.Collections.Generic;
 
     public class RecyclerScheduleAdapter : RecyclerView.Adapter
     {
         #region LessonTypeConstants
-        const string Credit = "зачет";
+        const string CourseProject = "кп";
         const string Exam = "экзамен";
+        const string Credit = "зачет";
+        const string Consultation = "консультация";
+        const string Laboratory = "лаб";
         const string Practice = "практика";
         const string Lecture = "лекция";
-        const string Laboratory = "лаб";
-        const string Work = "работа";
+        const string Other = "другое";
         #endregion LessonTypeConstants
 
-        TextView nullMessage;
+        readonly TextView nullMessage;
         Schedule.Daily dailySchedule;
         bool desaturateOtherDates;
-        DateTime groupDateFrom;
-        readonly (Color, Color)[] lessonTimeColors = new (Color, Color)[]
+        int itemCount;
+        readonly List<(int position, int order)> toInsert;
+
+        readonly Color[] lessonTimeColors = new Color[]
         {
-            (new Color(233, 89, 73), new Color(248, 214, 211)),   // Red
-            (new Color(255, 171, 0), new Color(255, 238, 204)),  // Orange
-            (new Color(15, 189, 88), new Color(195, 239, 215)),  // Green
-            (new Color(68, 194, 255), new Color(204, 241, 255)), // Blue
-            (new Color(62, 104, 211), new Color(193, 206, 241)), // DarkBlue
-            (new Color(100, 31, 173), new Color(235, 201, 255)), // Purple
-            (new Color(84, 94, 95), new Color(227, 232, 232))    // DarkGrey
+            new Color(244, 122, 113),   // Red
+            new Color(255, 209, 117),   // Orange
+            new Color(145, 221, 136),   // Green
+            new Color(128, 222, 255),   // Blue
+            new Color(126, 139, 255),   // Indigo
+            new Color(145, 106, 200),   // Purple
+            new Color(147, 158, 159),   // Gray
+            new Color(206, 221, 235)    // One color mode
         };
         readonly Color[] lessonTypeColors = new Color[]
         {
-            new Color(246, 96, 171)/* Credit - Pink*/,
-            new Color(248, 79, 22)/* Exam - Red */,
-            new Color(59, 185, 255)/* Practice - Blue */,
-            new Color(255, 182, 133)/* Lecture - Yellow */,
-            new Color(76, 196, 23)/* Laboratory Work - Green */
+            new Color(128, 74, 249),    // CourseProject
+            new Color(235, 65, 65),     // Exam
+            new Color(236, 105, 65),    // Credit
+            new Color(227, 126, 200),   // Consultation
+            new Color(236, 187, 93),    // Laboratory
+            new Color(160, 212, 79),    // Practice
+            new Color(116, 185, 244),   // Lecture
+            new Color(193, 193, 193)    // Other
         };
 
         Color GetLessonTypeColor(string lessonType)
         {
-            if (lessonType.Contains(Credit, StringComparison.OrdinalIgnoreCase))
+            if (lessonType.Contains(CourseProject, StringComparison.OrdinalIgnoreCase))
             {
                 return this.lessonTypeColors[0];
             }
@@ -54,18 +63,29 @@
             {
                 return this.lessonTypeColors[1];
             }
-            else if (lessonType.Contains(Practice, StringComparison.OrdinalIgnoreCase))
+            else if (lessonType.Contains(Credit, StringComparison.OrdinalIgnoreCase))
             {
                 return this.lessonTypeColors[2];
             }
-            else if (lessonType.Contains(Lecture, StringComparison.OrdinalIgnoreCase))
+            else if (lessonType.Contains(Consultation, StringComparison.OrdinalIgnoreCase))
             {
                 return this.lessonTypeColors[3];
             }
-            else if (lessonType.Contains(Laboratory, StringComparison.OrdinalIgnoreCase) &&
-                lessonType.Contains(Work, StringComparison.OrdinalIgnoreCase))
+            else if (lessonType.Contains(Laboratory, StringComparison.OrdinalIgnoreCase))
             {
                 return this.lessonTypeColors[4];
+            }
+            else if (lessonType.Contains(Practice, StringComparison.OrdinalIgnoreCase))
+            {
+                return this.lessonTypeColors[5];
+            }
+            else if (lessonType.Contains(Lecture, StringComparison.OrdinalIgnoreCase))
+            {
+                return this.lessonTypeColors[6];
+            }
+            else if (lessonType.Contains(Other, StringComparison.OrdinalIgnoreCase))
+            {
+                return this.lessonTypeColors[7];
             }
             else
             {
@@ -73,110 +93,87 @@
             }
         }
 
-        void SetUpColors(bool enabled, ScheduleViewHolder viewHolder, Lesson lesson, SpannableStringBuilder auditoriums)
+        public override int ItemCount
         {
-            if (lesson.Type.Contains("зачет", StringComparison.OrdinalIgnoreCase) ||
-                lesson.Type.Contains("экзамен", StringComparison.OrdinalIgnoreCase) ||
-                lesson.Type.Contains("зачёт", StringComparison.OrdinalIgnoreCase))
-            {
-                (viewHolder.LessonLayout.Background as GradientDrawable).SetColor(new Color(255, 218, 213));  // Pink
-                enabled = true;
-            }
-            else
-            {
-                (viewHolder.LessonLayout.Background as GradientDrawable).SetColor(new Color(255, 255, 255));  // White
-            }
-
-            //float scale = viewHolder.LessonLayout.
-            //       Context.Resources.DisplayMetrics.Density;
-            //int padding1InPx = (int)(1 * scale + 0.5f);
-
-            viewHolder.LessonTime.Enabled = enabled;
-            viewHolder.LessonTitle.Enabled = enabled;
-            viewHolder.LessonAuditoriums.Enabled = enabled;
-            viewHolder.LessonType.Enabled = enabled;
-            viewHolder.LessonTeachers.Enabled = enabled;
-            //viewHolder.LessonModuleAndWeekType.Enabled = enabled;
-            viewHolder.LessonOtherInfo.Enabled = enabled;
-            viewHolder.LessonLayout.Enabled = enabled;
-
-            var lessonTimeBackground = (viewHolder.LessonTime.Background as GradientDrawable);
-            var lessonLayoutBackground = (viewHolder.LessonLayout.Background as GradientDrawable);
-            if (enabled)
-            {
-                viewHolder.LessonTime.SetTextColor(Color.White);
-                //viewHolder.LessonModuleAndWeekType.SetTextColor(new Color(170, 170, 170));
-                viewHolder.LessonType.SetTextColor(GetLessonTypeColor(lesson.Type));
-                viewHolder.LessonOtherInfo.SetTextColor(new Color(170, 170, 170));
-                viewHolder.LessonTitle.SetTextColor(new Color(110, 110, 110));
-                lessonTimeBackground.SetColor(this.lessonTimeColors[lesson.Order % this.lessonTimeColors.Length].Item1);
-
-                for (int i = 0; i < lesson.Auditoriums.Length - 1; i++)
-                {
-                    auditoriums.Append(lesson.Auditoriums[i].Name.Replace(" ", "\u00A0") + ", ",
-                        new ForegroundColorSpan(Color.ParseColor(lesson.Auditoriums[i].Color)), SpanTypes.ExclusiveExclusive);
-                }
-                if (lesson.Auditoriums.Length != 0)
-                {
-                    auditoriums.Append(lesson.Auditoriums[lesson.Auditoriums.Length - 1].Name.Replace(" ", "\u00A0"),
-                        new ForegroundColorSpan(Color.ParseColor(lesson.Auditoriums[lesson.Auditoriums.Length - 1].Color)),
-                        SpanTypes.ExclusiveExclusive);
-                }
-            }
-            else
-            {
-                viewHolder.LessonTime.SetTextColor(new Color(250, 250, 250));
-                //viewHolder.LessonModuleAndWeekType.SetTextColor(new Color(230, 230, 230));
-                viewHolder.LessonType.SetTextColor(new Color(225, 225, 225));
-                viewHolder.LessonOtherInfo.SetTextColor(new Color(230, 230, 230));
-                viewHolder.LessonTitle.SetTextColor(new Color(215, 215, 215));
-                lessonTimeBackground.SetColor(this.lessonTimeColors[lesson.Order % this.lessonTimeColors.Length].Item2);
-
-                lessonLayoutBackground.SetColor(new Color(248, 248, 248));
-
-                for (int i = 0; i < lesson.Auditoriums.Length - 1; i++)
-                {
-                    auditoriums.Append(lesson.Auditoriums[i].Name + ", ",
-                        new ForegroundColorSpan(new Color(225, 225, 225)), SpanTypes.ExclusiveExclusive);
-                }
-                if (lesson.Auditoriums.Length != 0)
-                {
-                    auditoriums.Append(lesson.Auditoriums[lesson.Auditoriums.Length - 1].Name,
-                        new ForegroundColorSpan(new Color(225, 225, 225)),
-                        SpanTypes.ExclusiveExclusive);
-                }
-            }
+            get => this.itemCount;
         }
-
-        public override int ItemCount =>
-            this.dailySchedule?.Count ?? 0;
 
         public DateTime Date { get; set; }
-        public bool GroupIsEvening { get; set; }
+        public Group GroupInfo { get; set; }
+        public bool ShowEmptyLessons { get; set; }
+        public bool ShowColoredLessons { get; set; }
         public event Action DailyScheduleChanged;
 
-        public RecyclerScheduleAdapter(TextView nullMessage, Schedule.Daily dailySchedule,
-            bool desaturateOtherDates, DateTime groupDateFrom, DateTime date, bool groupIsEvening)
+        public RecyclerScheduleAdapter(TextView nullMessage, Schedule.Daily dailySchedule, bool desaturateOtherDates,
+            DateTime date, Group grouInfo, bool showEmptyLessons, bool showColoredLessons)
         {
-            this.nullMessage = nullMessage;
+            this.ShowEmptyLessons = showEmptyLessons;
+            this.ShowColoredLessons = showColoredLessons;
+            this.toInsert = new List<(int position, int order)>(7);
             this.dailySchedule = dailySchedule;
+            this.nullMessage = nullMessage;
             this.nullMessage.Visibility = this.dailySchedule != null && this.dailySchedule.Count != 0 ?
-                ViewStates.Invisible : ViewStates.Visible;
+                ViewStates.Gone : ViewStates.Visible;
             this.desaturateOtherDates = desaturateOtherDates;
-            this.groupDateFrom = groupDateFrom;
             this.Date = date;
-            this.GroupIsEvening = groupIsEvening;
+            this.GroupInfo = grouInfo;
+            SetUpCount();
         }
 
-        public void BuildSchedule(Schedule.Daily dailySchedule, Schedule.Filter scheduleFilter, DateTime date)
+        public void BuildSchedule(Schedule.Daily dailySchedule, Schedule.Filter scheduleFilter, DateTime date, Group grouInfo,
+            bool showEmptyLessons, bool showColoredLessons)
         {
+            this.ShowEmptyLessons = showEmptyLessons;
+            this.ShowColoredLessons = showColoredLessons;
+            this.toInsert.Clear();
             this.dailySchedule = dailySchedule;
+            this.GroupInfo = grouInfo;
             this.Date = date;
             this.desaturateOtherDates = scheduleFilter?.DateFitler == DateFilter.Desaturate;
             this.nullMessage.Visibility = this.dailySchedule != null && this.dailySchedule.Count != 0 ?
-                ViewStates.Invisible : ViewStates.Visible;
+                ViewStates.Gone : ViewStates.Visible;
+            SetUpCount();
             DailyScheduleChanged?.Invoke();
             NotifyDataSetChanged();
+        }
+
+        public void SetUpCount()
+        {
+            if (this.dailySchedule == null)
+            {
+                this.itemCount = 0;
+                return;
+            }
+            if (this.dailySchedule.Count == 0)
+            {
+                this.itemCount = 0;
+                return;
+            }
+            if (this.ShowEmptyLessons)
+            {
+                int currOrder = 0;
+                for (int i = 0; i < this.dailySchedule.Count; i++)
+                {
+                    int order = this.dailySchedule.GetLesson(i).Order;
+                    if (currOrder > order)
+                    {
+                        currOrder = order;
+                    }
+                    else if (currOrder < order)
+                    {
+                        this.toInsert.Add((i + this.toInsert.Count, currOrder));
+                        i--;
+                    }
+                    currOrder++;
+                }
+                this.itemCount = this.dailySchedule.Count + this.toInsert.Count;
+                return;
+            }
+            else
+            {
+                this.itemCount = this.dailySchedule.Count;
+                return;
+            }
         }
 
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup viewGroup, int position)
@@ -193,95 +190,99 @@
             NotifyItemChanged(position);
         }
 
-        public override void OnBindViewHolder(RecyclerView.ViewHolder vh, int position)
+        void SetHead(ScheduleViewHolder viewHolder, int order)
         {
-            if (!(this.dailySchedule?.GetLesson(position) is Lesson lesson))
-            {
-                return;
-            }
-            var viewHolder = vh as ScheduleViewHolder;
-            if (position == 0)
-            {
-                float scale = viewHolder.LessonLayout.Context.Resources.DisplayMetrics.Density;
-                int padding4InPx = (int)(4 * scale + 0.5f);
-                var layoutParams = viewHolder.LessonLayout.LayoutParameters as LinearLayout.LayoutParams;
-                layoutParams.SetMargins(0, padding4InPx, 0, padding4InPx);
-                viewHolder.LessonLayout.LayoutParameters = layoutParams;
-            }
-            var auditoriums = new SpannableStringBuilder();
-            SetUpColors(lesson.DateFrom <= this.Date && lesson.DateTo >= this.Date || !this.desaturateOtherDates,
-                viewHolder, lesson, auditoriums);
-            string moduleAndWeek = string.Empty;
-            // Display type of week
-            if (lesson.Week != WeekType.None)
-            {
-                moduleAndWeek = viewHolder.LessonLayout.Context.Resources.GetString(lesson.Week == WeekType.Odd ?
-                   Resource.String.odd_week : Resource.String.even_week);
-            }
-            // Display module
-            if (lesson.Module != Module.None)
-            {
-                if (moduleAndWeek == string.Empty)
-                {
-                    moduleAndWeek = viewHolder.LessonLayout.Context.Resources.GetString(lesson.Module == Module.First ?
-                    Resource.String.first_module : Resource.String.second_module);
-                }
-                else
-                {
-                    moduleAndWeek += "\n" + viewHolder.LessonLayout.Context.Resources.GetString(lesson.Module == Module.First ?
-                    Resource.String.first_module : Resource.String.second_module);
-                }
-            }
-            if (!string.IsNullOrEmpty(moduleAndWeek))
-            {
-                moduleAndWeek += "\n";
-            }
-            //if (string.IsNullOrEmpty(""))
-            //{
-            //    viewHolder.LessonModuleAndWeekType.Visibility = ViewStates.Gone;
-            //}
-            //else
-            //{
-            //    viewHolder.LessonModuleAndWeekType.SetText(module, TextView.BufferType.Normal);
-            //    viewHolder.LessonModuleAndWeekType.Visibility = ViewStates.Visible;
-            //}
+            viewHolder.LessonTime.SetTextColor(this.ShowColoredLessons ? Color.White : new Color(120, 142, 161));
+            viewHolder.LessonOrder.SetTextColor(this.ShowColoredLessons ? Color.White : new Color(120, 142, 161));
 
-            // Display dates
-            string date = string.Empty;
-            if (lesson.DateFrom != DateTime.MinValue && lesson.DateTo != DateTime.MaxValue)
-            {
-                if (lesson.DateFrom == lesson.DateTo)
-                {
-                    date = lesson.DateFrom.ToString("d MMM");
-                }
-                else
-                {
-                    date = lesson.DateFrom.ToString("d MMM") + " - " + lesson.DateTo.ToString("d MMM");
-                }
-            }
-            
-            string otherInfo = moduleAndWeek + date;
-            if (string.IsNullOrEmpty(otherInfo))
-            {
-                viewHolder.LessonOtherInfo.Visibility = ViewStates.Gone;
-            }
-            else
-            {
-                viewHolder.LessonOtherInfo.SetText(otherInfo, TextView.BufferType.Normal);
-                viewHolder.LessonOtherInfo.Visibility = ViewStates.Visible;
-            }
-            // Display time
-            var (timeStart, timeEnd) = Lesson.GetLessonTime(this.Date, lesson.Order, this.GroupIsEvening, this.groupDateFrom);
+            (viewHolder.HeadLayout.Background as GradientDrawable).SetColor(
+                this.lessonTimeColors[this.ShowColoredLessons ?
+                order % (this.lessonTimeColors.Length - 1) : this.lessonTimeColors.Length - 1]);
+
+            var (timeStart, timeEnd) = Lesson.GetLessonTime(this.Date, order, this.GroupInfo.IsEvening,
+                this.GroupInfo.DateFrom);
             string time = timeStart + " - " + timeEnd;
             viewHolder.LessonTime.SetText(time, TextView.BufferType.Normal);
-            // Display lesson title
-            string title = lesson.Title;
-            viewHolder.LessonTitle.SetText(title, TextView.BufferType.Normal);
-            // Display lesson type
+            viewHolder.LessonOrder.SetText($"#{order + 1}", TextView.BufferType.Normal);
+        }
+
+        void SetMargin(ScheduleViewHolder viewHolder, int position)
+        {
+            float scale = viewHolder.LessonLayout.Context.Resources.DisplayMetrics.Density;
+            int dp8InPx = (int)(8 * scale + 0.5f);
+            (viewHolder.LessonLayout.LayoutParameters as LinearLayout.LayoutParams)
+                    .SetMargins(dp8InPx, position == 0 ? dp8InPx : 0, dp8InPx, dp8InPx);
+        }
+
+        void SetLessonType(ScheduleViewHolder viewHolder, Lesson lesson, bool enabled)
+        {
             string type = lesson.Type;
+            viewHolder.LessonType.SetTextColor(enabled ? GetLessonTypeColor(lesson.Type) : new Color(225, 225, 225));
             viewHolder.LessonType.SetText(type, TextView.BufferType.Normal);
-            // Display teachers
-            string teachers = string.Join(", ", viewHolder.ShowFullTeacherName ?
+            viewHolder.LessonType.Enabled = enabled;
+        }
+
+        void SetAuditoriums(ScheduleViewHolder viewHolder, Lesson lesson, bool enabled)
+        {
+            using (var auditoriums = new SpannableStringBuilder())
+            {
+                viewHolder.LessonAuditoriums.Enabled = enabled;
+                if (lesson.Auditoriums == null)
+                {
+                    viewHolder.LessonAuditoriums.SetText("", TextView.BufferType.Normal);
+                    return;
+                }
+                if (enabled)
+                {
+                    for (int i = 0; i < lesson.Auditoriums.Length - 1; i++)
+                    {
+                        auditoriums.Append(lesson.Auditoriums[i].Name + ", ",
+                            new ForegroundColorSpan(Color.ParseColor(lesson.Auditoriums[i].Color)), SpanTypes.ExclusiveExclusive);
+                    }
+                    if (lesson.Auditoriums.Length != 0)
+                    {
+                        auditoriums.Append(lesson.Auditoriums[lesson.Auditoriums.Length - 1].Name,
+                            new ForegroundColorSpan(Color.ParseColor(lesson.Auditoriums[lesson.Auditoriums.Length - 1].Color)),
+                            SpanTypes.ExclusiveExclusive);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < lesson.Auditoriums.Length - 1; i++)
+                    {
+                        auditoriums.Append(lesson.Auditoriums[i].Name + ", ",
+                            new ForegroundColorSpan(new Color(225, 225, 225)), SpanTypes.ExclusiveExclusive);
+                    }
+                    if (lesson.Auditoriums.Length != 0)
+                    {
+                        auditoriums.Append(lesson.Auditoriums[lesson.Auditoriums.Length - 1].Name,
+                            new ForegroundColorSpan(new Color(225, 225, 225)),
+                            SpanTypes.ExclusiveExclusive);
+                    }
+                }
+                if (viewHolder.ShowFullInfo)
+                {
+                    viewHolder.LessonAuditoriums.SetSingleLine(false);
+                }
+                else
+                {
+                    viewHolder.LessonAuditoriums.SetSingleLine(true);
+                }
+                viewHolder.LessonAuditoriums.SetText(auditoriums, TextView.BufferType.Normal);
+            }
+        }
+
+        void SetTitle(ScheduleViewHolder viewHolder, Lesson lesson, bool enabled)
+        {
+            string title = lesson.Title;
+            viewHolder.LessonTitle.SetTextColor(enabled ? new Color(95, 107, 117) : new Color(215, 215, 215));
+            viewHolder.LessonTitle.SetText(title, TextView.BufferType.Normal);
+            viewHolder.LessonTitle.Enabled = enabled;
+        }
+
+        void SetTeachers(ScheduleViewHolder viewHolder, Lesson lesson, bool enabled)
+        {
+            string teachers = string.Join(", ", viewHolder.ShowFullInfo ?
                 lesson.GetFullTecherNames() : lesson.GetShortTeacherNames());
             if (string.IsNullOrEmpty(teachers))
             {
@@ -289,52 +290,228 @@
             }
             else
             {
+                viewHolder.LessonTitle.SetTextColor(enabled ? new Color(95, 107, 117) : new Color(215, 215, 215));
                 viewHolder.LessonTeachers.SetText(teachers, TextView.BufferType.Normal);
+                viewHolder.LessonTeachers.Enabled = enabled;
                 viewHolder.LessonTeachers.Visibility = ViewStates.Visible;
             }
-            // Display auditoriums
-            viewHolder.LessonAuditoriums.SetText(auditoriums, TextView.BufferType.Normal);
-            
+        }
+
+        void SetOtherInfo(ScheduleViewHolder viewHolder, Lesson lesson, bool enabled)
+        {
+            string otherInfo = string.Empty;
+            // Display type of week
+            if (lesson.Week != WeekType.None)
+            {
+                otherInfo = viewHolder.LessonLayout.Context.Resources.GetString(lesson.Week == WeekType.Odd ?
+                   Resource.String.odd_week : Resource.String.even_week);
+            }
+            // Display module
+            if (lesson.Module != Module.None)
+            {
+                if (!string.IsNullOrEmpty(otherInfo))
+                {
+                    otherInfo += "\n";
+                }
+                otherInfo += viewHolder.LessonLayout.Context.Resources.GetString(lesson.Module == Module.First ?
+                    Resource.String.first_module : Resource.String.second_module);
+            }
+            // Display dates
+            if (lesson.DateFrom != DateTime.MinValue && lesson.DateTo != DateTime.MaxValue)
+            {
+                if (!string.IsNullOrEmpty(otherInfo))
+                {
+                    otherInfo += "\n";
+                }
+                if (lesson.DateFrom == lesson.DateTo)
+                {
+                    otherInfo += lesson.DateFrom.ToString("d MMM").Replace('.', '\0');
+                }
+                else
+                {
+                    otherInfo += lesson.DateFrom.ToString("d MMM").Replace('.', '\0')
+                        + " - " + lesson.DateTo.ToString("d MMM").Replace('.', '\0').Replace('.', '\0');
+                }
+            }
+            if (string.IsNullOrEmpty(otherInfo))
+            {
+                viewHolder.LessonOtherInfo.Visibility = ViewStates.Gone;
+            }
+            else
+            {
+                viewHolder.LessonOtherInfo.SetTextColor(enabled ? new Color(191, 197, 202) : new Color(230, 230, 230));
+                viewHolder.LessonOtherInfo.SetText(otherInfo, TextView.BufferType.Normal);
+                viewHolder.LessonOtherInfo.Enabled = enabled;
+                viewHolder.LessonOtherInfo.Visibility = ViewStates.Visible;
+            }
+        }
+
+        public override void OnBindViewHolder(RecyclerView.ViewHolder vh, int position)
+        {
+            if (!(vh is ScheduleViewHolder viewHolder))
+            {
+                return;
+            }
+            float scale = viewHolder.LessonLayout.Context.Resources.DisplayMetrics.Density;
+            int dp6InPx = (int)(6 * scale + 0.5f);
+
+            bool isCurrentPosEmpty = false;
+            int posotionOffset = 0;
+            for (; posotionOffset < this.toInsert.Count; posotionOffset++)
+            {
+                if (position == this.toInsert[posotionOffset].position)
+                {
+                    isCurrentPosEmpty = true;
+                    break;
+                }
+                else if (position < this.toInsert[posotionOffset].position)
+                {
+                    break;
+                }
+            }
+            if (isCurrentPosEmpty)
+            {
+                SetHead(viewHolder, this.toInsert[posotionOffset].order);
+                SetMargin(viewHolder, position);
+                viewHolder.HeadLayout.Visibility = ViewStates.Visible;
+                viewHolder.BodyLayout.Visibility = ViewStates.Visible;
+                var emptyLesson = new Lesson(posotionOffset, " ", new string[] { "tipapro" }, DateTime.MinValue,
+                    DateTime.MaxValue, null, "", WeekType.None, Module.None);
+                SetLessonType(viewHolder, emptyLesson, true);
+                SetAuditoriums(viewHolder, emptyLesson, true);
+                SetTitle(viewHolder, emptyLesson, true);
+                SetTeachers(viewHolder, emptyLesson, true);
+                SetOtherInfo(viewHolder, emptyLesson, true);
+                viewHolder.LineScheduleBottomBorder.Visibility = ViewStates.Gone;
+                viewHolder.LineScheduleTopBorder.Visibility = ViewStates.Gone;
+                //(viewHolder.HeadLayout.Background as GradientDrawable).SetCornerRadius(dp6InPx);
+                (viewHolder.HeadLayout.Background as GradientDrawable).SetCornerRadii(new float[]
+                { dp6InPx, dp6InPx, dp6InPx, dp6InPx, 0, 0, 0, 0 });
+                (viewHolder.LessonLayout.Background as GradientDrawable).SetCornerRadius(dp6InPx);
+                return;
+            }
+            else
+            {
+                viewHolder.BodyLayout.Visibility = ViewStates.Visible;
+            }
+            int fixedPosition = position - posotionOffset;
+            Lesson lesson;
+            try
+            {
+                lesson = this.dailySchedule?.GetLesson(fixedPosition);
+                if (lesson == null)
+                {
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            SetMargin(viewHolder, position);
+            (viewHolder.LessonLayout.Background as GradientDrawable).SetCornerRadius(dp6InPx);
+            if (fixedPosition != 0 && this.dailySchedule.GetLesson(fixedPosition - 1)?.Order == lesson.Order)
+            {
+                viewHolder.HeadLayout.Visibility = ViewStates.Gone;
+                (viewHolder.LessonLayout.Background as GradientDrawable).SetCornerRadii(new float[]
+                { 0, 0, 0, 0, dp6InPx, dp6InPx, dp6InPx, dp6InPx });
+                viewHolder.LineScheduleTopBorder.Visibility = ViewStates.Visible;
+            }
+            else
+            {
+                SetHead(viewHolder, lesson.Order);
+                (viewHolder.HeadLayout.Background as GradientDrawable).SetCornerRadii(new float[]
+                { dp6InPx, dp6InPx, dp6InPx, dp6InPx, 0, 0, 0, 0 });
+                viewHolder.HeadLayout.Visibility = ViewStates.Visible;
+                viewHolder.LineScheduleTopBorder.Visibility = ViewStates.Gone;
+            }
+            if ((fixedPosition != this.dailySchedule.Count - 1) &&
+                this.dailySchedule.GetLesson(fixedPosition + 1)?.Order == lesson.Order)
+            {
+                viewHolder.LineScheduleBottomBorder.Visibility = ViewStates.Visible;
+                var lessonLayoutParams = viewHolder.LessonLayout.LayoutParameters as LinearLayout.LayoutParams;
+                lessonLayoutParams.BottomMargin = 0;
+                (viewHolder.LessonLayout.Background as GradientDrawable).SetCornerRadii(new float[]
+                { dp6InPx, dp6InPx, dp6InPx, dp6InPx, 0, 0, 0, 0 });
+            }
+            else
+            {
+                viewHolder.LineScheduleBottomBorder.Visibility = ViewStates.Invisible;
+            }
+            if (fixedPosition != 0 && fixedPosition != this.dailySchedule.Count - 1)
+            {
+                if ((this.dailySchedule.GetLesson(fixedPosition - 1)?.Order == lesson.Order)
+                    && (this.dailySchedule.GetLesson(fixedPosition + 1)?.Order == lesson.Order))
+                {
+                    (viewHolder.LessonLayout.Background as GradientDrawable).SetCornerRadius(0);
+                }
+            }
+
+            bool enabledFrom = lesson.DateFrom <= this.Date || !this.desaturateOtherDates;
+            bool enabledTo = lesson.DateTo >= this.Date || !this.desaturateOtherDates;
+            bool enabled = enabledFrom && enabledTo;
+            if (lesson.Type.Contains("зачет", StringComparison.OrdinalIgnoreCase) ||
+                lesson.Type.Contains("экзамен", StringComparison.OrdinalIgnoreCase) ||
+                lesson.Type.Contains("зачёт", StringComparison.OrdinalIgnoreCase))
+            {
+                enabled = enabledTo;
+            }
+
+            viewHolder.LessonLayout.Enabled = enabled;
+
+            SetLessonType(viewHolder, lesson, enabled);
+            SetAuditoriums(viewHolder, lesson, enabled);
+            SetTitle(viewHolder, lesson, enabled);
+            SetTeachers(viewHolder, lesson, enabled);
+            SetOtherInfo(viewHolder, lesson, enabled);
         }
 
 
         public class ScheduleViewHolder : RecyclerView.ViewHolder
         {
-            public bool ShowFullTeacherName { get; set; }
+            public bool ShowFullInfo { get; set; }
             public TextView LessonTime { get; }
+            public TextView LessonOrder { get; }
             public TextView LessonTitle { get; }
             public TextView LessonType { get; }
             public TextView LessonAuditoriums { get; }
             public TextView LessonTeachers { get; }
-            public RelativeLayout LessonLayout { get; }
-            //public TextView LessonModuleAndWeekType { get; }
+            public LinearLayout LessonLayout { get; }
+            public RelativeLayout HeadLayout { get; }
+            public RelativeLayout BodyLayout { get; }
             public TextView LessonOtherInfo { get; }
+            public View LineScheduleBottomBorder { get; }
+            public View LineScheduleTopBorder { get; }
+
             public ScheduleViewHolder(View view, Action<int> OnItemClick) : base(view)
             {
-                this.ShowFullTeacherName = false;
+                this.ShowFullInfo = false;
                 this.LessonTitle = view.FindViewById<TextView>(Resource.Id.text_schedule_title);
                 this.LessonTime = view.FindViewById<TextView>(Resource.Id.text_schedule_time);
+                this.LessonOrder = view.FindViewById<TextView>(Resource.Id.text_schedule_order);
                 this.LessonType = view.FindViewById<TextView>(Resource.Id.text_schedule_type);
                 this.LessonTeachers = view.FindViewById<TextView>(Resource.Id.text_schedule_teachers);
                 this.LessonAuditoriums = view.FindViewById<TextView>(Resource.Id.text_schedule_auditoriums);
-                this.LessonAuditoriums.ViewTreeObserver.GlobalLayout += (obj, arg) =>
-                {
-                    this.LessonAuditoriums.Selected = true;
-                    var a = this.LessonAuditoriums.Ellipsize;
-                };
-                //this.LessonModuleAndWeekType = view.FindViewById<TextView>(Resource.Id.text_schedule_module_and_week_type);
                 this.LessonOtherInfo = view.FindViewById<TextView>(Resource.Id.text_schedule_other_info);
-                this.LessonLayout = view.FindViewById<RelativeLayout>(Resource.Id.layout_schedule);
+                this.LessonLayout = view.FindViewById<LinearLayout>(Resource.Id.layout_schedule);
                 this.LessonLayout.Click += (obj, arg) =>
                 {
-                    this.ShowFullTeacherName = !this.ShowFullTeacherName;
+                    this.ShowFullInfo = !this.ShowFullInfo;
                     OnItemClick(this.LayoutPosition);
                 };
+                this.HeadLayout = view.FindViewById<RelativeLayout>(Resource.Id.layout_schedule_head);
+                this.BodyLayout = view.FindViewById<RelativeLayout>(Resource.Id.layout_schedule_body);
+                this.LineScheduleBottomBorder = view.FindViewById<View>(Resource.Id.line_schedule_bottom_border);
+                this.LineScheduleTopBorder = view.FindViewById<View>(Resource.Id.line_schedule_top_border);
+
+                this.LessonLayout.Background = this.LessonLayout.Background.Mutate();
+                this.HeadLayout.Background = this.HeadLayout.Background.Mutate();
             }
 
             public void OnDailyScheduleChanged()
             {
-                this.ShowFullTeacherName = false;
+                this.ShowFullInfo = false;
             }
         }
     }

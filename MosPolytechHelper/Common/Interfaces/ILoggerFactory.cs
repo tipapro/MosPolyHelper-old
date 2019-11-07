@@ -1,8 +1,8 @@
-﻿namespace MosPolytechHelper.Common.Interfaces
+﻿namespace MosPolyHelper.Common.Interfaces
 {
     public interface ILoggerFactory
     {
-        void CanWriteToFileChanged(bool state, string path);
         ILogger Create<T>();
+        ILogger Create(string name);
     }
 }
