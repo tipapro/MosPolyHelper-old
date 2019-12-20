@@ -25,6 +25,11 @@
     <AndroidEnableSGenConcurrent>true</AndroidEnableSGenConcurrent>
     <AndroidUseAapt2>true</AndroidUseAapt2>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
+    <AndroidKeyStore>true</AndroidKeyStore>
+    <AndroidSigningKeyStore>C:\Users\tipapro\AppData\Local\Xamarin\Mono for Android\Keystore\tipapro\tipapro.keystore</AndroidSigningKeyStore>
+    <AndroidSigningStorePass>protip</AndroidSigningStorePass>
+    <AndroidSigningKeyAlias>tipapro</AndroidSigningKeyAlias>
+    <AndroidSigningKeyPass>protip</AndroidSigningKeyPass>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -41,6 +46,9 @@
     <EnableLLVM>false</EnableLLVM>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
     <BundleAssemblies>false</BundleAssemblies>
+    <AndroidSupportedAbis>armeabi-v7a;x86;x86_64;arm64-v8a</AndroidSupportedAbis>
+    <AndroidUseAapt2>true</AndroidUseAapt2>
+    <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>false</DebugSymbols>
@@ -59,6 +67,10 @@
     <AndroidEnableProfiledAot>true</AndroidEnableProfiledAot>
     <BundleAssemblies>false</BundleAssemblies>
     <MandroidI18n />
+    <AndroidSupportedAbis />
+    <AndroidUseAapt2>true</AndroidUseAapt2>
+    <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -70,11 +82,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Adapters\RecyclerScheduleAdapter.cs" />
+    <Compile Include="Adapters\RecyclerScheduleGridAdapter.cs" />
     <Compile Include="Adapters\RecyclerScheduleManagerAdapter.cs" />
-    <Compile Include="Adapters\ViewPagerAdapter.cs" />
+    <Compile Include="Adapters\ViewPagerNormalAdapter.cs" />
+    <Compile Include="Adapters\ViewPagerGridAdapter.cs" />
     <Compile Include="Common\AsyncCommand.cs" />
     <Compile Include="Common\Command.cs" />
     <Compile Include="Common\DependencyInjector.cs" />
+    <Compile Include="Common\PreferencesConstants.cs" />
     <Compile Include="Common\ScheduleDownloader.cs" />
     <Compile Include="Common\Interfaces\IAsyncCommand.cs" />
     <Compile Include="Common\Interfaces\ICommand.cs" />
@@ -91,6 +106,7 @@
     <Compile Include="Common\NLogger.cs" />
     <Compile Include="Common\ProtofubConverter.cs" />
     <Compile Include="Common\ScheduleConverter.cs" />
+    <Compile Include="Common\StateMachine.cs" />
     <Compile Include="Common\StringProvider.cs" />
     <Compile Include="CustomElements\RecyclerTabLayout.cs" />
     <Compile Include="Domain\Auditorium.cs" />
@@ -106,10 +122,10 @@
     <Compile Include="Features\Common\ViewModelBase.cs" />
     <Compile Include="Features\Common\ViewModels.cs" />
     <Compile Include="Features\Common\VmMessage.cs" />
+    <Compile Include="Features\MainVm.cs" />
+    <Compile Include="Features\Settings\SettingsView.cs" />
     <Compile Include="Features\SplashActivity.cs" />
     <Compile Include="Features\Schedule\Common\ScheduleFragments.cs" />
-    <Compile Include="Features\Schedule\ScheduleFilterView.cs" />
-    <Compile Include="Features\Schedule\ScheduleFilterVm.cs" />
     <Compile Include="Features\Schedule\ScheduleManagerView.cs" />
     <Compile Include="Features\Schedule\ScheduleManagerVm.cs" />
     <Compile Include="Features\Schedule\ScheduleModel.cs" />
@@ -131,9 +147,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\activity_main.xml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
-    <AndroidResource Include="Resources\layout\app_bar_main.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
     <AndroidResource Include="Resources\layout\content_main.xml">
@@ -171,6 +184,9 @@
     <PackageReference Include="Xamarin.Android.Support.Design">
       <Version>28.0.0.3</Version>
     </PackageReference>
+    <PackageReference Include="Xamarin.Android.Support.v7.Preference">
+      <Version>28.0.0.3</Version>
+    </PackageReference>
     <PackageReference Include="Xamarin.Essentials">
       <Version>1.3.1</Version>
     </PackageReference>
@@ -204,17 +220,7 @@
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\layout\popup_schedule_filter.xml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\drawable\ic_menu_schedule.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\layout\toolbar_schedule.xml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\menu\menu_main.xml">
@@ -326,6 +332,49 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\color\switch_color.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\xml\settings.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\nav_settings_24px.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\toolbar_settings.xml">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\toolbar_schedule.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\fragment_settings.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\schedule_home.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\schedule_grid.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\advanced_search.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\item_daily_schedule.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\bottom_app_bar_schedule.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>

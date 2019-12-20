@@ -2,6 +2,7 @@
 {
     public enum ViewModels
     {
+        Main,
         Schedule,
         ScheduleManager,
         ScheduleFilter,

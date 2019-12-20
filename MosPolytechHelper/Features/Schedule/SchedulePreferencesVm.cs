@@ -1,5 +1,6 @@
 ﻿using MosPolyHelper.Common;
 using MosPolyHelper.Common.Interfaces;
+using MosPolyHelper.Domain;
 using MosPolyHelper.Features.Common;
 using MosPolyHelper.Features.Schedule.Common;
 
@@ -7,8 +8,47 @@ namespace MosPolyHelper.Features.Schedule
 {
     class SchedulePreferencesVm : ViewModelBase
     {
+        ModuleFilter moduleFilter;
+        DateFilter dateFilter;
+        bool sessionFilter;
+
+        public ModuleFilter ModuleFilter
+        {
+            get => this.moduleFilter;
+            set => SetValue(ref this.moduleFilter, value);
+        }
+        public DateFilter DateFilter
+        {
+            get => this.dateFilter;
+            set => SetValue(ref this.dateFilter, value);
+        }
+        public bool SessionFilter
+        {
+            get => this.sessionFilter;
+            set => SetValue(ref this.sessionFilter, value);
+        }
+
+        public ICommand ModuleFilterSelected { get; set; }
+        public ICommand DateFilterSelected { get; set; }
+        public ICommand SessionFilterSelected { get; set; }
+
+        public void ChangeModuleFilter(ModuleFilter moduleFilter)
+        {
+            this.moduleFilter = moduleFilter;
+            Send(ViewModels.Schedule, nameof(this.ModuleFilter), moduleFilter);
+        }
+        public void ChangeDateFilter(DateFilter dateFilter)
+        {
+            this.dateFilter = dateFilter;
+            Send(ViewModels.Schedule, nameof(this.DateFilter), dateFilter);
+        }
+        public void ChangeSessionFilter(bool sessionFilter)
+        {
+            this.sessionFilter = sessionFilter;
+            Send(ViewModels.Schedule, nameof(this.SessionFilter), sessionFilter);
+        }
+
         ScheduleTarget scheduleTarget;
-        ScheduleType scheduleType;
         bool showEmptyLessons;
         bool showColoredLessons;
 
@@ -17,36 +57,19 @@ namespace MosPolyHelper.Features.Schedule
             get => this.scheduleTarget;
             set => SetValue(ref this.scheduleTarget, value);
         }
-        public ScheduleType ScheduleType
-        {
-            get => this.scheduleType;
-            set => SetValue(ref this.scheduleType, value);
-        }
-        public bool ShowEmptyLessons
-        {
-            get => this.showEmptyLessons;
-            set => SetValue(ref this.showEmptyLessons, value);
-        }
-        public bool ShowColoredLessons
-        {
-            get => this.showColoredLessons;
-            set => SetValue(ref this.showColoredLessons, value);
-        }
 
         public ICommand ScheduleTargetSelected { get; set; }
-        public ICommand ScheduleTypeSelected { get; set; }
         public ICommand ButtonGoToScheduleManagerClicked { get; set; }
-        public ICommand ShowEmptyLessonsSelected { get; set; }
-        public ICommand ShowColoredLessonsSelected { get; set; }
 
         public SchedulePreferencesVm(ILoggerFactory loggerFactory, IMediator<ViewModels, VmMessage> mediator)
             : base(mediator, ViewModels.SchedulePreferences)
         {
             this.ScheduleTargetSelected = new Command<ScheduleTarget>(ChangeScheduleTarget);
-            this.ScheduleTypeSelected = new Command<ScheduleType>(ChangeScheduleType);
             this.ButtonGoToScheduleManagerClicked = new Command(GoToScheduleManagerFrament);
-            this.ShowEmptyLessonsSelected = new Command<bool>(ChangeShowEmptyLessons);
-            this.ShowColoredLessonsSelected = new Command<bool>(ChangeShowColoredLessons);
+
+            this.ModuleFilterSelected = new Command<ModuleFilter>(ChangeModuleFilter);
+            this.DateFilterSelected = new Command<DateFilter>(ChangeDateFilter);
+            this.SessionFilterSelected = new Command<bool>(ChangeSessionFilter);
         }
 
         public void ChangeScheduleTarget(ScheduleTarget scheduleTarget)
@@ -54,24 +77,9 @@ namespace MosPolyHelper.Features.Schedule
             this.scheduleTarget = scheduleTarget;
             Send(ViewModels.Schedule, nameof(this.ScheduleTarget), scheduleTarget);
         }
-        public void ChangeScheduleType(ScheduleType scheduleType)
-        {
-            this.scheduleType = scheduleType;
-            Send(ViewModels.Schedule, nameof(this.ScheduleType), scheduleType);
-        }
         public void GoToScheduleManagerFrament()
         {
             Send(ViewModels.Schedule, "ChangeFragment", ScheduleFragments.ScheduleManager);
-        }
-        public void ChangeShowEmptyLessons(bool showEmptyLessons)
-        {
-            this.showEmptyLessons = showEmptyLessons;
-            Send(ViewModels.Schedule, nameof(this.ShowEmptyLessons), showEmptyLessons);
-        }
-        public void ChangeShowColoredLessons(bool showColoredLessons)
-        {
-            this.showColoredLessons = showColoredLessons;
-            Send(ViewModels.Schedule, nameof(this.ShowColoredLessons), showColoredLessons);
         }
     }
 
@@ -79,11 +87,5 @@ namespace MosPolyHelper.Features.Schedule
     {
         Student,
         Teacher
-    }
-
-    public enum ScheduleType
-    {
-        Everyday,
-        Session
     }
 }

@@ -23,26 +23,38 @@
             android:textStyle="bold" 
             android:layout_width="wrap_content" 
             android:layout_height="wrap_content" 
-            android:text="@string/schedule_target_prompt"/>
-        <Spinner android:id="@+id/spinner_schedule_target" 
+            android:text="@string/schedule_date_filter_prompt"/>
+        <Spinner android:id="@+id/spinner_schedule_date_filter" 
             android:layout_width="match_parent" 
             android:layout_height="wrap_content" 
-            android:entries="@array/schedule_target_array"/>
+            android:entries="@array/schedule_date_filter_array"/>
     </LinearLayout>
     <LinearLayout android:orientation="vertical" 
+        android:visibility="gone"
         android:layout_width="250dp" 
         android:layout_height="wrap_content" 
         android:background="@drawable/shape_popup_settings_cell" 
         android:layout_marginBottom="7dp">
         <TextView android:textSize="12sp" 
             android:textStyle="bold" 
-            android:layout_width="wrap_content" 
+            android:layout_width="250dp" 
             android:layout_height="wrap_content" 
-            android:text="@string/text_schedule_type_prompt"/>
-        <Spinner android:id="@+id/spinner_text_schedule_type" 
+            android:text="@string/schedule_module_filter_prompt"/>
+        <Spinner android:id="@+id/spinner_schedule_module_filter" 
             android:layout_width="match_parent" 
             android:layout_height="wrap_content" 
-            android:entries="@array/text_schedule_type_array"/>
+            android:entries="@array/schedule_module_filter_array"/>
+    </LinearLayout>
+    <LinearLayout android:orientation="horizontal" 
+        android:layout_width="250dp" 
+        android:layout_height="wrap_content" 
+        android:background="@drawable/shape_popup_settings_cell" >
+        <Switch android:id="@+id/switch_schedule_session_filter" 
+            android:textSize="14sp" 
+            android:text="@string/schedule_session_filter" 
+            android:layout_width="match_parent" 
+            android:layout_height="wrap_content" 
+            android:switchPadding="10dp"/>
     </LinearLayout>
     <LinearLayout android:visibility="gone" 
         android:orientation="vertical" 
@@ -55,28 +67,5 @@
             android:layout_height="wrap_content" 
             android:background="#00000000" 
             android:text="@string/goto_schedule_manager"/>
-    </LinearLayout>
-    <LinearLayout android:orientation="horizontal" 
-        android:layout_width="250dp" 
-        android:layout_height="wrap_content" 
-        android:background="@drawable/shape_popup_settings_cell" 
-        android:layout_marginBottom="7dp">
-        <Switch android:id="@+id/switch_schedule_show_empty_lessons" 
-            android:textSize="14sp" 
-            android:text="@string/schedule_show_empty_lessons" 
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" 
-            android:switchPadding="10dp"/>
-    </LinearLayout>
-    <LinearLayout android:orientation="horizontal" 
-        android:layout_width="250dp" 
-        android:layout_height="wrap_content" 
-        android:background="@drawable/shape_popup_settings_cell" >
-        <Switch android:id="@+id/switch_schedule_show_colored_lessons" 
-            android:textSize="14sp" 
-            android:text="@string/schedule_show_colored_lessons" 
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" 
-            android:switchPadding="10dp"/>
     </LinearLayout>
 </LinearLayout>

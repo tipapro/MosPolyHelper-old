@@ -7,6 +7,18 @@
     [ProtoContract]
     public class Lesson
     {
+        readonly static (TimeSpan StartTime, TimeSpan EndTime) FirstPair = (new TimeSpan(9, 0, 0), new TimeSpan(10, 30, 0));
+        readonly static (TimeSpan StartTime, TimeSpan EndTime) SecondPair = (new TimeSpan(10, 40, 0), new TimeSpan(12, 10, 0));
+        readonly static (TimeSpan StartTime, TimeSpan EndTime) ThirdPair = (new TimeSpan(12, 20, 0), new TimeSpan(13, 50, 0));
+        readonly static (TimeSpan StartTime, TimeSpan EndTime) FourthPair = (new TimeSpan(14, 30, 0), new TimeSpan(16, 00, 0));
+        readonly static (TimeSpan StartTime, TimeSpan EndTime) FifthPair = (new TimeSpan(16, 10, 0), new TimeSpan(17, 40, 0));
+        readonly static (TimeSpan StartTime, TimeSpan EndTime) SixthPair = (new TimeSpan(17, 50, 0), new TimeSpan(19, 20, 0));
+        //readonly static (TimeSpan StartTime, TimeSpan EndTime) SeventhPair = (new TimeSpan(19, 30, 0), new TimeSpan(21, 00, 0));
+        readonly static (TimeSpan StartTime, TimeSpan EndTime) SixthPairM = (new TimeSpan(18, 20, 0), new TimeSpan(19, 40, 0));
+        //readonly static (TimeSpan StartTime, TimeSpan EndTime) SeventhPairM = (new TimeSpan(19, 50, 0), new TimeSpan(21, 10, 0));
+        readonly static (TimeSpan StartTime, TimeSpan EndTime) SixthPairE = (new TimeSpan(18, 30, 0), new TimeSpan(20, 00, 0));
+        //readonly static (TimeSpan StartTime, TimeSpan EndTime) SeventhPairE = (new TimeSpan(20, 10, 0), new TimeSpan(21, 40, 0));
+
         Lesson() { }
 
         bool CheckTeachersEquals(Teacher[] teachers)
@@ -156,10 +168,10 @@
             {
                 return false;
             }
-            return this.Order == lesson2.Order || this.Title == lesson2.Title
-                || CheckTeachersEquals(lesson2.Teachers) || this.DateFrom == lesson2.DateFrom
-                || this.DateTo == lesson2.DateTo || CheckAuditoriumsEquals(this.Auditoriums)
-                || this.Type == lesson2.Type || this.Week == lesson2.Week || this.Module == lesson2.Module;
+            return this.Order == lesson2.Order && this.Title == lesson2.Title
+                && CheckTeachersEquals(lesson2.Teachers) && this.DateFrom == lesson2.DateFrom
+                && this.DateTo == lesson2.DateTo && CheckAuditoriumsEquals(this.Auditoriums)
+                && this.Type == lesson2.Type && this.Week == lesson2.Week && this.Module == lesson2.Module;
         }
 
         public override int GetHashCode()
@@ -186,7 +198,7 @@
                 case 5:
                     if (groupIsEvening)
                     {
-                        if (groupDateFrom >= new DateTime(date.Year, 1, 22)) // TODO: Change 2018 year
+                        if (groupDateFrom >= new DateTime(date.Year, 1, 22))
                         {
                             return ("18:30", "20:00");
                         }
@@ -203,7 +215,7 @@
                 case 6:
                     if (groupIsEvening)
                     {
-                        if (groupDateFrom >= new DateTime(date.Year, 1, 22)) // TODO: Change 2018 year
+                        if (groupDateFrom >= new DateTime(date.Year, 1, 22))
                         {
                             return ("20:10", "21:40");
                         }
@@ -221,6 +233,78 @@
                     //this.logger.Warn("Suspicious behavior: Unplanned lesson number {num}. " +
                     //"Additional data: {groupIsEvening}, {groupDateFrom}", lessonPosition, groupIsEvening, groupDateFrom);
                     return (string.Empty, string.Empty);
+            }
+        }
+
+        public static int GetCurrentLessonOrder(Schedule.Daily dailiSchedule, TimeSpan time, DateTime date, bool groupIsEvening, 
+            DateTime groupDateFrom)
+        {
+            if (dailiSchedule == null)
+            {
+                return -1;
+            }
+            // 0, 1, 2 | 3, 4, 5, 6
+            if (time > ThirdPair.EndTime)
+            {
+                if (time <= FourthPair.EndTime)
+                {
+                    return 3;
+                }
+                else if (time <= FifthPair.EndTime)
+                {
+                    return 4;
+                }
+                else if (groupIsEvening)
+                {
+                    if (groupDateFrom >= new DateTime(date.Year, 1, 22))
+                    {
+                        if (time <= SixthPairE.EndTime)
+                        {
+                            return 5;
+                        }
+                        else
+                        {
+                            return 6;
+                        }
+                    }
+                    else
+                    {
+                        if (time <= SixthPairM.EndTime)
+                        {
+                            return 5;
+                        }
+                        else
+                        {
+                            return 6;
+                        }
+                    }
+                }
+                else
+                {
+                    if (time <= SixthPair.EndTime)
+                    {
+                        return 5;
+                    }
+                    else
+                    {
+                        return 6;
+                    }
+                }
+            }
+            else
+            {
+                if (time > SecondPair.EndTime)
+                {
+                    return 2;
+                }
+                else if (time > FirstPair.EndTime)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
             }
         }
     }

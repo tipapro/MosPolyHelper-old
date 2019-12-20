@@ -16,6 +16,8 @@
         [ProtoMember(2)]
         public Group Group { get; set; }
         [ProtoMember(3)]
+        public bool IsByDate { get; set; }
+        [ProtoIgnore]
         public bool IsSession { get; set; }
         [ProtoIgnore]
         public int Count => this.dailyShedules?.Length ?? 0;
@@ -27,11 +29,11 @@
             this.Group = new Group();
         }
 
-        public Schedule(Schedule.Daily[] schedule, Group group, bool isSession, DateTime lastUpdate)
+        public Schedule(Schedule.Daily[] schedule, Group group, bool isByDate, DateTime lastUpdate)
         {
             this.dailyShedules = schedule;
             this.Group = group;
-            this.IsSession = isSession;
+            this.IsByDate = isByDate;
             this.LastUpdate = lastUpdate;
         }
 
@@ -66,9 +68,10 @@
         }
         public Daily GetSchedule(DateTime date)
         {
-            if (this.IsSession)
+            date = date.Date;
+            if (this.IsByDate)
             {
-                return this[date.ToBinary()];
+                return this[date.Ticks];
             }
             else
             {

@@ -33,11 +33,12 @@
             this.vm = vm;
         }
 
-
         protected void SetValue<T>(ref T property, T value, [CallerMemberName] string propertyName = "")
         {
             if (property != null && property.Equals(value) || (property == null && value == null))
+            {
                 return;
+            }
             property = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

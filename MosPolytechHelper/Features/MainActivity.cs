@@ -1,6 +1,7 @@
 ﻿namespace MosPolyHelper.Features
 {
     using Android.App;
+    using Android.Content;
     using Android.Content.PM;
     using Android.OS;
     using Android.Runtime;
@@ -8,18 +9,20 @@
     using Android.Support.V4.View;
     using Android.Support.V4.Widget;
     using Android.Support.V7.App;
+    using Android.Support.V7.Preferences;
     using Android.Views;
     using Android.Widget;
     using MosPolyHelper.Common;
     using MosPolyHelper.Common.Interfaces;
     using MosPolyHelper.Features.Common;
     using MosPolyHelper.Features.Schedule;
+    using MosPolyHelper.Features.Settings;
     using System;
     using System.Threading.Tasks;
 
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = false,
     ScreenOrientation = ScreenOrientation.Portrait)]
-    public class MainActivity : AppCompatActivity, NavigationView.IOnNavigationItemSelectedListener
+    public class MainActivity : AppCompatActivity
     {
         string clickBackAgain;
         bool doubleBackToExitPressedOnce;
@@ -28,8 +31,7 @@
         FragmentBase prevFragment;
         ILoggerFactory loggerFactory;
         ILogger logger;
-        PopupWindow popupPreferences;
-        ScheduleFilterView popupFilter;
+        MainVm viewModel;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -40,8 +42,14 @@
             {
                 this.loggerFactory = DependencyInjector.GetILoggerFactory();
             }
+            viewModel = new MainVm(DependencyInjector.GetIMediator());
             StringProvider.SetUpLogger(loggerFactory);
-            var scheduleVm = SplashActivity.ScheduleVmPreloadTask.GetAwaiter().GetResult();
+            var awaiter = SplashActivity.ScheduleVmPreloadTask?.GetAwaiter();
+            ScheduleVm scheduleVm = null;
+            if (awaiter.HasValue)
+            {
+                scheduleVm = awaiter.Value.GetResult();
+            }
             SplashActivity.ScheduleVmPreloadTask = null;
             ChangeFragment(ScheduleView.NewInstance(scheduleVm), Fragments.ScheduleMain, false);
 
@@ -50,9 +58,9 @@
 
             this.logger = this.loggerFactory.Create<MainActivity>();
 
-
             var navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
-            navigationView.SetNavigationItemSelectedListener(this);
+            navigationView.NavigationItemSelected += (obj, arg) => OnNavigationItemSelected(arg.MenuItem);
+            navigationView.SetCheckedItem(Resource.Id.nav_schedule);
             this.clickBackAgain = GetString(Resource.String.click_back_again);
             this.doubleBackToExitPressedOnce = false;
             this.logger.Debug("MainActivity created successfully");
@@ -64,17 +72,14 @@
             StringProvider.Context = this;
         }
 
+        public PopupWindow CurrentPopupWindow { get; set; }
+
         public override void OnBackPressed()
         {
             bool actionDone = false;
-            if (this.popupPreferences != null && this.popupPreferences.IsShowing)
+            if (this.CurrentPopupWindow != null && this.CurrentPopupWindow.IsShowing)
             {
-                this.popupPreferences.Dismiss();
-                actionDone = true;
-            }
-            if (this.popupFilter != null && this.popupFilter.IsShowing)
-            {
-                this.popupFilter.Dismiss();
+                this.CurrentPopupWindow.Dismiss();
                 actionDone = true;
             }
 
@@ -84,6 +89,13 @@
                 drawer.CloseDrawer(GravityCompat.Start);
                 actionDone = true;
             }
+
+            if (this.SupportFragmentManager.BackStackEntryCount != 0)
+            {
+                base.OnBackPressed();
+                actionDone = true;
+            }
+
             if (!actionDone)
             {
                 if (this.doubleBackToExitPressedOnce)
@@ -100,6 +112,23 @@
             }
         }
 
+        public void OnSharedPrefencesChanged(object sender, Preference.PreferenceChangeEventArgs e)
+        {
+            if (e.Preference.HasKey)
+            {
+                return;
+            }
+            switch (e.Preference.Key)
+            {
+                case PreferencesConstants.ScheduleShowColoredLessons:
+                    this.viewModel.ChangeShowEmptyLessons((bool)e.NewValue);
+                    break;
+                case PreferencesConstants.ScheduleShowEmptyLessons:
+                    this.viewModel.ChangeShowColoredLessons((bool)e.NewValue);
+                    break;
+            }
+        }
+
         async void UpdateExitFlag()
         {
             await Task.Delay(2000);
@@ -108,58 +137,6 @@
 
         public override bool OnOptionsItemSelected(IMenuItem item)
         {
-            int id = item.ItemId;
-            if (id == Resource.Id.schedule_preferences)
-            {
-                if (this.popupPreferences == null)
-                {
-                    var inflater = LayoutInflater.From(this);
-                    var layout = inflater.Inflate(Resource.Layout.popup_schedule_preferences, null);
-                    this.popupPreferences = new SchedulePreferencesView(layout, WindowManagerLayoutParams.WrapContent,
-                        WindowManagerLayoutParams.WrapContent, this.loggerFactory, DependencyInjector.GetIMediator())
-                    {
-                        //popupPreferences.ShowAtLocation(FindViewById<RelativeLayout>(Resource.Id.layout_main), GravityFlags.Top | GravityFlags.Right, 0, 0);
-                        OutsideTouchable = true,
-                        Focusable = true
-                    };
-                }
-                if (!this.popupPreferences.IsShowing)
-                {
-                    this.popupPreferences.ShowAsDropDown(
-                            FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar), 0, 0, GravityFlags.Right);
-                }
-                else
-                {
-                    this.popupPreferences.Dismiss();
-                }
-
-                return true;
-            }
-            else if (id == Resource.Id.schedule_filter)
-            {
-                if (this.popupFilter == null)
-                {
-                    var inflater = LayoutInflater.From(this);
-                    var layout = inflater.Inflate(Resource.Layout.popup_schedule_filter, null);
-                    this.popupFilter = new ScheduleFilterView(layout, WindowManagerLayoutParams.WrapContent,
-                        WindowManagerLayoutParams.WrapContent, this.loggerFactory, DependencyInjector.GetIMediator())
-                    {
-                        OutsideTouchable = true,
-                        Focusable = true
-                    };
-                }
-                if (!this.popupFilter.IsShowing)
-                {
-                    this.popupFilter.ShowAsDropDown(
-                            FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar), 0, 0, GravityFlags.Right);
-                }
-                else
-                {
-                    this.popupFilter.Dismiss();
-                }
-
-                return true;
-            }
 
             return base.OnOptionsItemSelected(item);
         }
@@ -175,6 +152,11 @@
             {
                 fragmentId = Fragments.ScheduleMain;
                 fragmentCreator = () => ScheduleView.NewInstance();
+            }
+            else if (id == Resource.Id.nav_settings)
+            {
+                fragmentId = Fragments.Settings;
+                fragmentCreator = () => SettingsView.NewInstance();
             }
             if (this.curFragmentId == fragmentId)
             {
@@ -231,6 +213,12 @@
         {
             NLog.LogManager.Flush();
             base.OnStop();
+        }
+
+        public override bool OnSupportNavigateUp()
+        {
+            base.OnBackPressed();
+            return true;
         }
     }
 }

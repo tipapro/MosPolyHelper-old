@@ -108,7 +108,7 @@
                     continue;
                 }
                 schedule.Add(new Schedule.Daily(lessonList.ToArray(),
-                    isSession ? DateTime.Parse(day).ToBinary() : long.Parse(day)));
+                    isSession ? DateTime.Parse(day).Date.Ticks : long.Parse(day)));
             }
             return schedule.ToArray();
         }
@@ -242,7 +242,16 @@
         public async Task<string[]> ConvertToGroupList(string serializedObj)
         {
             return await Task.Run(
-                () => JObject.Parse(serializedObj)[GroupListKey]?.ToObject<JArray>()?.Values<string>()?.ToArray());
+                () => JObject.Parse(serializedObj)[GroupListKey]?.ToObject<JArray>()?.Values<string>()
+                ?.OrderByDescending(str =>
+                {
+                    if (!string.IsNullOrEmpty(str) && !char.IsDigit(str[0]))
+                    {
+                        return "_" + str;
+                    }
+                    return str;
+                }
+                )?.ToArray());
         }
 
         public async Task<Schedule> ConvertToScheduleAsync(string serializedObj)
@@ -255,12 +264,12 @@
                     this.logger.Warn($"Status of converting schedule is not \"ok\": {nameof(serializedObj)}", serializedObj);
                 }
 
-                bool isSession = serObj[IsSession]?.ToObject<bool>() ??
+                bool isByDate = serObj[IsSession]?.ToObject<bool>() ??
                     throw new JsonException($"Key {IsSession} doesn't found");
                 var group = ConvertToGroup(serObj[GroupInfoKey]);
-                var schedule = ConvertToScheduleArray(serObj[ScheduleGridKey], isSession);
+                var schedule = ConvertToScheduleArray(serObj[ScheduleGridKey], isByDate);
 
-                return new Schedule(schedule, group, isSession, DateTime.Now);
+                return new Schedule(schedule, group, isByDate, DateTime.Now);
             });
         }
     }

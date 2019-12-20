@@ -128,7 +128,7 @@
                     return null;
                 }
                 var lessonList = new List<Lesson>(dailySchedule.Count);
-                var currModule = DetermineModule(dailySchedule, date);
+                //var currModule = DetermineModule(dailySchedule, date);
                 var currWeek = DetermineWeekType(date);
                 foreach (var lesson in dailySchedule)
                 {
@@ -146,16 +146,16 @@
                             continue;
                         }
                     }
-                    if (this.ModuleFilter != ModuleFilter.Off)
-                    {
-                        if (lesson.Module != Module.None &&
-                            ((this.ModuleFilter == ModuleFilter.First && lesson.Module != Module.First) ||
-                            (this.ModuleFilter == ModuleFilter.Second && lesson.Module != Module.Second) ||
-                            (this.ModuleFilter == ModuleFilter.Auto && currModule != null && lesson.Module != currModule)))
-                        {
-                            continue;
-                        }
-                    }
+                    //if (this.ModuleFilter != ModuleFilter.Off)
+                    //{
+                    //    if (lesson.Module != Module.None &&
+                    //        ((this.ModuleFilter == ModuleFilter.First && lesson.Module != Module.First) ||
+                    //        (this.ModuleFilter == ModuleFilter.Second && lesson.Module != Module.Second) ||
+                    //        (this.ModuleFilter == ModuleFilter.Auto && currModule != null && lesson.Module != currModule)))
+                    //    {
+                    //        continue;
+                    //    }
+                    //}
 
                     if (this.SessionFilter)
                     {

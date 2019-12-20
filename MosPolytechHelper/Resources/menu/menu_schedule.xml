@@ -1,11 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
-  <item
-        android:id="@+id/schedule_filter"
-        android:icon="@drawable/ic_filter_24dp"
-        android:orderInCategory="99"
-        app:showAsAction="always" />
     <item
         android:id="@+id/schedule_preferences"
         android:icon="@drawable/ic_preferences_24dp"

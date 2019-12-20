@@ -26,7 +26,7 @@
             {
                 return false;
             }
-            return this.Name == aud2.Name || this.Color == aud2.Color;
+            return this.Name == aud2.Name && this.Color == aud2.Color;
         }
 
         public override int GetHashCode()

@@ -29,13 +29,23 @@
             public override bool Equals(object obj)
             {
                 if (!(obj is Daily dailySch2))
+                {
                     return false;
+                }
+                if (this.Day != dailySch2.Day)
+                {
+                    return false;
+                }
                 if (this.lessons.Length != dailySch2.lessons.Length)
+                {
                     return false;
+                }
                 for (int i = 0; i < this.lessons.Length; i++)
                 {
                     if (!this.lessons[i].Equals(dailySch2.lessons[i]))
+                    {
                         return false;
+                    }
                 }
                 return true;
             }

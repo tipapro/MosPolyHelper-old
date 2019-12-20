@@ -14,6 +14,7 @@
     {
         ScheduleMain,
         ScheduleManager,
+        Settings,
         Other
     }
 }

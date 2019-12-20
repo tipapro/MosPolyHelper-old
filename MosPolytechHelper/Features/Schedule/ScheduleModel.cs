@@ -14,6 +14,8 @@
         const string OldExtension = ".backup";
         const string CustomExtension = ".custom";
         const string ScheduleFolder = "cashed_schedules";
+        const string SessionScheduleFolder = "session";
+        const string RegularScheduleFolder = "regular";
 
         readonly ILogger logger;
         readonly IScheduleDownloader downloader;
@@ -36,10 +38,10 @@
             await File.WriteAllTextAsync(backingFile, serGroupList);
         }
 
-        (Stream SerSchedule, long Time) ReadSchedule(string groupTitle)
+        (Stream SerSchedule, long Time) ReadSchedule(string groupTitle, bool isSession)
         {
             string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                ScheduleFolder, groupTitle);
+                ScheduleFolder, groupTitle, isSession ? SessionScheduleFolder : RegularScheduleFolder);
             if (!Directory.Exists(folder))
             {
                 return (null, 0);
@@ -80,7 +82,7 @@
         void SaveScheduleAsync(Schedule schedule)
         {
             string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                ScheduleFolder, schedule.Group.Title);
+                ScheduleFolder, schedule.Group.Title, schedule.IsSession ? SessionScheduleFolder : RegularScheduleFolder);
             if (Directory.Exists(filePath))
             {
                 string[] files = Directory.GetFiles(filePath);
@@ -100,7 +102,7 @@
             {
                 Directory.CreateDirectory(filePath);
             }
-            filePath = Path.Combine(filePath, schedule.LastUpdate.ToBinary() + CurrentExtension);
+            filePath = Path.Combine(filePath, schedule.LastUpdate.Ticks + CurrentExtension);
             this.serializer.Serialize(filePath, schedule);
         }
 
@@ -109,6 +111,7 @@
             Schedule schedule;
             string serSchedule = await this.downloader.DownloadSchedule(group, isSession);
             schedule = await this.scheduleConverter.ConvertToScheduleAsync(serSchedule);
+            schedule.IsSession = isSession;
             try
             {
                 SaveScheduleAsync(schedule);
@@ -164,13 +167,14 @@
                     try
                     {
                         Announce?.Invoke(StringProvider.GetString(StringId.ScheduleWasntFounded));
-                        var (serSchedule, time) = ReadSchedule(group);
+                        var (serSchedule, time) = ReadSchedule(group, isSession);
                         this.Schedule = await this.deserializer.DeserializeAsync<Schedule>(serSchedule);
                         if (this.Schedule == null)
                         {
                             throw new Exception("Read schedule from storage fail");
                         }
-                        this.Schedule.LastUpdate = DateTime.FromBinary(time);
+                        this.Schedule.LastUpdate = new DateTime(time);
+                        this.Schedule.IsSession = isSession;
                         Announce.Invoke(StringProvider.GetString(StringId.OfflineScheduleWasFounded));
                     }
                     catch (Exception ex2)
@@ -189,13 +193,14 @@
                 }
                 try
                 {
-                    var (serSchedule, time) = ReadSchedule(group);
+                    var (serSchedule, time) = ReadSchedule(group, isSession);
                     this.Schedule = await this.deserializer.DeserializeAsync<Schedule>(serSchedule);
                     if (this.Schedule == null)
                     {
                         throw new Exception("Read schedule from storage fail");
                     }
-                    this.Schedule.LastUpdate = DateTime.FromBinary(time);
+                    this.Schedule.LastUpdate = new DateTime(time);
+                    this.Schedule.IsSession = isSession;
                 }
                 catch (Exception ex1)
                 {

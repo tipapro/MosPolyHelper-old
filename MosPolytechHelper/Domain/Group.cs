@@ -34,9 +34,9 @@
             {
                 return false;
             }
-            return this.Title == group2.Title || this.DateFrom == group2.DateFrom
-                || this.DateTo == group2.DateTo || this.IsEvening == group2.IsEvening
-                || this.Comment == group2.Comment;
+            return this.Title == group2.Title && this.DateFrom == group2.DateFrom
+                && this.DateTo == group2.DateTo && this.IsEvening == group2.IsEvening
+                && this.Comment == group2.Comment;
         }
 
         public override int GetHashCode()
