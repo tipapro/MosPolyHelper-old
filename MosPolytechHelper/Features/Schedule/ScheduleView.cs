@@ -3,6 +3,9 @@
     using Android.Content;
     using Android.Graphics;
     using Android.OS;
+    using Android.Support.Design.Chip;
+    using Android.Support.Design.Widget;
+    using Android.Support.Transitions;
     using Android.Support.V4.View;
     using Android.Support.V4.Widget;
     using Android.Support.V7.App;
@@ -15,8 +18,10 @@
     using MosPolyHelper.Common.Interfaces;
     using MosPolyHelper.Domain;
     using MosPolyHelper.Features.Common;
+    using MosPolyHelper.Features.Main;
     using MosPolyHelper.Features.Schedule.Common;
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel;
 
     class ScheduleView : FragmentBase
@@ -28,6 +33,16 @@
         ViewPager viewPager;
         bool isNormalMode = true;
         Spinner scheduleTypePreference;
+        List<string> checkedGroups;
+        List<string> checkedLessonTypes;
+        List<string> checkedTeachers;
+        List<string> checkedLessonTitles;
+        List<string> checkedAuditoriums;
+        Schedule[] schedules;
+        string[] lessonTitles;
+        string[] teachers;
+        string[] auditoriums;
+        string[] lessonTypes;
 
         void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -68,8 +83,8 @@
                 Toast.MakeText(this.Context, schedule?.Group?.Comment, ToastLength.Long).Show();
             }
             DateTime currDate;
-            var normalAdapter = this.viewPager.Adapter as ViewPagerNormalAdapter;
-            var gridAdapter = this.viewPager.Adapter as ViewPagerGridAdapter;
+            var normalAdapter = this.viewPager.Adapter as DailyShedulePageAdapter;
+            var gridAdapter = this.viewPager.Adapter as DailySheduleGridPageAdapter;
             if (this.isNormalMode)
             {
                 if (!modeChanged && (normalAdapter?.Schedule?.IsSession != schedule?.IsSession) ||
@@ -85,8 +100,8 @@
                 {
                     currDate = normalAdapter?.FirstPosDate.AddDays(this.viewPager.CurrentItem) ?? DateTime.Today;
                 }
-                this.viewPager.Adapter = normalAdapter = new ViewPagerNormalAdapter(
-                    schedule, this.viewModel.ShowEmptyLessons, this.viewModel.ShowColoredLessons);
+                this.viewPager.Adapter = normalAdapter = new DailyShedulePageAdapter(
+                    schedule, this.viewModel.ScheduleFilter, this.viewModel.ShowEmptyLessons, this.viewModel.ShowColoredLessons);
                 this.viewPager.CurrentItem = (currDate - normalAdapter.FirstPosDate).Days;
                 this.viewPager.Adapter.NotifyDataSetChanged();
             }
@@ -107,12 +122,12 @@
                 }
                 if (gridAdapter == null)
                 {
-                    this.viewPager.Adapter = gridAdapter = new ViewPagerGridAdapter(
-                        schedule, this.viewModel.ShowEmptyLessons, this.viewModel.ShowColoredLessons);
+                    this.viewPager.Adapter = gridAdapter = new DailySheduleGridPageAdapter(
+                        schedule, this.viewModel.ScheduleFilter, this.viewModel.ShowEmptyLessons, this.viewModel.ShowColoredLessons);
                 }
                 else
                 {
-                    gridAdapter.BuildSchedule(schedule, this.viewModel.ShowEmptyLessons,
+                    gridAdapter.BuildSchedule(schedule, this.viewModel.ScheduleFilter, this.viewModel.ShowEmptyLessons,
                         this.viewModel.ShowColoredLessons);
                 }
                 gridAdapter.CurrentDate = currDate;
@@ -130,11 +145,21 @@
 
         public ScheduleView() : base(Fragments.ScheduleMain)
         {
+            this.checkedGroups = new List<string>();
+            this.checkedLessonTitles = new List<string>();
+            this.checkedLessonTypes = new List<string>();
+            this.checkedTeachers = new List<string>();
+            this.checkedAuditoriums = new List<string>();
         }
 
         public ScheduleView(ScheduleVm vm) : base(Fragments.ScheduleMain)
         {
             this.viewModel = vm;
+            this.checkedGroups = new List<string>();
+            this.checkedLessonTitles = new List<string>();
+            this.checkedLessonTypes = new List<string>();
+            this.checkedTeachers = new List<string>();
+            this.checkedAuditoriums = new List<string>();
         }
 
         public static ScheduleView NewInstance()
@@ -174,43 +199,146 @@
             //base.OnCreateOptionsMenu(menu, inflater);
         }
 
+        class BottomSheetCallbacks : BottomSheetBehavior.BottomSheetCallback
+        {
+            public event Action<View, float> Slided;
+            public event Action<View, int> StateChanged;
+
+            public override void OnSlide(View bottomSheet, float slideOffset)
+            {
+                Slided?.Invoke(bottomSheet, slideOffset);
+            }
+            public override void OnStateChanged(View bottomSheet, int newState)
+            {
+                StateChanged?.Invoke(bottomSheet, newState);
+            }
+        }
+
+        class ChipClick : Java.Lang.Object, View.IOnClickListener
+        {
+            readonly Action<View> Click;
+            public ChipClick(Action<View> Click)
+            {
+                this.Click = Click;
+            }
+            public void OnClick(View v) => this.Click?.Invoke(v);
+        }
+
+        public void AddChipToGroup(ChipGroup chipGroup, string text)
+        {
+            var chip = (Chip)this.LayoutInflater.Inflate(Resource.Layout.chip_advanced_search, null);
+            chip.Text = text;
+            chip.CloseIconVisible = true;
+            chip.Clickable = true;
+            chip.Checkable = false;
+            chip.SetChipBackgroundColorResource(Resource.Color.colorSecondary);
+            chip.SetChipIconTintResource(Resource.Color.mtrl_chip_close_icon_tint);
+            TransitionManager.BeginDelayedTransition(chipGroup, new ChangeBounds());
+            chipGroup.AddView(chip);
+            chip.SetOnCloseIconClickListener(new ChipClick(v =>
+            {
+                TransitionManager.BeginDelayedTransition(chipGroup, new ChangeBounds());
+                chipGroup.RemoveView(v);
+            }));
+        }
+
+
         public override void OnActivityCreated(Bundle savedInstanceState)
         {
             base.OnActivityCreated(savedInstanceState);
-
-            var toolbar = this.view.FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar);
-            (this.Activity as MainActivity).SetSupportActionBar(toolbar);
-
-            var drawer = this.Activity.FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
-            var toggle = new ActionBarDrawerToggle(this.Activity, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
-            drawer.AddDrawerListener(toggle);
-            toggle.SyncState();
-
             var homeBtn = this.view.FindViewById<ImageButton>(Resource.Id.button_home);
             // TODO: Move to Vm
             homeBtn.Click += (obj, arg) =>
             {
                 if (this.isNormalMode)
                 {
-                    if ((this.viewPager?.Adapter as ViewPagerNormalAdapter) == null)
+                    if ((this.viewPager?.Adapter as DailyShedulePageAdapter) == null)
                     {
                         return;
                     }
                     this.viewPager?.SetCurrentItem(
-                        (DateTime.Today - (this.viewPager.Adapter as ViewPagerNormalAdapter).FirstPosDate).Days, false);
+                        (DateTime.Today - (this.viewPager.Adapter as DailyShedulePageAdapter).FirstPosDate).Days, false);
                 }
                 else
                 {
-                    (this.viewPager.Adapter as ViewPagerGridAdapter)?.GoHome();
+                    (this.viewPager.Adapter as DailySheduleGridPageAdapter)?.GoHome();
                 }
 
             };
+            var bottomSheet = this.view.FindViewById<LinearLayout>(Resource.Id.bottom_sheet);
+            var behavior = BottomSheetBehavior.From(bottomSheet);
+            behavior.State = BottomSheetBehavior.StateHidden;
+
+            //var chipGroup = this.view.FindViewById<ChipGroup>(Resource.Id.chipGroup);
+
+
+            var textGroups = this.view.FindViewById<TextView>(Resource.Id.text_groups);
+            textGroups.Click += (obj, arg) =>
+            {
+                var dialog = ScheduleFilterView.NewInstance();
+                dialog.Show(this.Activity.SupportFragmentManager, "qq");
+                dialog.SetAdapter(new AdvancedSearchAdapter(
+                    new AdvancedSearchAdapter.SimpleFilter(this.viewModel.GroupList, this.checkedGroups)));
+            };
+            var acceptGroupsBtn = this.view.FindViewById<Button>(Resource.Id.btn_acceptGroups);
+            acceptGroupsBtn.Click += async (obj, arg) =>
+            {
+                (this.schedules, this.lessonTitles, this.teachers, this.auditoriums, this.lessonTypes) =
+                await this.viewModel.GetAdvancedSearchData(
+                    this.checkedGroups.Count == 0 ? this.viewModel.GroupList : this.checkedGroups.ToArray());
+                Toast.MakeText(this.Context, "Всё скачано____", ToastLength.Short).Show();
+            };
+
+            var textLessonTitles = this.view.FindViewById<TextView>(Resource.Id.text_lesson_titles);
+            textLessonTitles.Click += (obj, arg) =>
+            {
+                var dialog = ScheduleFilterView.NewInstance();
+                dialog.Show(this.Activity.SupportFragmentManager, "qq");
+                dialog.SetAdapter(new AdvancedSearchAdapter(
+                    new AdvancedSearchAdapter.AdvancedFilter(this.lessonTitles, this.checkedLessonTitles)));
+            };
+
+            var textTeachers = this.view.FindViewById<TextView>(Resource.Id.text_teachers);
+            textTeachers.Click += (obj, arg) =>
+            {
+                var dialog = ScheduleFilterView.NewInstance();
+                dialog.Show(this.Activity.SupportFragmentManager, "qq");
+                dialog.SetAdapter(new AdvancedSearchAdapter(
+                    new AdvancedSearchAdapter.AdvancedFilter(this.teachers, this.checkedTeachers)));
+            };
+
+            var textAuditoriums = this.view.FindViewById<TextView>(Resource.Id.text_auditoriums);
+            textAuditoriums.Click += (obj, arg) =>
+            {
+                var dialog = ScheduleFilterView.NewInstance();
+                dialog.Show(this.Activity.SupportFragmentManager, "qq");
+                dialog.SetAdapter(new AdvancedSearchAdapter(
+                    new AdvancedSearchAdapter.AdvancedFilter(this.auditoriums, this.checkedAuditoriums)));
+            };
+
+            var textLessonTypes = this.view.FindViewById<TextView>(Resource.Id.text_lesson_types);
+            textLessonTypes.Click += (obj, arg) =>
+            {
+                var dialog = ScheduleFilterView.NewInstance();
+                dialog.Show(this.Activity.SupportFragmentManager, "qq");
+                dialog.SetAdapter(new AdvancedSearchAdapter(
+                    new AdvancedSearchAdapter.SimpleFilter(this.lessonTypes, this.checkedLessonTypes)));
+            };
+
+
+            var advancedSearchBtn = this.view.FindViewById<ImageButton>(Resource.Id.button_advanced_search);
+            advancedSearchBtn.Click += (obj, arg) =>
+            {
+                var bottomSheet = this.view.FindViewById<LinearLayout>(Resource.Id.bottom_sheet);
+                var behavior = BottomSheetBehavior.From(bottomSheet);
+                behavior.State = BottomSheetBehavior.StateExpanded;
+            };
+
 
             var filterBtn = this.view.FindViewById<ImageButton>(Resource.Id.button_schedule_filter);
             filterBtn.Click += (obj, arg) =>
             {
-                var mainActivity = this.Activity as MainActivity;
-                if (mainActivity == null)
+                if (!(this.Activity is MainView mainActivity))
                 {
                     return;
                 }
@@ -218,7 +346,7 @@
                 {
                     var inflater = LayoutInflater.From(this.Activity);
                     var layout = inflater.Inflate(Resource.Layout.popup_schedule_preferences, null);
-                    (this.Activity as MainActivity).CurrentPopupWindow = new SchedulePreferencesView(layout, WindowManagerLayoutParams.WrapContent,
+                    (this.Activity as MainView).CurrentPopupWindow = new SchedulePreferencesView(layout, WindowManagerLayoutParams.WrapContent,
                         WindowManagerLayoutParams.WrapContent, DependencyInjector.GetILoggerFactory(), DependencyInjector.GetIMediator())
                     {
                         //popupPreferences.ShowAtLocation(FindViewById<RelativeLayout>(Resource.Id.layout_main), GravityFlags.Top | GravityFlags.Right, 0, 0);
@@ -262,83 +390,81 @@
             this.textGroupTitle.KeyPress +=
                 (obj, arg) =>
                 {
-                    if (arg.KeyCode != Keycode.Enter)
-                    {
-                        return;
-                    }
                     if (arg.Event.Action != KeyEventActions.Up)
                     {
+                        arg.Handled = false;
                         return;
                     }
-                    this.viewModel.GroupTitle = (obj as AutoCompleteTextView)?.Text;
-                    if (this.viewModel.GroupTitle.Length >= 2 && this.viewModel.GroupTitle[0] == '/'
-                    && this.viewModel.GroupTitle[1] == 'l')
+                    if (arg.KeyCode == Keycode.Back)
                     {
-                        try
+                        if ((obj as AutoCompleteTextView).IsFocused)
                         {
-                            int count = -1;
-                            if (this.viewModel.GroupTitle.Length > 2)
+                            (obj as AutoCompleteTextView).ClearFocus();
+                        }
+                        this.Activity?.OnBackPressed();
+                        return;
+                    }
+                    else if (arg.KeyCode == Keycode.Enter)
+                    {
+                        this.viewModel.GroupTitle = (obj as AutoCompleteTextView)?.Text;
+                        if (this.viewModel.GroupTitle.Length >= 2 && this.viewModel.GroupTitle[0] == '/'
+                        && this.viewModel.GroupTitle[1] == 'l')
+                        {
+                            try
                             {
-                                string[] strArray = this.viewModel.GroupTitle.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                                if (strArray.Length > 1)
+                                int count = -1;
+                                if (this.viewModel.GroupTitle.Length > 2)
                                 {
-                                    if (!int.TryParse(strArray[1], out count))
+                                    string[] strArray = this.viewModel.GroupTitle.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                                    if (strArray.Length > 1)
                                     {
-                                        count = -1;
+                                        if (!int.TryParse(strArray[1], out count))
+                                        {
+                                            count = -1;
+                                        }
                                     }
                                 }
+                                if (this.Activity == null)
+                                {
+                                    return;
+                                }
+                                string logs = LoggerFactory.ReadAllLogs(count);
+                                if (logs == null)
+                                {
+                                    Toast.MakeText(this.Activity, "Logs are not found", ToastLength.Long).Show();
+                                    return;
+                                }
+                                var clipboardManager = (ClipboardManager)this.Activity.GetSystemService(Context.ClipboardService);
+                                var clipData = ClipData.NewPlainText("logs", logs);
+                                clipboardManager.PrimaryClip = clipData;
+                                Toast.MakeText(this.Activity, "Logs were copied to buffer", ToastLength.Long).Show();
                             }
-                            if (this.Activity == null)
+                            catch (Exception ex)
                             {
-                                return;
+                                this.logger.Error(ex);
                             }
-                            string logs = LoggerFactory.ReadAllLogs(count);
-                            if (logs == null)
-                            {
-                                Toast.MakeText(this.Activity, "Logs are not found", ToastLength.Long).Show();
-                                return;
-                            }
-                            var clipboardManager = (ClipboardManager)this.Activity.GetSystemService(Context.ClipboardService);
-                            var clipData = ClipData.NewPlainText("logs", logs);
-                            clipboardManager.PrimaryClip = clipData;
-                            Toast.MakeText(this.Activity, "Logs were copied to buffer", ToastLength.Long).Show();
+                            return;
                         }
-                        catch (Exception ex)
+                        prefs.Edit().PutString(PreferencesConstants.ScheduleGroupTitle, this.viewModel.GroupTitle).Apply();
+                        this.viewModel.SubmitGroupCommand.Execute(null);
+                        (obj as AutoCompleteTextView).DismissDropDown();
+                        var currentFocus = this.Activity?.CurrentFocus;
+                        if (currentFocus != null)
                         {
-                            this.logger.Error(ex);
+                            var inputManager = (InputMethodManager)this.Activity?.GetSystemService(Context.InputMethodService);
+                            inputManager.HideSoftInputFromWindow(currentFocus.WindowToken, HideSoftInputFlags.None);
                         }
+                    (obj as AutoCompleteTextView).ClearFocus();
                         return;
                     }
-                    prefs.Edit().PutString(PreferencesConstants.ScheduleGroupTitle, this.viewModel.GroupTitle).Apply();
-                    this.viewModel.SubmitGroupCommand.Execute(null);
-                    (obj as AutoCompleteTextView).DismissDropDown();
-                    var currentFocus = this.Activity?.CurrentFocus;
-                    if (currentFocus != null)
+                    else
                     {
-                        var inputManager = (InputMethodManager)this.Activity?.GetSystemService(Context.InputMethodService);
-                        inputManager.HideSoftInputFromWindow(currentFocus.WindowToken, HideSoftInputFlags.None);
+                        arg.Handled = false;
                     }
-                    (obj as AutoCompleteTextView).ClearFocus();
                 };
-            this.textGroupTitle.KeyPress += (obj, arg) =>
-            {
-                if (arg.KeyCode != Keycode.Back)
-                {
-                    return;
-                }
-                if (arg.Event.Action != KeyEventActions.Up)
-                {
-                    return;
-                }
-                if ((obj as AutoCompleteTextView).IsFocused)
-                {
-                    (obj as AutoCompleteTextView).ClearFocus();
-                }
-                (this.view.Context as MainActivity).OnBackPressed();
-            };
             this.textGroupTitle.ItemClick += (obj, arg) =>
             {
-                this.viewModel.GroupTitle = (obj as AutoCompleteTextView)?.Text;
+                this.viewModel.GroupTitle = (string)arg.Parent.GetItemAtPosition(arg.Position);
                 prefs.Edit().PutString(PreferencesConstants.ScheduleGroupTitle, this.viewModel.GroupTitle).Apply();
                 this.viewModel.SubmitGroupCommand.Execute(null);
                 var currentFocus = this.Activity?.CurrentFocus;
@@ -367,14 +493,26 @@
             this.view = inflater.Inflate(Resource.Layout.fragment_schedule, container, false);
             this.viewPager = this.view.FindViewById<ViewPager>(Resource.Id.viewpager);
             var tab = this.view.FindViewById<PagerTabStrip>(Resource.Id.tab_schedule);
-            tab.SetTextColor(Color.White.ToArgb());
             tab.TextAlignment = TextAlignment.Center;
             tab.TabIndicatorColor = Color.White.ToArgb();
             if (this.viewModel.Schedule != null)
             {
                 SetUpSchedule(this.viewModel.Schedule);
             }
+            var toolbar = this.view.FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar);
+            (this.Activity as MainView).SetSupportActionBar(toolbar);
+
+            var drawer = this.Activity.FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
+            var toggle = new ActionBarDrawerToggle(this.Activity, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
+            drawer.AddDrawerListener(toggle);
+            toggle.SyncState();
             return this.view;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            this.viewModel.PropertyChanged -= OnPropertyChanged;
+            base.Dispose(disposing);
         }
 
         public override void OnAttach(Context context)

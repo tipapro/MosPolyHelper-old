@@ -1,4 +1,4 @@
-﻿namespace MosPolyHelper.Features
+﻿namespace MosPolyHelper.Features.Main
 {
     using MosPolyHelper.Common.Interfaces;
     using MosPolyHelper.Features.Common;

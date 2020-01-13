@@ -7,6 +7,7 @@ using Android.Support.V7.Preferences;
 using MosPolyHelper.Common;
 using MosPolyHelper.Common.Interfaces;
 using MosPolyHelper.Domain;
+using MosPolyHelper.Features.Main;
 using MosPolyHelper.Features.Schedule;
 using System.Threading.Tasks;
 using static MosPolyHelper.Domain.Schedule;
@@ -15,21 +16,36 @@ namespace MosPolyHelper.Features
 {
     [Activity(Theme = "@style/AppTheme.Splash", MainLauncher = true, NoHistory = true,
     ScreenOrientation = ScreenOrientation.Portrait)]
-    public class SplashActivity : AppCompatActivity
+    public class SplashView : AppCompatActivity
     {
         public static Task<ScheduleVm> ScheduleVmPreloadTask;
 
-        public override void OnCreate(Bundle savedInstanceState, PersistableBundle persistentState)
+        protected override void OnCreate(Bundle savedInstanceState)
         {
-            base.OnCreate(savedInstanceState, persistentState);
-        }
-
-        protected override void OnStart()
-        {
-            base.OnStart();
+            var prefs = PreferenceManager.GetDefaultSharedPreferences(this);
+            AppCompatDelegate.DefaultNightMode = prefs.GetBoolean("NightMode", default) ?
+                        AppCompatDelegate.ModeNightYes : AppCompatDelegate.ModeNightNo;
             StringProvider.Context = this;
-            ScheduleVmPreloadTask = Task.Run(() => PrepareSchdeuleVm(DependencyInjector.GetILoggerFactory(this.Assets.Open("NLog.config"))));
-            StartActivity(new Intent(Application.Context, typeof(MainActivity)));
+            var loggerFactory = DependencyInjector.GetILoggerFactory(this.Assets.Open("NLog.config"));
+            StringProvider.SetUpLogger(loggerFactory);
+            
+            
+            bool res = prefs.GetBoolean(PreferencesConstants.FirstLaunch, true);
+            res = false;
+            if (res)
+            {
+                base.OnCreate(savedInstanceState);
+                prefs.Edit().PutBoolean(PreferencesConstants.FirstLaunch, false).Apply();
+
+            }
+            else
+            {
+                ScheduleVmPreloadTask = Task.Run(
+                    () => PrepareSchdeuleVm(loggerFactory, prefs));
+                base.OnCreate(savedInstanceState);
+                StartActivity(new Intent(Application.Context, typeof(MainView)));
+            }
+
         }
 
         protected override void OnStop()
@@ -38,10 +54,8 @@ namespace MosPolyHelper.Features
             Finish();
         }
 
-        ScheduleVm PrepareSchdeuleVm(ILoggerFactory loggerFactory)
+        ScheduleVm PrepareSchdeuleVm(ILoggerFactory loggerFactory, ISharedPreferences prefs)
         {
-            StringProvider.SetUpLogger(loggerFactory);
-            var prefs = PreferenceManager.GetDefaultSharedPreferences(this);
             string groupTitle = prefs.GetString(PreferencesConstants.ScheduleGroupTitle, null);
 
             var scheduleFilter = Filter.DefaultFilter;

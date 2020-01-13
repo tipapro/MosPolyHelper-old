@@ -101,6 +101,9 @@
         public WeekType Week { get; set; }
         [ProtoMember(9)]
         public Module Module { get; set; }
+        [ProtoIgnore]
+        // For advanced search
+        public Group Group { get; set; }
 
         public Lesson(int order, string subjectTitle, string[] teachers, DateTime dateFrom, DateTime dateTo,
             Auditorium[] auditoriums, string type, WeekType week, Module module)

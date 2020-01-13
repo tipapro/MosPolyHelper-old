@@ -7,7 +7,7 @@
     using MosPolyHelper.Domain;
     using System;
 
-    public class RecyclerScheduleGridAdapter : RecyclerView.Adapter
+    public class DailyShceduleGridAdapter : RecyclerView.Adapter
     {
         #region LessonTypeConstants
         const string CourseProject = "кп";
@@ -22,6 +22,7 @@
 
         readonly TextView nullMessage;
         Schedule schedule;
+        Schedule.Filter scheduleFilter;
         int itemCount;
 
         readonly Color[] lessonTypeColors = new Color[]
@@ -80,10 +81,11 @@
 
         public bool ShowEmptyLessons { get; set; }
         public bool ShowColoredLessons { get; set; }
-        public event Action DailyScheduleChanged;
 
-        public RecyclerScheduleGridAdapter(TextView nullMessage, Schedule schedule, bool showEmptyLessons, bool showColoredLessons)
+        public DailyShceduleGridAdapter(TextView nullMessage, Schedule schedule, Schedule.Filter scheduleFilter,
+            bool showEmptyLessons, bool showColoredLessons)
         {
+            this.scheduleFilter = scheduleFilter;
             this.ShowEmptyLessons = showEmptyLessons;
             this.ShowColoredLessons = showColoredLessons;
             this.schedule = schedule;
@@ -95,8 +97,9 @@
                 ViewStates.Gone : ViewStates.Visible;
         }
 
-        public void BuildSchedule(Schedule schedule, bool showEmptyLessons, bool showColoredLessons)
+        public void BuildSchedule(Schedule schedule, Schedule.Filter scheduleFilter, bool showEmptyLessons, bool showColoredLessons)
         {
+            this.scheduleFilter = scheduleFilter;
             this.ShowEmptyLessons = showEmptyLessons;
             this.ShowColoredLessons = showColoredLessons;
             this.schedule = schedule;
@@ -105,24 +108,23 @@
             SetFirstPosDate(isSession ?? false);
             this.nullMessage.Visibility = this.schedule != null && this.schedule.Count != 0 ?
                 ViewStates.Gone : ViewStates.Visible;
-            DailyScheduleChanged?.Invoke();
             NotifyDataSetChanged();
         }
 
-        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup viewGroup, int position)
+        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int position)
         {
-            var view = LayoutInflater.From(viewGroup.Context).Inflate(Resource.Layout.item_daily_schedule, viewGroup, false);
-            var vh = new ScheduleViewHolder(view);
+            var view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.item_daily_schedule, parent, false);
+            var vh = new ViewHolder(view);
             return vh;
         }
 
-        void SetHead(ScheduleViewHolder viewHolder, DateTime date)
+        void SetHead(ViewHolder viewHolder, DateTime date)
         {
             viewHolder.LessonTime.SetTextColor(new Color(120, 142, 161));
             viewHolder.LessonTime.SetText(date.ToString("ddd d MMM").Replace('.', '\0'), TextView.BufferType.Normal);
         }
 
-        void SetLessons(ScheduleViewHolder viewHolder, Schedule.Daily dailySchedule)
+        void SetLessons(ViewHolder viewHolder, Schedule.Daily dailySchedule)
         {
             string res = string.Empty;
             if (dailySchedule != null && dailySchedule.Count != 0)
@@ -133,26 +135,26 @@
                 {
                     if (currOrder == dailySchedule[i].Order)
                     {
-                        res += currOrder + 1 + ") ";
+                        res += "#" + (currOrder + 1);
                         currOrder++;
                     }
                     title = dailySchedule[i].Title;
-                    if (title.Length > 10)
+                    if (title.Length > 15)
                     {
-                        title = title.Substring(0, 10) + "...";
+                        title = title.Substring(0, 15) + "...";
                     }
-                    res += " (" + dailySchedule[i].Type + ") " + title + "\n";
+                    res += "\n(" + dailySchedule[i].Type + ") " + title;
                 }
                 if (currOrder == dailySchedule[dailySchedule.Count - 1].Order)
                 {
-                    res += currOrder + 1 + ") ";
+                    res += "#" + (currOrder + 1);
                 }
                 title = dailySchedule[dailySchedule.Count - 1].Title;
-                if (title.Length > 10)
+                if (title.Length > 15)
                 {
-                    title = title.Substring(0, 10) + "...";
+                    title = title.Substring(0, 15) + "...";
                 }
-                res += " (" + dailySchedule[dailySchedule.Count - 1].Type + ") " + title;
+                res += "\n(" + dailySchedule[dailySchedule.Count - 1].Type + ") " + title;
             }
             viewHolder.LessonType.SetText(res, TextView.BufferType.Normal);
         }
@@ -194,7 +196,7 @@
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder vh, int position)
         {
-            if (!(vh is ScheduleViewHolder viewHolder))
+            if (!(vh is ViewHolder viewHolder) || this.schedule == null)
             {
                 return;
             }
@@ -207,13 +209,13 @@
             {
                 date = this.FirstPosDate.AddDays(position);
             }
-            var dailySchedule = this.schedule.GetSchedule(date);
+            var dailySchedule = this.schedule.GetSchedule(date, scheduleFilter);
             SetLessons(viewHolder, dailySchedule);
             SetHead(viewHolder, date);
         }
 
 
-        public class ScheduleViewHolder : RecyclerView.ViewHolder
+        public class ViewHolder : RecyclerView.ViewHolder
         {
             public TextView LessonTime { get; }
             public TextView LessonType { get; }
@@ -222,7 +224,7 @@
             public RelativeLayout HeadLayout { get; }
             public RelativeLayout BodyLayout { get; }
 
-            public ScheduleViewHolder(View view) : base(view)
+            public ViewHolder(View view) : base(view)
             {
                 this.LessonTime = view.FindViewById<TextView>(Resource.Id.text_schedule_time_grid);
                 this.LessonType = view.FindViewById<TextView>(Resource.Id.text_schedule_grid);

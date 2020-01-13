@@ -5,7 +5,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto" 
     android:layout_gravity="bottom"
         tools:showIn="@layout/fragment_schedule"
-        android:theme="@style/AppTheme.AppBarOverlay"
     android:layout_width="match_parent"
         app:hideOnScroll="true"
         app:backgroundTint="@color/colorPrimary"

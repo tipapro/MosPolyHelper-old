@@ -18,7 +18,7 @@
     <AndroidResgenClass>Resource</AndroidResgenClass>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <AndroidUseLatestPlatformSdk>false</AndroidUseLatestPlatformSdk>
-    <TargetFrameworkVersion>v9.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v10.0</TargetFrameworkVersion>
     <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
     <MonoAndroidResourcePrefix>Resources</MonoAndroidResourcePrefix>
     <MonoAndroidAssetsPrefix>Assets</MonoAndroidAssetsPrefix>
@@ -81,11 +81,11 @@
     <Reference Include="System.Numerics.Vectors" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Adapters\RecyclerScheduleAdapter.cs" />
-    <Compile Include="Adapters\RecyclerScheduleGridAdapter.cs" />
-    <Compile Include="Adapters\RecyclerScheduleManagerAdapter.cs" />
-    <Compile Include="Adapters\ViewPagerNormalAdapter.cs" />
-    <Compile Include="Adapters\ViewPagerGridAdapter.cs" />
+    <Compile Include="Adapters\AdvancedSearchAdapter.cs" />
+    <Compile Include="Adapters\PairAdapter.cs" />
+    <Compile Include="Adapters\DailyShceduleGridAdapter.cs" />
+    <Compile Include="Adapters\DailyShedulePageAdapter.cs" />
+    <Compile Include="Adapters\DailySheduleGridPageAdapter.cs" />
     <Compile Include="Common\AsyncCommand.cs" />
     <Compile Include="Common\Command.cs" />
     <Compile Include="Common\DependencyInjector.cs" />
@@ -108,7 +108,7 @@
     <Compile Include="Common\ScheduleConverter.cs" />
     <Compile Include="Common\StateMachine.cs" />
     <Compile Include="Common\StringProvider.cs" />
-    <Compile Include="CustomElements\RecyclerTabLayout.cs" />
+    <Compile Include="Domain\Schedule.AdvancedSearch.cs" />
     <Compile Include="Domain\Auditorium.cs" />
     <Compile Include="Domain\Schedule.Filter.cs" />
     <Compile Include="Domain\Schedule.Daily.cs" />
@@ -122,9 +122,11 @@
     <Compile Include="Features\Common\ViewModelBase.cs" />
     <Compile Include="Features\Common\ViewModels.cs" />
     <Compile Include="Features\Common\VmMessage.cs" />
-    <Compile Include="Features\MainVm.cs" />
+    <Compile Include="Features\FirstLaunch\FirstLaunchView.cs" />
+    <Compile Include="Features\Main\MainVm.cs" />
+    <Compile Include="Features\Schedule\ScheduleFilterView.cs" />
     <Compile Include="Features\Settings\SettingsView.cs" />
-    <Compile Include="Features\SplashActivity.cs" />
+    <Compile Include="Features\SplashView.cs" />
     <Compile Include="Features\Schedule\Common\ScheduleFragments.cs" />
     <Compile Include="Features\Schedule\ScheduleManagerView.cs" />
     <Compile Include="Features\Schedule\ScheduleManagerVm.cs" />
@@ -133,7 +135,7 @@
     <Compile Include="Features\Schedule\SchedulePreferencesVm.cs" />
     <Compile Include="Features\Schedule\ScheduleView.cs" />
     <Compile Include="Features\Schedule\ScheduleVm.cs" />
-    <Compile Include="Features\MainActivity.cs" />
+    <Compile Include="Features\Main\MainView.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
   </ItemGroup>
@@ -159,7 +161,6 @@
     <AndroidResource Include="Resources\values\dimens.xml" />
     <AndroidResource Include="Resources\values\drawables.xml" />
     <AndroidResource Include="Resources\values\strings.xml" />
-    <AndroidResource Include="Resources\values\styles.xml" />
     <AndroidResource Include="Resources\values-v21\styles.xml" />
     <AndroidResource Include="Resources\drawable\side_nav_bar.xml" />
     <AndroidResource Include="Resources\menu\activity_main_drawer.xml" />
@@ -167,19 +168,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json">
-      <Version>12.0.2</Version>
+      <Version>12.0.3</Version>
     </PackageReference>
     <PackageReference Include="NLog">
       <Version>4.6.8</Version>
     </PackageReference>
     <PackageReference Include="protobuf-net">
       <Version>3.0.0-alpha.122</Version>
-    </PackageReference>
-    <PackageReference Include="Xamarin.Android.Support.Core.Utils">
-      <Version>28.0.0.3</Version>
-    </PackageReference>
-    <PackageReference Include="Xamarin.Android.Support.CustomTabs">
-      <Version>28.0.0.3</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Android.Support.Design">
       <Version>28.0.0.3</Version>
@@ -224,11 +219,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\menu\menu_main.xml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\layout\fragment_schedule_manager.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
@@ -363,9 +353,6 @@
     <AndroidResource Include="Resources\drawable\schedule_home.xml" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\schedule_grid.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\drawable\advanced_search.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -375,6 +362,62 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\bottom_app_bar_schedule.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\bottom_sheet_schedule.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\clear_24px.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\shape_schedule_filter.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\values\styles.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\values-night\colors.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\schedule_grid.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\chip_advanced_search.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\fragment_schedule_filter.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\shape_advanced_search_dialog.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\schedule_seacrh_dialog_background_inset.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\item_advanced_search.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\all_divider.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>

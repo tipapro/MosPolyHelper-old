@@ -19,6 +19,9 @@
   <string name="null_schedule">Сохранённые расписания отсутствуют</string>
   <string name="goto_schedule_manager">Менеджер расписаний</string>
 
+
+  <string name="night_mode">Ночной режим</string>
+  
   <!--Schedule Preferences-->
   <string name="schedule_preferences_title">Настройки расписания</string>
   <string name="text_schedule_type_prompt">Тип расписания</string>
@@ -61,7 +64,7 @@
   <string name="offline_group_list_found">Сохранённый список групп найден</string>
 
   <!--Preferences-->
-  <string name="pref_category_schedule">Распиание</string>
+  <string name="pref_category_schedule">Расписание</string>
   <string name="pref_title_schedule_empty_lessons">Пустые пары</string>
   <string name="pref_summary_schedule_empty_lessons">Показывать пары, во время которых нет занятий</string>
   <string name="pref_title_schedule_colored_lessons">Цветные шапки пар</string>

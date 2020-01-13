@@ -16,12 +16,15 @@
         public bool IsEvening { get; set; }
         [ProtoMember(5)]
         public string Comment { get; set; }
+        [ProtoMember(6)]
+        public int Course { get; set; }
 
         public Group() { }
 
-        public Group(string title, DateTime dateFrom, DateTime dateTo, bool isEvening, string comment)
+        public Group(string title, int course, DateTime dateFrom, DateTime dateTo, bool isEvening, string comment)
         {
             this.Title = title;
+            this.Course = course;
             this.DateFrom = dateFrom;
             this.DateTo = dateTo;
             this.IsEvening = isEvening;

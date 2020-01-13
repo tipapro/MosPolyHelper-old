@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:background="@drawable/schedule_seacrh_dialog_background_inset"
+    android:layout_height="match_parent">
+    <SearchView
+        android:id="@+id/searchView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="10dp"
+                    android:maxLength="100" 
+                android:maxLines="1"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                android:focusedByDefault="true" />
+<android.support.v7.widget.RecyclerView
+        android:layout_marginHorizontal="10dp"
+        android:id="@+id/recycler_advanced_search"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"/>
+</LinearLayout>

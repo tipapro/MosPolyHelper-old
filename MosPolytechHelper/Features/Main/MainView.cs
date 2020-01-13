@@ -1,8 +1,9 @@
-﻿namespace MosPolyHelper.Features
+﻿namespace MosPolyHelper.Features.Main
 {
     using Android.App;
     using Android.Content;
     using Android.Content.PM;
+    using Android.Content.Res;
     using Android.OS;
     using Android.Runtime;
     using Android.Support.Design.Widget;
@@ -21,8 +22,8 @@
     using System.Threading.Tasks;
 
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = false,
-    ScreenOrientation = ScreenOrientation.Portrait)]
-    public class MainActivity : AppCompatActivity
+    ScreenOrientation = ScreenOrientation.Portrait, WindowSoftInputMode = SoftInput.AdjustPan)]
+    public class MainView : AppCompatActivity, ISharedPreferencesOnSharedPreferenceChangeListener
     {
         string clickBackAgain;
         bool doubleBackToExitPressedOnce;
@@ -32,6 +33,7 @@
         ILoggerFactory loggerFactory;
         ILogger logger;
         MainVm viewModel;
+
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -44,25 +46,36 @@
             }
             viewModel = new MainVm(DependencyInjector.GetIMediator());
             StringProvider.SetUpLogger(loggerFactory);
-            var awaiter = SplashActivity.ScheduleVmPreloadTask?.GetAwaiter();
+            var awaiter = SplashView.ScheduleVmPreloadTask?.GetAwaiter();
             ScheduleVm scheduleVm = null;
             if (awaiter.HasValue)
             {
                 scheduleVm = awaiter.Value.GetResult();
             }
-            SplashActivity.ScheduleVmPreloadTask = null;
-            ChangeFragment(ScheduleView.NewInstance(scheduleVm), Fragments.ScheduleMain, false);
+            SplashView.ScheduleVmPreloadTask = null;
+            if (savedInstanceState == null)
+            {
+                ChangeFragment(ScheduleView.NewInstance(scheduleVm), Fragments.ScheduleMain, false);
+            }
+            else
+            {
+                // TODO: Fix stack
+                //ChangeFragment(this.SupportFragmentManager.GetBackStackEntryAt(0)., Fragments.ScheduleMain, false);
+            }
 
             Android.Support.V4.App.ActivityCompat.RequestPermissions(this,
                 new string[] { Android.Manifest.Permission.Internet }, 123);
 
-            this.logger = this.loggerFactory.Create<MainActivity>();
+            this.logger = this.loggerFactory.Create<MainView>();
+            var currentNightMode = Resources.Configuration.UiMode;
 
             var navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
             navigationView.NavigationItemSelected += (obj, arg) => OnNavigationItemSelected(arg.MenuItem);
             navigationView.SetCheckedItem(Resource.Id.nav_schedule);
             this.clickBackAgain = GetString(Resource.String.click_back_again);
             this.doubleBackToExitPressedOnce = false;
+            PreferenceManager.GetDefaultSharedPreferences(this)
+                .RegisterOnSharedPreferenceChangeListener(this);
             this.logger.Debug("MainActivity created successfully");
         }
 
@@ -112,19 +125,21 @@
             }
         }
 
-        public void OnSharedPrefencesChanged(object sender, Preference.PreferenceChangeEventArgs e)
+        public void OnSharedPreferenceChanged(ISharedPreferences sharedPreferences, string key)
         {
-            if (e.Preference.HasKey)
-            {
-                return;
-            }
-            switch (e.Preference.Key)
+            switch (key)
             {
                 case PreferencesConstants.ScheduleShowColoredLessons:
-                    this.viewModel.ChangeShowEmptyLessons((bool)e.NewValue);
+                    this.viewModel.ChangeShowEmptyLessons(sharedPreferences.GetBoolean(key, default));
                     break;
                 case PreferencesConstants.ScheduleShowEmptyLessons:
-                    this.viewModel.ChangeShowColoredLessons((bool)e.NewValue);
+                    this.viewModel.ChangeShowColoredLessons(sharedPreferences.GetBoolean(key, default));
+                    break;
+                case "NightMode":
+                    AppCompatDelegate.DefaultNightMode = sharedPreferences.GetBoolean(key, default) ? 
+                        AppCompatDelegate.ModeNightYes : AppCompatDelegate.ModeNightNo;
+
+                    this.Delegate.ApplyDayNight();
                     break;
             }
         }
@@ -206,6 +221,8 @@
         protected override void OnDestroy()
         {
             NLog.LogManager.Flush();
+            PreferenceManager.GetDefaultSharedPreferences(this)
+                .UnregisterOnSharedPreferenceChangeListener(this);
             base.OnDestroy();
         }
 

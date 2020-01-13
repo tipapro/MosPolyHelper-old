@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
-  app:key="a0"
+  app:key="MainScreen"
     xmlns:app="http://schemas.android.com/apk/res-auto">
   <PreferenceScreen
         app:title="@string/pref_category_schedule"
-        app:key="q0"
+        app:key="ScheduleScreen"
         app:persistent="false">
     <SwitchPreferenceCompat
         app:key="ScheduleShowEmptyLessons"
@@ -17,4 +17,13 @@
         app:summary="@string/pref_summary_schedule_colored_lessons"
         app:defaultValue="true"/>
 </PreferenceScreen>
+  <PreferenceScreen
+      app:title="Оформление"
+      app:key="DecorScreen"
+      app:persistent="false">
+    <SwitchPreferenceCompat
+        app:key="NightMode"
+        app:title="@string/night_mode"
+        app:defaultValue="false"/>
+  </PreferenceScreen>
 </PreferenceScreen>

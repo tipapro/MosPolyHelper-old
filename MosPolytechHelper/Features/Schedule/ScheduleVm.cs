@@ -6,6 +6,7 @@
     using MosPolyHelper.Features.Common;
     using MosPolyHelper.Features.Schedule.Common;
     using System;
+    using System.Threading.Tasks;
     using Xamarin.Essentials;
 
     public class ScheduleVm : ViewModelBase
@@ -17,6 +18,7 @@
         string[] groupList;
         Schedule schedule;
         ScheduleType scheduleType;
+
         void HandleMessage(VmMessage message)
         {
             if (message.Count == 2)
@@ -130,10 +132,10 @@
             {
                 return;
             }
-            await this.model.GetScheduleAsync(this.GroupTitle, this.IsSession, downloadNew, this.ScheduleFilter);
+            await this.model.GetScheduleAsync(this.GroupTitle, this.IsSession, downloadNew);
             if (this.model.Schedule == null && !downloadNew)
             {
-                await this.model.GetScheduleAsync(this.GroupTitle, this.IsSession, !downloadNew, this.ScheduleFilter);
+                await this.model.GetScheduleAsync(this.GroupTitle, this.IsSession, !downloadNew);
             }
             if (notMainThread)
             {
@@ -143,6 +145,12 @@
             {
                 this.Schedule = this.model.Schedule;
             }
+        }
+
+        public async Task<(Schedule[] Schedules, string[] LessonTitles, string[] Teachers, string[] Auditoriums, string[] LessonTypes)> 
+            GetAdvancedSearchData(string[] groupList)
+        {
+            return await this.model.GetSchedules(groupList);
         }
 
         public void ChangeScheduleType(ScheduleType scheduleType)

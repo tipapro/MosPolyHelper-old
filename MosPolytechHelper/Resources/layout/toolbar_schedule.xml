@@ -7,15 +7,12 @@
         android:layout_width="match_parent" 
         android:layout_height="wrap_content" 
     tools:showIn="@layout/fragment_schedule"
-        app:elevation="0dp"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        app:elevation="0dp">
     
     <android.support.v7.widget.Toolbar  
         android:id="@+id/toolbar" 
-            android:background="?attr/colorPrimary"
         android:layout_width="match_parent" 
-        android:layout_height="?attr/actionBarSize"  
-        android:theme="@style/ThemeOverlay.AppCompat.Dark">
+        android:layout_height="?attr/actionBarSize"  >
                                 <LinearLayout
                 android:gravity="right"
         android:layout_width="match_parent"
@@ -34,6 +31,7 @@
                 android:layout_height="wrap_content"  
                 android:maxLength="100" 
                 android:maxLines="1" 
+                android:inputType="text"
                     android:textStyle="bold"
                     android:textSize="16sp"
                 android:completionThreshold="1" 

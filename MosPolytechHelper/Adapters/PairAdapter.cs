@@ -11,7 +11,7 @@
     using System;
     using System.Collections.Generic;
 
-    public class RecyclerScheduleAdapter : RecyclerView.Adapter
+    public class PairAdapter : RecyclerView.Adapter
     {
         #region LessonTypeConstants
         const string CourseProject = "кп";
@@ -103,9 +103,9 @@
         public Group GroupInfo { get; set; }
         public bool ShowEmptyLessons { get; set; }
         public bool ShowColoredLessons { get; set; }
-        public event Action DailyScheduleChanged;
+        event Action DailyScheduleChanged;
 
-        public RecyclerScheduleAdapter(TextView nullMessage, Schedule.Daily dailySchedule, Schedule.Filter filter,
+        public PairAdapter(TextView nullMessage, Schedule.Daily dailySchedule, Schedule.Filter filter,
             DateTime date, Group grouInfo, bool showEmptyLessons, bool showColoredLessons)
         {
             this.ShowEmptyLessons = showEmptyLessons;
@@ -197,11 +197,11 @@
             }
         }
 
-        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup viewGroup, int position)
+        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int position)
         {
-            var view = LayoutInflater.From(viewGroup.Context).Inflate(Resource.Layout.item_schedule, viewGroup, false);
+            var view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.item_schedule, parent, false);
             view.Enabled = false;
-            var vh = new ScheduleViewHolder(view, OnItemClick);
+            var vh = new ViewHolder(view, OnItemClick);
             DailyScheduleChanged += vh.OnDailyScheduleChanged;
             return vh;
         }
@@ -211,7 +211,7 @@
             NotifyItemChanged(position);
         }
 
-        void SetHead(ScheduleViewHolder viewHolder, int order)
+        void SetHead(ViewHolder viewHolder, int order)
         {
             viewHolder.LessonTime.SetTextColor(this.ShowColoredLessons ? Color.White : new Color(120, 142, 161));
             viewHolder.LessonOrder.SetTextColor(this.ShowColoredLessons ? Color.White : new Color(120, 142, 161));
@@ -227,7 +227,7 @@
             viewHolder.LessonOrder.SetText($"#{order + 1}", TextView.BufferType.Normal);
         }
 
-        void SetMargin(ScheduleViewHolder viewHolder, int position)
+        void SetMargin(ViewHolder viewHolder, int position)
         {
             float scale = viewHolder.LessonLayout.Context.Resources.DisplayMetrics.Density;
             int dp8InPx = (int)(8 * scale + 0.5f);
@@ -235,7 +235,7 @@
                     .SetMargins(dp8InPx, position == 0 ? dp8InPx : 0, dp8InPx, dp8InPx);
         }
 
-        void SetLessonType(ScheduleViewHolder viewHolder, Lesson lesson, bool enabled)
+        void SetLessonType(ViewHolder viewHolder, Lesson lesson, bool enabled)
         {
             string type = lesson.Type;
             viewHolder.LessonType.SetTextColor(enabled ? GetLessonTypeColor(lesson.Type) : new Color(225, 225, 225));
@@ -243,7 +243,7 @@
             viewHolder.LessonType.Enabled = enabled;
         }
 
-        void SetAuditoriums(ScheduleViewHolder viewHolder, Lesson lesson, bool enabled)
+        void SetAuditoriums(ViewHolder viewHolder, Lesson lesson, bool enabled)
         {
             using (var auditoriums = new SpannableStringBuilder())
             {
@@ -293,7 +293,7 @@
             }
         }
 
-        void SetTitle(ScheduleViewHolder viewHolder, Lesson lesson, bool enabled)
+        void SetTitle(ViewHolder viewHolder, Lesson lesson, bool enabled)
         {
             string title = lesson.Title;
             viewHolder.LessonTitle.SetTextColor(enabled ? new Color(95, 107, 117) : new Color(215, 215, 215));
@@ -301,7 +301,7 @@
             viewHolder.LessonTitle.Enabled = enabled;
         }
 
-        void SetTeachers(ScheduleViewHolder viewHolder, Lesson lesson, bool enabled)
+        void SetTeachers(ViewHolder viewHolder, Lesson lesson, bool enabled)
         {
             string teachers = string.Join(", ", viewHolder.ShowFullInfo ?
                 lesson.GetFullTecherNames() : lesson.GetShortTeacherNames());
@@ -318,7 +318,7 @@
             }
         }
 
-        void SetOtherInfo(ScheduleViewHolder viewHolder, Lesson lesson, bool enabled)
+        void SetOtherInfo(ViewHolder viewHolder, Lesson lesson, bool enabled)
         {
             if (this.filter?.DateFitler == DateFilter.Hide && !viewHolder.ShowFullInfo)
             {
@@ -374,12 +374,12 @@
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder vh, int position)
         {
-            if (!(vh is ScheduleViewHolder viewHolder))
+            if (!(vh is ViewHolder viewHolder))
             {
                 return;
             }
             float scale = viewHolder.LessonLayout.Context.Resources.DisplayMetrics.Density;
-            int dp6InPx = (int)(6 * scale + 0.5f);
+            int dp6InPx = (int)(5 * scale + 0.5f);
 
             bool isCurrentPosEmpty = false;
             int positionOffset = 0;
@@ -511,7 +511,7 @@
         }
 
 
-        public class ScheduleViewHolder : RecyclerView.ViewHolder
+        public class ViewHolder : RecyclerView.ViewHolder
         {
             public bool ShowFullInfo { get; set; }
             public TextView LessonTime { get; }
@@ -528,7 +528,7 @@
             public View LineScheduleBottomBorder { get; }
             public View LineScheduleTopBorder { get; }
 
-            public ScheduleViewHolder(View view, Action<int> OnItemClick) : base(view)
+            public ViewHolder(View view, Action<int> OnItemClick) : base(view)
             {
                 this.ShowFullInfo = false;
                 this.LessonTitle = view.FindViewById<TextView>(Resource.Id.text_schedule_title);
@@ -557,6 +557,21 @@
             public void OnDailyScheduleChanged()
             {
                 this.ShowFullInfo = false;
+            }
+        }
+
+        public class ItemDecoration : RecyclerView.ItemDecoration
+        {
+            readonly int offset;
+
+            public ItemDecoration(int offset) : base()
+            {
+                this.offset = offset;
+            }
+
+            public override void GetItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state)
+            {
+                outRect.Top = outRect.Bottom = outRect.Left = outRect.Right = offset;
             }
         }
     }

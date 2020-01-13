@@ -9,7 +9,7 @@
     public partial class Schedule : IEnumerable<Schedule.Daily>
     {
         [ProtoMember(1)]
-        Daily[] dailyShedules { get; set; }
+        Daily[] dailyShedules { get; set; } // get and set for correct work of protofub
 
         [ProtoIgnore]
         public DateTime LastUpdate { get; set; }
@@ -21,8 +21,6 @@
         public bool IsSession { get; set; }
         [ProtoIgnore]
         public int Count => this.dailyShedules?.Length ?? 0;
-        [ProtoIgnore]
-        public Schedule.Filter ScheduleFilter { get; set; }
 
         public Schedule()
         {
@@ -66,7 +64,7 @@
         {
             return this.dailyShedules[position];
         }
-        public Daily GetSchedule(DateTime date)
+        public Daily GetSchedule(DateTime date, Schedule.Filter ScheduleFilter)
         {
             date = date.Date;
             if (this.IsByDate)
@@ -75,7 +73,7 @@
             }
             else
             {
-                return this.ScheduleFilter.GetFilteredSchedule(this[(long)date.DayOfWeek], date);
+                return ScheduleFilter.GetFilteredSchedule(this[(long)date.DayOfWeek], date);
             }
         }
 
@@ -97,6 +95,23 @@
                 }
             }
             return true;
+        }
+
+        public void ToNormal()
+        {
+            if (this.IsByDate)
+            {
+                foreach (var dailySchedule in dailyShedules)
+                {
+                    var date = new DateTime(dailySchedule.Day);
+                    dailySchedule.Day = (int)date.DayOfWeek;
+                    foreach (var lesson in dailySchedule)
+                    {
+                        lesson.DateFrom = lesson.DateTo = date;
+                    }
+                }
+                this.IsByDate = false;
+            }
         }
 
         public override int GetHashCode()

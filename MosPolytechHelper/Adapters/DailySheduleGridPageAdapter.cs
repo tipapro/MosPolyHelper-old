@@ -9,21 +9,34 @@
     using System;
     using Object = Java.Lang.Object;
 
-    public class ViewPagerGridAdapter : PagerAdapter
+    public class DailySheduleGridPageAdapter : PagerAdapter
     {
         View view;
-        RecyclerScheduleGridAdapter recyclerAdapter;
+        DailyShceduleGridAdapter recyclerAdapter;
         RecyclerView recyclerView;
         public Schedule Schedule;
+        Schedule.Filter scheduleFilter;
         bool showEmptyLessons;
         bool showColoredLessons;
 
-        public ViewPagerGridAdapter(Schedule schedule, bool showEmptyLessons, bool showColoredLessons)
+        public DailySheduleGridPageAdapter(Schedule schedule, Schedule.Filter scheduleFilter, 
+            bool showEmptyLessons, bool showColoredLessons)
         {
+            this.scheduleFilter = scheduleFilter;
             this.Schedule = schedule;
             this.showEmptyLessons = showEmptyLessons;
             this.showColoredLessons = showColoredLessons;
         }
+
+        public void BuildSchedule(Schedule schedule, Schedule.Filter scheduleFilter, bool showEmptyLessons, bool showColoredLessons)
+        {
+            this.scheduleFilter = scheduleFilter;
+            this.Schedule = schedule;
+            this.showEmptyLessons = showEmptyLessons;
+            this.showColoredLessons = showColoredLessons;
+            this.recyclerAdapter?.BuildSchedule(schedule, scheduleFilter, showEmptyLessons, showColoredLessons);
+        }
+
 
         public override int Count => 1;
         public DateTime FirstPosDate => this.recyclerAdapter?.FirstPosDate ?? DateTime.Today;
@@ -51,16 +64,16 @@
             }
             if (this.recyclerAdapter == null)
             {
-                this.recyclerAdapter = new RecyclerScheduleGridAdapter(
+                this.recyclerAdapter = new DailyShceduleGridAdapter(
                        this.view.FindViewById<TextView>(Resource.Id.text_null_lesson),
-                       this.Schedule, this.showEmptyLessons, this.showColoredLessons);
+                       this.Schedule, scheduleFilter, this.showEmptyLessons, this.showColoredLessons);
                 this.recyclerView.SetItemAnimator(null);
                 this.recyclerView.SetLayoutManager(new GridLayoutManager(container.Context, 3));
                 this.recyclerView.SetAdapter(this.recyclerAdapter);
             }
             else
             {
-                this.recyclerAdapter.BuildSchedule(this.Schedule, this.showEmptyLessons, this.showColoredLessons);
+                this.recyclerAdapter.BuildSchedule(this.Schedule, scheduleFilter, this.showEmptyLessons, this.showColoredLessons);
             }
             this.recyclerView.ScrollToPosition((DateTime.Today - this.recyclerAdapter.FirstPosDate).Days);
             return this.view;
@@ -100,14 +113,6 @@
             {
                 this.recyclerView?.ScrollToPosition((value - this.recyclerAdapter.FirstPosDate).Days);
             }
-        }
-
-        public void BuildSchedule(Schedule schedule, bool showEmptyLessons, bool showColoredLessons)
-        {
-            this.Schedule = schedule;
-            this.showEmptyLessons = showEmptyLessons;
-            this.showColoredLessons = showColoredLessons;
-            this.recyclerAdapter.BuildSchedule(schedule, showEmptyLessons, showColoredLessons);
         }
     }
 }

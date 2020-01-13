@@ -4,6 +4,8 @@
     using MosPolyHelper.Common.Interfaces;
     using MosPolyHelper.Domain;
     using System;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
@@ -106,19 +108,23 @@
             this.serializer.Serialize(filePath, schedule);
         }
 
-        async Task<Schedule> DownloadScheduleAsync(string group, bool isSession)
+        async Task<Schedule> DownloadScheduleAsync(string groupTitle, bool isSession)
         {
-            Schedule schedule;
-            string serSchedule = await this.downloader.DownloadSchedule(group, isSession);
-            schedule = await this.scheduleConverter.ConvertToScheduleAsync(serSchedule);
-            schedule.IsSession = isSession;
+            string serSchedule;
             try
             {
-                SaveScheduleAsync(schedule);
+                System.Diagnostics.Debug.WriteLine("Download " + groupTitle + " Normal");
+                serSchedule = await this.downloader.DownloadSchedule(groupTitle, isSession);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                this.logger.Error(ex, "Saving schedule error");
+                return null;
+            }
+            System.Diagnostics.Debug.WriteLine("Convert " + groupTitle + " Normal");
+            var schedule = await this.scheduleConverter.ConvertToScheduleAsync(serSchedule);
+            if (schedule != null)
+            {
+                schedule.IsSession = isSession;
             }
             return schedule;
         }
@@ -153,13 +159,21 @@
             this.deserializer = DependencyInjector.GetIDeserializer();
         }
 
-        public async Task<Schedule> GetScheduleAsync(string group, bool isSession, bool downloadNew, Schedule.Filter scheduleFilter)
+        public async Task<Schedule> GetScheduleAsync(string group, bool isSession, bool downloadNew)
         {
             if (downloadNew)
             {
                 try
                 {
                     this.Schedule = await DownloadScheduleAsync(group, isSession);
+                    try
+                    {
+                        SaveScheduleAsync(this.Schedule);
+                    }
+                    catch (Exception ex)
+                    {
+                        this.logger.Error(ex, "Saving schedule error");
+                    }
                 }
                 catch (Exception ex1)
                 {
@@ -218,7 +232,6 @@
             {
                 this.logger.Warn("{group} != {scheduleGroupTitle}", group, this.Schedule?.Group?.Title);
             }
-            this.Schedule.ScheduleFilter = scheduleFilter;
             return this.Schedule;
         }
 
@@ -254,5 +267,126 @@
             }
             return this.GroupList;
         }
+
+        public async Task<(Schedule[] Schedules, string[] LessonTitles, string[] Teachers, string[] Auditoriums, string[] LessonTypes)> 
+            GetSchedules(string[] groupList)
+        {
+            return await Task.Run(() =>
+            {
+                if (groupList == null || groupList.Length == 0)
+                {
+                    return (null, null, null, null, null);
+                }
+                var collection = new ConcurrentBag<Schedule>();
+                var lessonTitles = new ConcurrentDictionary<string, bool>();
+                var teachers = new ConcurrentDictionary<string, bool>();
+                var auditoriums = new ConcurrentDictionary<string, bool>();
+                var lessonTypes = new ConcurrentDictionary<string, bool>();
+                Parallel.ForEach(Partitioner.Create(0, groupList.Length), range =>
+                {
+                    for (int i = range.Item1; i < range.Item2; i++)
+                    {
+                        System.Diagnostics.Debug.WriteLine(i + " Normal");
+                        var schedule = DownloadScheduleAsync(groupList[i], false).GetAwaiter().GetResult();
+                        if (schedule != null)
+                        {
+                            AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes);
+                            collection.Add(schedule);
+                        }
+                        System.Diagnostics.Debug.WriteLine(i + " Session");
+                        schedule = DownloadScheduleAsync(groupList[i], true).GetAwaiter().GetResult();
+                        if (schedule != null)
+                        {
+                            schedule.ToNormal();
+                            AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes);
+                            collection.Add(schedule);
+                        }
+                    }
+                });
+                return (collection.ToArray(), lessonTitles.Keys.ToArray(), teachers.Keys.ToArray(), 
+                auditoriums.Keys.ToArray(), lessonTypes.Keys.ToArray());
+            });
+        }
+
+        void AddAllDataFromSchedule(Schedule schedule, ConcurrentDictionary<string, bool> lessonTitles,
+            ConcurrentDictionary<string, bool> teachers, ConcurrentDictionary<string, bool> auditoriums,
+            ConcurrentDictionary<string, bool> lessonTypes)
+        {
+            foreach (var dayliSchedule in schedule)
+            {
+                foreach (var lesson in dayliSchedule)
+                {
+                    lessonTitles.TryAdd(lesson.Title, false);
+                    foreach (var teacher in lesson.Teachers)
+                    {
+                        teachers.TryAdd(teacher.GetFullName(), false);
+                    }
+                    foreach (var auditorium in lesson.Auditoriums)
+                    {
+                        auditoriums.TryAdd(auditorium.Name, false);
+                    }
+                    lessonTypes.TryAdd(lesson.Type, false);
+                }
+            }
+        }
+
+        //public async Task<(Schedule[] Schedules, string[] LessonTitles, string[] Teachers, string[] Auditoriums, string[] LessonTypes)>
+        //    GetSchedules(string[] groupList)
+        //{
+        //    return await Task.Run(() =>
+        //    {
+        //        var collection = new List<Schedule>();
+        //        var lessonTitles = new List<string>();
+        //        var teachers = new List<string>();
+        //        var auditoriums = new List<string>();
+        //        var lessonTypes = new List<string>();
+        //        foreach (var groupTitle in groupList)
+        //        {
+        //            System.Diagnostics.Debug.WriteLine(groupTitle + " Normal");
+        //            var schedule = DownloadScheduleAsync(groupTitle, false).GetAwaiter().GetResult();
+        //            if (schedule != null)
+        //            {
+        //                AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes);
+        //                collection.Add(schedule);
+        //            }
+        //            System.Diagnostics.Debug.WriteLine(groupTitle + " Session");
+        //            schedule = DownloadScheduleAsync(groupTitle, true).GetAwaiter().GetResult();
+        //            if (schedule != null)
+        //            {
+        //                schedule.ToNormal();
+        //                AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes);
+        //                collection.Add(schedule);
+        //            }
+        //        }
+        //        return (collection.ToArray(), lessonTitles.ToArray(), teachers.ToArray(),
+        //        auditoriums.ToArray(), lessonTypes.ToArray());
+        //    });
+        //}
+
+        //void AddAllDataFromSchedule(Schedule schedule, List<string> lessonTitles,
+        //    List<string> teachers, List<string> auditoriums,
+        //    List<string> lessonTypes)
+        //{
+        //    foreach (var dayliSchedule in schedule)
+        //    {
+        //        foreach (var lesson in dayliSchedule)
+        //        {
+        //            if (!lessonTitles.Contains(lesson.Title))
+        //                lessonTitles.Add(lesson.Title);
+        //            foreach (var teacher in lesson.Teachers)
+        //            {
+        //                if (!teachers.Contains(teacher.GetFullName()))
+        //                    teachers.Add(teacher.GetFullName());
+        //            }
+        //            foreach (var auditorium in lesson.Auditoriums)
+        //            {
+        //                if (!auditoriums.Contains(auditorium.Name))
+        //                    auditoriums.Add(auditorium.Name);
+        //            }
+        //            if (!lessonTypes.Contains(lesson.Type))
+        //                lessonTypes.Add(lesson.Type);
+        //        }
+        //    }
+        //}
     }
 }

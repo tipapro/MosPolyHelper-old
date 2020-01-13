@@ -9,12 +9,13 @@
     using System;
     using Object = Java.Lang.Object;
 
-    public class ViewPagerNormalAdapter : PagerAdapter
+    public class DailyShedulePageAdapter : PagerAdapter
     {
         readonly View[] views;
-        readonly RecyclerScheduleAdapter[] recyclerAdapters;
+        readonly PairAdapter[] recyclerAdapters;
         readonly RecyclerView[] recyclerViews;
         public Schedule Schedule;
+        Schedule.Filter scheduleFilter;
         bool showEmptyLessons;
         bool showColoredLessons;
         int count;
@@ -38,9 +39,11 @@
         public DateTime FirstPosDate { get; private set; }
         public override int Count => this.count;
 
-        public ViewPagerNormalAdapter(Schedule schedule, bool showEmptyLessons, bool showColoredLessons)
+        public DailyShedulePageAdapter(Schedule schedule, Schedule.Filter scheduleFilter,
+            bool showEmptyLessons, bool showColoredLessons)
         {
             this.Schedule = schedule;
+            this.scheduleFilter = scheduleFilter;
             this.showEmptyLessons = showEmptyLessons;
             this.showColoredLessons = showColoredLessons;
             SetCount(schedule);
@@ -48,7 +51,7 @@
             {
                 SetFirstPosDate(schedule.IsByDate);
             }
-            this.recyclerAdapters = new RecyclerScheduleAdapter[3];
+            this.recyclerAdapters = new PairAdapter[3];
             this.views = new View[3];
             this.recyclerViews = new RecyclerView[3];
         }
@@ -109,10 +112,10 @@
             }
             if (this.recyclerAdapters[position % 3] == null)
             {
-                this.recyclerAdapters[position % 3] = new RecyclerScheduleAdapter(
+                this.recyclerAdapters[position % 3] = new PairAdapter(
                        this.views[position % 3].FindViewById<TextView>(Resource.Id.text_null_lesson),
-                       this.Schedule.GetSchedule(date),
-                       this.Schedule.ScheduleFilter, date, this.Schedule.Group,
+                       this.Schedule.GetSchedule(date, scheduleFilter),
+                       scheduleFilter, date, this.Schedule.Group,
                        this.showEmptyLessons, this.showColoredLessons);
                 this.recyclerViews[position % 3].SetItemAnimator(null);
                 this.recyclerViews[position % 3].SetLayoutManager(new LinearLayoutManager(container.Context));
@@ -120,8 +123,8 @@
             }
             else
             {
-                this.recyclerAdapters[position % 3].BuildSchedule(this.Schedule.GetSchedule(date),
-                    this.Schedule.ScheduleFilter, date, this.Schedule.Group, this.showEmptyLessons, this.showColoredLessons);
+                this.recyclerAdapters[position % 3].BuildSchedule(this.Schedule.GetSchedule(date, scheduleFilter),
+                    scheduleFilter, date, this.Schedule.Group, this.showEmptyLessons, this.showColoredLessons);
             }
             return this.views[position % 3];
         }

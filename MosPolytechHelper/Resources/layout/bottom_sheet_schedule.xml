@@ -1,0 +1,73 @@
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bottom_sheet"
+    android:layout_width="match_parent"
+    android:layout_height="300dp"
+    android:clickable="true"
+    android:background="@color/colorPrimary"
+    android:orientation="vertical"
+    app:behavior_hideable="true"
+    app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="300dp">
+        <LinearLayout
+            android:id="@+id/linLayout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+<!--        <android.support.design.chip.ChipGroup
+    android:id="@+id/chipGroup"
+                android:layout_marginHorizontal="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" />
+            <Button
+                android:layout_below="@id/chipGroup"
+                android:layout_alignParentLeft="true"
+                    android:id="@+id/btn1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />-->
+            <TextView
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                android:text="Any groups"
+                android:background="@drawable/shape_advanced_search_dialog"
+            android:id="@+id/text_groups" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Download schedules"
+            android:id="@+id/btn_acceptGroups" />
+            <TextView
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                android:text="Any subjects"
+                android:background="@drawable/shape_advanced_search_dialog"
+            android:id="@+id/text_lesson_titles" />
+            <TextView
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                android:text="Any lesson types"
+                android:background="@drawable/shape_advanced_search_dialog"
+            android:id="@+id/text_lesson_types" />
+            <TextView
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                android:text="Any auditoriums"
+                android:background="@drawable/shape_advanced_search_dialog"
+            android:id="@+id/text_auditoriums" />
+            <TextView
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                android:text="Any teachers"
+                android:background="@drawable/shape_advanced_search_dialog"
+            android:id="@+id/text_teachers" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Apply"
+            android:id="@+id/btn_search" />
+        </LinearLayout>
+        </LinearLayout>
+</LinearLayout>

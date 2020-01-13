@@ -24,6 +24,7 @@
         const string GroupDateToKey = "dateTo";
         const string GroupEveningKey = "evening";
         const string GroupCommentKey = "comment";
+        const string GroupCourseKey = "course";
 
         const string LessonSubjectKey = "subject";
         const string LessonTeacherKey = "teacher";
@@ -53,29 +54,35 @@
             if (!dateFrom.HasValue)
             {
                 dateFrom = DateTime.MinValue;
-                this.logger.Warn($"Key {GroupDateFromKey} wasn't founded");
+                this.logger.Warn($"Key {GroupDateFromKey} wasn't found");
             }
             var dateTo = jToken[GroupDateToKey]?.ToObject<DateTime>();
             if (!dateTo.HasValue)
             {
                 dateFrom = DateTime.MaxValue;
-                this.logger.Warn($"Key {GroupDateToKey} wasn't founded");
+                this.logger.Warn($"Key {GroupDateToKey} wasn't found");
             }
             bool? isEvening = jToken[GroupEveningKey]?.ToObject<bool>();
             if (!isEvening.HasValue)
             {
                 isEvening = false;
-                this.logger.Warn($"Key {GroupEveningKey} wasn't founded");
+                this.logger.Warn($"Key {GroupEveningKey} wasn't found");
             }
             string comment = jToken[GroupCommentKey]?.ToObject<string>();
+            int? course = jToken[GroupCourseKey]?.ToObject<int>();
+            if (!course.HasValue)
+            {
+                course = 0;
+                this.logger.Warn($"Key {GroupCourseKey} wasn't found");
+            }
 
-            return new Group(title, dateFrom.Value, dateTo.Value, isEvening.Value, comment);
+            return new Group(title, course.Value, dateFrom.Value, dateTo.Value, isEvening.Value, comment);
         }
 
         Schedule.Daily[] ConvertToScheduleArray(JToken jToken, bool isSession)
         {
             var serSchedule = jToken as JObject ??
-                throw new JsonException($"Key {ScheduleGridKey} wasn't founded");
+                throw new JsonException($"Key {ScheduleGridKey} wasn't found");
             var schedule = new List<Schedule.Daily>(isSession ? SessionDaysNumber : WeekDayNumber);
             var lessonList = new List<Lesson>();
             // Cycle for each day
@@ -126,13 +133,13 @@
             if (!dateFrom.HasValue)
             {
                 dateFrom = DateTime.MinValue;
-                this.logger.Warn($"Key {GroupDateFromKey} wasn't founded");
+                this.logger.Warn($"Key {GroupDateFromKey} wasn't found");
             }
             var dateTo = jToken[LessonDateToKey]?.ToObject<DateTime>();
             if (!dateTo.HasValue)
             {
                 dateTo = DateTime.MaxValue;
-                this.logger.Warn($"Key {GroupDateToKey} wasn't founded");
+                this.logger.Warn($"Key {GroupDateToKey} wasn't found");
             }
             if (dateTo < dateFrom)
             {
@@ -174,7 +181,7 @@
             string teacher = jToken?.ToObject<string>();
             if (string.IsNullOrEmpty(teacher))
             {
-                this.logger.Warn($"Key {LessonTeacherKey} wasn't founded");
+                this.logger.Warn($"Key {LessonTeacherKey} wasn't found");
             }
             return teacher?.Split(',', StringSplitOptions.RemoveEmptyEntries);
         }
@@ -258,18 +265,25 @@
         {
             return await Task.Run(() =>
             {
-                var serObj = JObject.Parse(serializedObj);
-                if (serObj[StatusKey]?.ToObject<string>() != "ok")
+                try
                 {
-                    this.logger.Warn($"Status of converting schedule is not \"ok\": {nameof(serializedObj)}", serializedObj);
+                    var serObj = JObject.Parse(serializedObj);
+                    if (serObj[StatusKey]?.ToObject<string>() != "ok")
+                    {
+                        this.logger.Warn($"Status of converting schedule is not \"ok\": {nameof(serializedObj)}", serializedObj);
+                    }
+
+                    bool isByDate = serObj[IsSession]?.ToObject<bool>() ??
+                        throw new JsonException($"Key {IsSession} doesn't found");
+                    var group = ConvertToGroup(serObj[GroupInfoKey]);
+                    var schedule = ConvertToScheduleArray(serObj[ScheduleGridKey], isByDate);
+
+                    return new Schedule(schedule, group, isByDate, DateTime.Now);
                 }
-
-                bool isByDate = serObj[IsSession]?.ToObject<bool>() ??
-                    throw new JsonException($"Key {IsSession} doesn't found");
-                var group = ConvertToGroup(serObj[GroupInfoKey]);
-                var schedule = ConvertToScheduleArray(serObj[ScheduleGridKey], isByDate);
-
-                return new Schedule(schedule, group, isByDate, DateTime.Now);
+                catch (Exception)
+                {
+                    return null;
+                }
             });
         }
     }

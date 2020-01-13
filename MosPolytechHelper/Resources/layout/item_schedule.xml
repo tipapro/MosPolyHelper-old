@@ -14,7 +14,7 @@
             android:layout_height="1dp" 
             android:clickable="false"
             android:layout_marginHorizontal="1dp" 
-            android:background="#FFFFFF"/>
+            android:background="@color/pairBackgroundColor"/>
         <RelativeLayout android:id="@+id/layout_schedule_head"
             android:clickable="false"
             android:background="@drawable/shape_lesson_head"
