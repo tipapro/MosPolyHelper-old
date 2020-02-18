@@ -3,21 +3,23 @@
     using Android.App;
     using Android.Content;
     using Android.Content.PM;
-    using Android.Content.Res;
     using Android.OS;
     using Android.Runtime;
-    using Android.Support.Design.Widget;
-    using Android.Support.V4.View;
-    using Android.Support.V4.Widget;
-    using Android.Support.V7.App;
-    using Android.Support.V7.Preferences;
     using Android.Views;
     using Android.Widget;
-    using MosPolyHelper.Common;
-    using MosPolyHelper.Common.Interfaces;
+    using AndroidX.AppCompat.App;
+    using AndroidX.Core.View;
+    using AndroidX.DrawerLayout.Widget;
+    using AndroidX.Preference;
+    using Google.Android.Material.Navigation;
+    using MosPolyHelper.Features.Buildings;
     using MosPolyHelper.Features.Common;
+    using MosPolyHelper.Features.Common.Interfaces;
     using MosPolyHelper.Features.Schedule;
     using MosPolyHelper.Features.Settings;
+    using MosPolyHelper.Features.Splash;
+    using MosPolyHelper.Utilities;
+    using MosPolyHelper.Utilities.Interfaces;
     using System;
     using System.Threading.Tasks;
 
@@ -27,9 +29,8 @@
     {
         string clickBackAgain;
         bool doubleBackToExitPressedOnce;
-        Fragments curFragmentId = Fragments.Other;
-        Fragments prevFragmentId = Fragments.Other;
-        FragmentBase prevFragment;
+        IFragmentBase prevFragment;
+        IFragmentBase currFragment;
         ILoggerFactory loggerFactory;
         ILogger logger;
         MainVm viewModel;
@@ -44,8 +45,8 @@
             {
                 this.loggerFactory = DependencyInjector.GetILoggerFactory();
             }
-            viewModel = new MainVm(DependencyInjector.GetIMediator());
-            StringProvider.SetUpLogger(loggerFactory);
+            this.viewModel = new MainVm(DependencyInjector.GetIMediator());
+            StringProvider.SetUpLogger(this.loggerFactory);
             var awaiter = SplashView.ScheduleVmPreloadTask?.GetAwaiter();
             ScheduleVm scheduleVm = null;
             if (awaiter.HasValue)
@@ -55,7 +56,7 @@
             SplashView.ScheduleVmPreloadTask = null;
             if (savedInstanceState == null)
             {
-                ChangeFragment(ScheduleView.NewInstance(scheduleVm), Fragments.ScheduleMain, false);
+                ChangeFragment(ScheduleView.NewInstance(scheduleVm), true);
             }
             else
             {
@@ -67,7 +68,7 @@
                 new string[] { Android.Manifest.Permission.Internet }, 123);
 
             this.logger = this.loggerFactory.Create<MainView>();
-            var currentNightMode = Resources.Configuration.UiMode;
+            var currentNightMode = this.Resources.Configuration.UiMode;
 
             var navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
             navigationView.NavigationItemSelected += (obj, arg) => OnNavigationItemSelected(arg.MenuItem);
@@ -78,6 +79,7 @@
                 .RegisterOnSharedPreferenceChangeListener(this);
             this.logger.Debug("MainActivity created successfully");
         }
+
 
         protected override void OnResume()
         {
@@ -136,7 +138,7 @@
                     this.viewModel.ChangeShowColoredLessons(sharedPreferences.GetBoolean(key, default));
                     break;
                 case "NightMode":
-                    AppCompatDelegate.DefaultNightMode = sharedPreferences.GetBoolean(key, default) ? 
+                    AppCompatDelegate.DefaultNightMode = sharedPreferences.GetBoolean(key, default) ?
                         AppCompatDelegate.ModeNightYes : AppCompatDelegate.ModeNightNo;
 
                     this.Delegate.ApplyDayNight();
@@ -162,18 +164,23 @@
             var fragmentId = Fragments.Other;
             var drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
 
-            Func<Android.Support.V4.App.Fragment> fragmentCreator = null;
+            Func<IFragmentBase> fragmentCreator = null;
             if (id == Resource.Id.nav_schedule)
             {
                 fragmentId = Fragments.ScheduleMain;
                 fragmentCreator = () => ScheduleView.NewInstance();
+            }
+            else if (id == Resource.Id.nav_buildings)
+            {
+                fragmentId = Fragments.Buildings;
+                fragmentCreator = () => new BuildingsView();
             }
             else if (id == Resource.Id.nav_settings)
             {
                 fragmentId = Fragments.Settings;
                 fragmentCreator = () => SettingsView.NewInstance();
             }
-            if (this.curFragmentId == fragmentId)
+            if (this.currFragment.FragmentType == fragmentId)
             {
                 drawer.CloseDrawer(GravityCompat.Start);
                 return false;
@@ -187,7 +194,7 @@
                 drawer.CloseDrawer(GravityCompat.Start);
                 return false;
             }
-            ChangeFragment(fragmentCreator.Invoke(), fragmentId, true);
+            ChangeFragment(fragmentCreator.Invoke(), true);
             drawer.CloseDrawer(GravityCompat.Start);
             return true;
         }
@@ -206,16 +213,23 @@
             //}
         }
 
-        public void ChangeFragment(Android.Support.V4.App.Fragment fragment, Fragments fragmentId, bool disposePrevious)
+        public void ChangeFragment(IFragmentBase fragment, bool disposePrevious)
         {
             this.prevFragment = this.SupportFragmentManager.FindFragmentById(Resource.Id.frame_schedule) as FragmentBase;
             if (this.prevFragment != null && disposePrevious)
             {
-                this.prevFragment.Dispose();
+                this.prevFragment.Fragment.Dispose();
             }
-            this.SupportFragmentManager.BeginTransaction().Replace(Resource.Id.frame_schedule, fragment).Commit();
-            this.prevFragmentId = this.curFragmentId;
-            this.curFragmentId = fragmentId;
+            if (disposePrevious)
+            {
+                this.SupportFragmentManager.BeginTransaction().Replace(Resource.Id.frame_schedule, fragment.Fragment).Commit();
+            }
+            else
+            {
+                this.SupportFragmentManager.BeginTransaction().Add(Resource.Id.frame_schedule, fragment.Fragment)
+                    .AddToBackStack(null).Commit();
+            }
+            this.currFragment = fragment;
         }
 
         protected override void OnDestroy()

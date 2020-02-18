@@ -1,11 +1,11 @@
 ﻿namespace MosPolyHelper.Adapters
 {
-    using Android.Support.V4.View;
-    using Android.Support.V7.Widget;
     using Android.Views;
     using Android.Widget;
+    using AndroidX.RecyclerView.Widget;
+    using AndroidX.ViewPager.Widget;
     using Java.Lang;
-    using MosPolyHelper.Domain;
+    using MosPolyHelper.Domains.ScheduleDomain;
     using System;
     using Object = Java.Lang.Object;
 
@@ -18,6 +18,8 @@
         Schedule.Filter scheduleFilter;
         bool showEmptyLessons;
         bool showColoredLessons;
+
+        public event Action<DateTime> ItemClick;
 
         public DailySheduleGridPageAdapter(Schedule schedule, Schedule.Filter scheduleFilter, 
             bool showEmptyLessons, bool showColoredLessons)
@@ -61,15 +63,20 @@
             if (this.recyclerView == null)
             {
                 this.recyclerView = this.view.FindViewById<RecyclerView>(Resource.Id.recycler_schedule);
+                this.view.FindViewById<TextView>(Resource.Id.text_day).Visibility = ViewStates.Gone;
             }
             if (this.recyclerAdapter == null)
             {
                 this.recyclerAdapter = new DailyShceduleGridAdapter(
                        this.view.FindViewById<TextView>(Resource.Id.text_null_lesson),
                        this.Schedule, scheduleFilter, this.showEmptyLessons, this.showColoredLessons);
+                this.recyclerAdapter.ItemClick += date => ItemClick?.Invoke(date);
                 this.recyclerView.SetItemAnimator(null);
                 this.recyclerView.SetLayoutManager(new GridLayoutManager(container.Context, 3));
                 this.recyclerView.SetAdapter(this.recyclerAdapter);
+                float scale = this.recyclerView.Context.Resources.DisplayMetrics.Density;
+                int dp8InPx = (int)(4 * scale + 0.5f);
+                this.recyclerView.AddItemDecoration(new DailyShceduleGridAdapter.ItemDecoration(dp8InPx));
             }
             else
             {
@@ -111,7 +118,8 @@
             }
             set
             {
-                this.recyclerView?.ScrollToPosition((value - this.recyclerAdapter.FirstPosDate).Days);
+                var day = (value - this.recyclerAdapter.FirstPosDate).Days;
+                this.recyclerView?.ScrollToPosition(day < 0 ? 0 : day);
             }
         }
     }

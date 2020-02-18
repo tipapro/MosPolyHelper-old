@@ -1,18 +1,27 @@
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" 
-    android:orientation="vertical" 
     android:layout_width="match_parent" 
     android:layout_height="match_parent">
-    <android.support.v7.widget.RecyclerView android:layout_below="@id/text_group_title" 
+    <TextView
+        android:layout_marginLeft="17.7dp"
+        android:layout_alignParentTop="true"
+        android:textColor="#BBBBBB"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="sans-serif-medium" 
+        android:id="@+id/text_day"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <android.support.v7.widget.RecyclerView 
+        android:layout_below="@id/text_day"
         android:id="@+id/recycler_schedule" 
         android:scrollbars="none" 
-        android:background="@color/schedulePageBackgroundColor" 
         android:layout_width="match_parent" 
         android:layout_height="match_parent">
     </android.support.v7.widget.RecyclerView>
     <TextView android:id="@+id/text_null_lesson" 
         android:visibility="invisible" 
         android:layout_width="wrap_content" 
+        android:layout_gravity="center"
         android:layout_height="wrap_content" 
         android:text="@string/null_daily_schedule" 
         android:layout_centerInParent="true"/>

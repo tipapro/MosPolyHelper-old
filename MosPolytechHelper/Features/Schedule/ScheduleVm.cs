@@ -1,13 +1,15 @@
 ﻿namespace MosPolyHelper.Features.Schedule
 {
-    using MosPolyHelper.Common;
-    using MosPolyHelper.Common.Interfaces;
-    using MosPolyHelper.Domain;
+    using MosPolyHelper.Utilities;
+    using MosPolyHelper.Utilities.Interfaces;
     using MosPolyHelper.Features.Common;
     using MosPolyHelper.Features.Schedule.Common;
     using System;
+    using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xamarin.Essentials;
+    using MosPolyHelper.Domains.ScheduleDomain;
 
     public class ScheduleVm : ViewModelBase
     {
@@ -63,6 +65,11 @@
             remove => this.model.Announce -= value;
         }
 
+        public void LessonClick(Lesson lesson, DateTime date)
+        {
+            this.Send(ViewModels.ScheduleLessonInfo, "LessonClick", lesson, date);
+        }
+
         public Schedule Schedule
         {
             get => this.schedule;
@@ -89,15 +96,15 @@
             get => this.scheduleType;
             set => SetValue(ref this.scheduleType, value);
         }
-        public ICommand SubmitGroupCommand { get; private set; }
-        public ICommand GoHomeCommand { get; private set; }
+        public ICommand SubmitGroupCommand { get; }
+        public ICommand GoHomeCommand { get; }
         public Schedule.Filter ScheduleFilter { get; set; }
         public bool ShowEmptyLessons { get; set; }
         public bool ShowColoredLessons { get; set; }
-        public ICommand ScheduleTypeSelected { get; set; }
+        public ICommand ScheduleTypeChanged { get; }
 
         public ScheduleVm(ILoggerFactory loggerFactory, IMediator<ViewModels, VmMessage> mediator, bool isSession,
-            Schedule.Filter scheduleFilter) : base(mediator, ViewModels.Schedule)
+            Schedule.Filter scheduleFilter) : base(mediator, ViewModels.ScheduleLessonInfo)
         {
             this.model = new ScheduleModel(loggerFactory);
             this.groupList = new string[0];
@@ -107,7 +114,7 @@
             this.ScheduleFilter = scheduleFilter;
             Subscribe(HandleMessage);
             GetGroupList(true);
-            this.ScheduleTypeSelected = new Command<ScheduleType>(ChangeScheduleType);
+            this.ScheduleTypeChanged = new Command<ScheduleType>(ChangeScheduleType);
         }
 
         public void GetGroupList(bool downloadNew)
@@ -148,9 +155,12 @@
         }
 
         public async Task<(Schedule[] Schedules, string[] LessonTitles, string[] Teachers, string[] Auditoriums, string[] LessonTypes)> 
-            GetAdvancedSearchData(string[] groupList)
+            GetAdvancedSearchData(IList<string> groupList, CancellationToken ct, Action<int> onProgressChanged)
         {
-            return await this.model.GetSchedules(groupList);
+
+            this.model.DownloadProgressChanged += onProgressChanged;
+            return await this.model.GetSchedules(groupList, ct);
+
         }
 
         public void ChangeScheduleType(ScheduleType scheduleType)

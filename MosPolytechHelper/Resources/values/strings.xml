@@ -6,13 +6,13 @@
   <string name="nav_settings">Настройки</string>
   
     <string name="schedule_preferences">Настройки</string>
-  <string name="first_module">1-й модуль</string>
-  <string name="second_module">2-й модуль</string>
-  <string name="odd_week">нечёт. нед.</string>
-  <string name="even_week">чёт. нед.</string>
+  <string name="first_module">1-й мод.</string>
+  <string name="second_module">2-й мод.</string>
+  <string name="odd_week">нечёт.</string>
+  <string name="even_week">чёт.</string>
   <string name="null_daily_schedule">В этот день нет пар</string>
   <string name="group_title">Введите группу</string>
-  <string name="group_title_label">Группа</string>
+  <string name="group_title_label">Расписание</string>
   <string name="teacher_name">Имя преподавателя</string>
   <string name="enter_group_title">Введите название гурппы</string>
   <string name="enter_teacher_name">Введите имя преподавателя</string>
@@ -25,10 +25,8 @@
   <!--Schedule Preferences-->
   <string name="schedule_preferences_title">Настройки расписания</string>
   <string name="text_schedule_type_prompt">Тип расписания</string>
-  <string-array name="text_schedule_type_array">
-    <item>Обычное</item>
-    <item>Сессия</item>
-  </string-array>
+  <string name="text_schedule_type_regular">Обычное</string>
+  <string name="text_schedule_type_session">Сессия</string>
   <string name="schedule_target_prompt">Расписание для</string>
   <string-array name="schedule_target_array">
     <item>Студентов</item>

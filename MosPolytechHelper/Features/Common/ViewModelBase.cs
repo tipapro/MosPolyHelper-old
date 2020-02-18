@@ -1,11 +1,11 @@
 ﻿namespace MosPolyHelper.Features.Common
 {
-    using MosPolyHelper.Common.Interfaces;
+    using MosPolyHelper.Utilities.Interfaces;
     using System;
     using System.ComponentModel;
     using System.Runtime.CompilerServices;
 
-    public abstract class ViewModelBase : INotifyPropertyChanged
+    public abstract class ViewModelBase : INotifyPropertyChanged, IDisposable
     {
         readonly ViewModels vm;
         IMediator<ViewModels, VmMessage> mediator;
@@ -46,6 +46,11 @@
         protected void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void Dispose()
+        {
+            Unsubscribe();
         }
     }
 }

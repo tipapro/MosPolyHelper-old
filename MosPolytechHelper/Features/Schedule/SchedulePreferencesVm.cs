@@ -1,6 +1,6 @@
-﻿using MosPolyHelper.Common;
-using MosPolyHelper.Common.Interfaces;
-using MosPolyHelper.Domain;
+﻿using MosPolyHelper.Utilities;
+using MosPolyHelper.Utilities.Interfaces;
+using MosPolyHelper.Domains.ScheduleDomain;
 using MosPolyHelper.Features.Common;
 using MosPolyHelper.Features.Schedule.Common;
 
@@ -35,17 +35,17 @@ namespace MosPolyHelper.Features.Schedule
         public void ChangeModuleFilter(ModuleFilter moduleFilter)
         {
             this.moduleFilter = moduleFilter;
-            Send(ViewModels.Schedule, nameof(this.ModuleFilter), moduleFilter);
+            Send(ViewModels.ScheduleLessonInfo, nameof(this.ModuleFilter), moduleFilter);
         }
         public void ChangeDateFilter(DateFilter dateFilter)
         {
             this.dateFilter = dateFilter;
-            Send(ViewModels.Schedule, nameof(this.DateFilter), dateFilter);
+            Send(ViewModels.ScheduleLessonInfo, nameof(this.DateFilter), dateFilter);
         }
         public void ChangeSessionFilter(bool sessionFilter)
         {
             this.sessionFilter = sessionFilter;
-            Send(ViewModels.Schedule, nameof(this.SessionFilter), sessionFilter);
+            Send(ViewModels.ScheduleLessonInfo, nameof(this.SessionFilter), sessionFilter);
         }
 
         ScheduleTarget scheduleTarget;
@@ -75,11 +75,11 @@ namespace MosPolyHelper.Features.Schedule
         public void ChangeScheduleTarget(ScheduleTarget scheduleTarget)
         {
             this.scheduleTarget = scheduleTarget;
-            Send(ViewModels.Schedule, nameof(this.ScheduleTarget), scheduleTarget);
+            Send(ViewModels.ScheduleLessonInfo, nameof(this.ScheduleTarget), scheduleTarget);
         }
         public void GoToScheduleManagerFrament()
         {
-            Send(ViewModels.Schedule, "ChangeFragment", ScheduleFragments.ScheduleManager);
+            Send(ViewModels.ScheduleLessonInfo, "ChangeFragment", ScheduleFragments.ScheduleManager);
         }
     }
 

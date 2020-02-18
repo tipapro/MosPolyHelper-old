@@ -1,24 +1,31 @@
 ﻿namespace MosPolyHelper.Features.Settings
 {
     using Android.OS;
-    using Android.Support.V4.Widget;
-    using Android.Support.V7.App;
-    using Android.Support.V7.Preferences;
     using Android.Views;
+    using AndroidX.AppCompat.App;
+    using AndroidX.AppCompat.Widget;
+    using AndroidX.DrawerLayout.Widget;
+    using AndroidX.Fragment.App;
+    using AndroidX.Preference;
+    using MosPolyHelper.Features.Common;
     using MosPolyHelper.Features.Main;
 
-    class SettingsView : PreferenceFragmentCompat, PreferenceFragmentCompat.IOnPreferenceStartScreenCallback
+    class SettingsView : FragmentPreferenceBase, PreferenceFragmentCompat.IOnPreferenceStartScreenCallback
     {
         public override void OnCreatePreferences(Bundle savedInstanceState, string rootKey)
         {
             SetPreferencesFromResource(Resource.Xml.settings, rootKey);
-            System.Diagnostics.Debug.WriteLine($"{this.GetHashCode()} created");
+        }
+
+        public SettingsView() : base(Fragments.Settings)
+        {
+
         }
 
         public override void OnViewCreated(View view, Bundle savedInstanceState)
         {
             base.OnViewCreated(view, savedInstanceState);
-            var toolbar = view.FindViewById<Android.Support.V7.Widget.Toolbar>(Resource.Id.toolbar);
+            var toolbar = view.FindViewById<Toolbar>(Resource.Id.toolbar);
 
             if (toolbar != null)
             {
@@ -40,10 +47,9 @@
                 var drawer = this.Activity.FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
                 drawer.SetDrawerLockMode(DrawerLayout.LockModeLockedClosed);
             }
-
         }
 
-        public override Android.Support.V4.App.Fragment CallbackFragment
+        public override Fragment CallbackFragment
         {
             get
             {
@@ -62,11 +68,6 @@
             return true;
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            System.Diagnostics.Debug.WriteLine($"{this.GetHashCode()} disposed");
-            base.Dispose(disposing);
-        }
 
         public static SettingsView NewInstance()
         {

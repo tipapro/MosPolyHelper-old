@@ -34,7 +34,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
     <DebugType>portable</DebugType>
-    <Optimize>False</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -49,6 +49,9 @@
     <AndroidSupportedAbis>armeabi-v7a;x86;x86_64;arm64-v8a</AndroidSupportedAbis>
     <AndroidUseAapt2>true</AndroidUseAapt2>
     <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
+    <AndroidDexTool>d8</AndroidDexTool>
+    <MandroidI18n />
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>false</DebugSymbols>
@@ -71,6 +74,7 @@
     <AndroidUseAapt2>true</AndroidUseAapt2>
     <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidDexTool>d8</AndroidDexTool>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -82,42 +86,52 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Adapters\AdvancedSearchAdapter.cs" />
+    <Compile Include="Adapters\BuildingsAdapter.cs" />
     <Compile Include="Adapters\PairAdapter.cs" />
     <Compile Include="Adapters\DailyShceduleGridAdapter.cs" />
     <Compile Include="Adapters\DailyShedulePageAdapter.cs" />
     <Compile Include="Adapters\DailySheduleGridPageAdapter.cs" />
-    <Compile Include="Common\AsyncCommand.cs" />
-    <Compile Include="Common\Command.cs" />
-    <Compile Include="Common\DependencyInjector.cs" />
-    <Compile Include="Common\PreferencesConstants.cs" />
-    <Compile Include="Common\ScheduleDownloader.cs" />
-    <Compile Include="Common\Interfaces\IAsyncCommand.cs" />
-    <Compile Include="Common\Interfaces\ICommand.cs" />
-    <Compile Include="Common\Interfaces\IDeserializer.cs" />
-    <Compile Include="Common\Interfaces\IScheduleDownloader.cs" />
-    <Compile Include="Common\Interfaces\IErrorHandler.cs" />
-    <Compile Include="Common\Interfaces\ILogger.cs" />
-    <Compile Include="Common\Interfaces\ILoggerFactory.cs" />
-    <Compile Include="Common\Interfaces\IMediator.cs" />
-    <Compile Include="Common\Interfaces\ISerializer.cs" />
-    <Compile Include="Common\Interfaces\IScheduleConverter.cs" />
-    <Compile Include="Common\LoggerFactory.cs" />
-    <Compile Include="Common\Mediator.cs" />
-    <Compile Include="Common\NLogger.cs" />
-    <Compile Include="Common\ProtofubConverter.cs" />
-    <Compile Include="Common\ScheduleConverter.cs" />
-    <Compile Include="Common\StateMachine.cs" />
-    <Compile Include="Common\StringProvider.cs" />
-    <Compile Include="Domain\Schedule.AdvancedSearch.cs" />
-    <Compile Include="Domain\Auditorium.cs" />
-    <Compile Include="Domain\Schedule.Filter.cs" />
-    <Compile Include="Domain\Schedule.Daily.cs" />
-    <Compile Include="Domain\Schedule.cs" />
-    <Compile Include="Domain\Group.cs" />
-    <Compile Include="Domain\Lesson.cs" />
-    <Compile Include="Domain\Module.cs" />
-    <Compile Include="Domain\Teacher.cs" />
-    <Compile Include="Domain\WeekType.cs" />
+    <Compile Include="Domains\BuildingsDomain\Buildings.cs" />
+    <Compile Include="Features\Buildings\BuildingsModel.cs" />
+    <Compile Include="Features\Buildings\BuildingsView.cs" />
+    <Compile Include="Features\Buildings\BuildingsVm.cs" />
+    <Compile Include="Features\Common\Interfaces\IFragmentBase.cs" />
+    <Compile Include="Features\Schedule\ScheduleLessonInfoView.cs" />
+    <Compile Include="Features\Schedule\ScheduleLessonInfoVm.cs" />
+    <Compile Include="Utilities\AssetProvider.cs" />
+    <Compile Include="Utilities\AsyncCommand.cs" />
+    <Compile Include="Utilities\Command.cs" />
+    <Compile Include="Utilities\DependencyInjector.cs" />
+    <Compile Include="Utilities\JsonConverter.cs" />
+    <Compile Include="Utilities\PreferencesConstants.cs" />
+    <Compile Include="Utilities\ScheduleDownloader.cs" />
+    <Compile Include="Utilities\Interfaces\IAsyncCommand.cs" />
+    <Compile Include="Utilities\Interfaces\ICommand.cs" />
+    <Compile Include="Utilities\Interfaces\IDeserializer.cs" />
+    <Compile Include="Utilities\Interfaces\IScheduleDownloader.cs" />
+    <Compile Include="Utilities\Interfaces\IErrorHandler.cs" />
+    <Compile Include="Utilities\Interfaces\ILogger.cs" />
+    <Compile Include="Utilities\Interfaces\ILoggerFactory.cs" />
+    <Compile Include="Utilities\Interfaces\IMediator.cs" />
+    <Compile Include="Utilities\Interfaces\ISerializer.cs" />
+    <Compile Include="Utilities\Interfaces\IScheduleConverter.cs" />
+    <Compile Include="Utilities\LoggerFactory.cs" />
+    <Compile Include="Utilities\Mediator.cs" />
+    <Compile Include="Utilities\NLogger.cs" />
+    <Compile Include="Utilities\ProtofubConverter.cs" />
+    <Compile Include="Utilities\ScheduleConverter.cs" />
+    <Compile Include="Utilities\StateMachine.cs" />
+    <Compile Include="Utilities\StringProvider.cs" />
+    <Compile Include="Domains\ScheduleDomain\Schedule.AdvancedSearch.cs" />
+    <Compile Include="Domains\ScheduleDomain\Auditorium.cs" />
+    <Compile Include="Domains\ScheduleDomain\Schedule.Filter.cs" />
+    <Compile Include="Domains\ScheduleDomain\Schedule.Daily.cs" />
+    <Compile Include="Domains\ScheduleDomain\Schedule.cs" />
+    <Compile Include="Domains\ScheduleDomain\Group.cs" />
+    <Compile Include="Domains\ScheduleDomain\Lesson.cs" />
+    <Compile Include="Domains\ScheduleDomain\Module.cs" />
+    <Compile Include="Domains\ScheduleDomain\Teacher.cs" />
+    <Compile Include="Domains\ScheduleDomain\WeekType.cs" />
     <Compile Include="Features\Common\FragmentBase.cs" />
     <Compile Include="Features\Common\ViewModelBase.cs" />
     <Compile Include="Features\Common\ViewModels.cs" />
@@ -126,7 +140,7 @@
     <Compile Include="Features\Main\MainVm.cs" />
     <Compile Include="Features\Schedule\ScheduleFilterView.cs" />
     <Compile Include="Features\Settings\SettingsView.cs" />
-    <Compile Include="Features\SplashView.cs" />
+    <Compile Include="Features\Splash\SplashView.cs" />
     <Compile Include="Features\Schedule\Common\ScheduleFragments.cs" />
     <Compile Include="Features\Schedule\ScheduleManagerView.cs" />
     <Compile Include="Features\Schedule\ScheduleManagerVm.cs" />
@@ -145,7 +159,6 @@
     </AndroidAsset>
     <None Include="Resources\AboutResources.txt" />
     <None Include="Properties\AndroidManifest.xml" />
-    <None Include="Assets\AboutAssets.txt" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\activity_main.xml">
@@ -164,7 +177,6 @@
     <AndroidResource Include="Resources\values-v21\styles.xml" />
     <AndroidResource Include="Resources\drawable\side_nav_bar.xml" />
     <AndroidResource Include="Resources\menu\activity_main_drawer.xml" />
-    <AndroidResource Include="Resources\menu\menu_schedule.xml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json">
@@ -176,14 +188,23 @@
     <PackageReference Include="protobuf-net">
       <Version>3.0.0-alpha.122</Version>
     </PackageReference>
-    <PackageReference Include="Xamarin.Android.Support.Design">
-      <Version>28.0.0.3</Version>
+    <PackageReference Include="Xamarin.AndroidX.Browser">
+      <Version>1.0.0</Version>
     </PackageReference>
-    <PackageReference Include="Xamarin.Android.Support.v7.Preference">
-      <Version>28.0.0.3</Version>
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData">
+      <Version>2.1.0</Version>
+    </PackageReference>
+    <PackageReference Include="Xamarin.AndroidX.Migration">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Xamarin.AndroidX.Preference">
+      <Version>1.1.0</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Essentials">
       <Version>1.3.1</Version>
+    </PackageReference>
+    <PackageReference Include="Xamarin.Google.Android.Material">
+      <Version>1.0.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -218,18 +239,10 @@
     <AndroidResource Include="Resources\drawable\ic_menu_schedule.xml" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\menu\menu_main.xml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\layout\item_schedule_manager.xml">
       <Generator>MSBuild:UpdateGeneratedFiles</Generator>
       <SubType>Designer</SubType>
     </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\refresh_24px.xml" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\delete_24px.xml" />
@@ -239,9 +252,6 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\expand_more_24px.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\drawable\shape_lesson_head.xml" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\anim\popup_show.xml">
@@ -379,11 +389,6 @@
     </AndroidResource>
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\values\styles.xml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\values-night\colors.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
@@ -418,6 +423,186 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\all_divider.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\shape_advanced_search_text.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\circular_progress_bar.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\circle_shape.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\bottom_stroke.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\shape_schedule_order.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\shape_schedule_indicator.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\left_stroke.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\bottom_right_stroke.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\shape_schedule_type.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\selector_schedule_type.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\star_border_24px.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\note_24px.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\fragment_buildings.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\toolbar_buildings.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\menu\menu_buildings.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\ic_info_24px.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\ic_refresh_24px.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\item_building.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\fragment_lesson_info.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\top_stroke.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\ic_menu_24px.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\toggle_selector.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\toggle_on.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\toggle_off.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\pill_thumb_background.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\color\pill_switch_thumb_selector.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\pill_track_background.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\background_fenced.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\switch_track_green.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\pill_text_background.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\selector_tab_indicator.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\background_tab_indicator.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\background_amber_dot_3dp.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\shape_lesson_top.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\shape_lesson_bottom.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\shape_lesson_middle.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\toolbar_lesson_info.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\bottom_stroke_day_title.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>

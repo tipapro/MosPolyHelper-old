@@ -1,6 +1,6 @@
 ﻿namespace MosPolyHelper.Features.Main
 {
-    using MosPolyHelper.Common.Interfaces;
+    using MosPolyHelper.Utilities.Interfaces;
     using MosPolyHelper.Features.Common;
 
     public class MainVm : ViewModelBase
@@ -12,11 +12,11 @@
 
         public void ChangeShowEmptyLessons(bool showEmptyLessons)
         {
-            Send(ViewModels.Schedule, "ShowEmptyLessons", showEmptyLessons);
+            Send(ViewModels.ScheduleLessonInfo, "ShowEmptyLessons", showEmptyLessons);
         }
         public void ChangeShowColoredLessons(bool showColoredLessons)
         {
-            Send(ViewModels.Schedule, "ShowColoredLessons", showColoredLessons);
+            Send(ViewModels.ScheduleLessonInfo, "ShowColoredLessons", showColoredLessons);
         }
     }
 }

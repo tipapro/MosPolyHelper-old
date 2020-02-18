@@ -10,4 +10,6 @@
   <color name="textColorSecondary">#000000</color>
   <color name="schedulePageBackgroundColor">#FFFFFF</color>
   <color name="pairBackgroundColor">#EEEEFE</color>
+  <color name="pill_switch_thumb_disabled">#BDBDBD</color>
+  <color name="pill_switch_thumb">#FFFFFF</color>
 </resources>

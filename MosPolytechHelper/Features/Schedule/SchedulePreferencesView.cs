@@ -1,14 +1,14 @@
 ﻿namespace MosPolyHelper.Features.Schedule
 {
-    using Android.Support.V7.Preferences;
     using Android.Transitions;
     using Android.Views;
     using Android.Widget;
-    using MosPolyHelper.Common;
-    using MosPolyHelper.Common.Interfaces;
-    using MosPolyHelper.Domain;
+    using MosPolyHelper.Utilities;
+    using MosPolyHelper.Utilities.Interfaces;
+    using MosPolyHelper.Domains.ScheduleDomain;
     using MosPolyHelper.Features.Common;
     using System.ComponentModel;
+    using AndroidX.Preference;
 
     class SchedulePreferencesView : PopupWindow
     {

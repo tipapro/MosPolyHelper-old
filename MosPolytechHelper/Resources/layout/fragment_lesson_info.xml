@@ -1,0 +1,57 @@
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="#000000"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <include layout="@layout/toolbar_lesson_info"/>
+        <TextView android:layout_width="wrap_content"
+        android:paddingRight="6dp"
+        android:paddingTop="5dp"
+            android:text="Practise"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        android:id="@+id/text_schedule_type"
+        android:fontFamily="sans-serif-medium"
+        android:textSize="10.5sp"/>
+        <TextView android:id="@+id/text_schedule_title"
+            android:text="Qredgsd s fgsd fgds gsd gsddndg sdf sdf"
+        android:layout_marginTop="-3sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hyphenationFrequency="none"
+        android:ellipsize="end"
+        android:textColor="@color/textColorPrimary"
+        android:breakStrategy="balanced"
+        android:paddingBottom="2dp"
+        android:textSize="14.5sp" />
+        <TextView
+            android:id="@+id/text_schedule_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/text_schedule_auditoriums"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@id/text_schedule_teachers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/text_schedule_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/text_schedule_other_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/text_schedule_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+    </ScrollView>

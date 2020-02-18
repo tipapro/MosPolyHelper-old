@@ -1,13 +1,15 @@
 ﻿namespace MosPolyHelper.Features.Schedule
 {
-    using MosPolyHelper.Common;
-    using MosPolyHelper.Common.Interfaces;
-    using MosPolyHelper.Domain;
+    using MosPolyHelper.Utilities;
+    using MosPolyHelper.Utilities.Interfaces;
+    using MosPolyHelper.Domains.ScheduleDomain;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
 
     class ScheduleModel
@@ -15,7 +17,7 @@
         const string CurrentExtension = ".current";
         const string OldExtension = ".backup";
         const string CustomExtension = ".custom";
-        const string ScheduleFolder = "cashed_schedules";
+        const string ScheduleFolder = "cached_schedules";
         const string SessionScheduleFolder = "session";
         const string RegularScheduleFolder = "regular";
 
@@ -25,6 +27,8 @@
         readonly ISerializer serializer;
         readonly IDeserializer deserializer;
 
+        int scheduleCounter;
+
         async Task<string> ReadGroupListAsync()
         {
             string backingFile = Path.Combine(
@@ -32,15 +36,14 @@
             return await File.ReadAllTextAsync(backingFile);
         }
 
-        async Task SaveGroupListAsync(string[] groupList)
+        Task SaveGroupListAsync(string[] groupList)
         {
             string backingFile = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "group_list");
-            string serGroupList = this.serializer.Serialize(groupList);
-            await File.WriteAllTextAsync(backingFile, serGroupList);
+            return this.serializer.SerializeAndSaveAsync(backingFile, groupList);
         }
 
-        (Stream SerSchedule, long Time) ReadSchedule(string groupTitle, bool isSession)
+        (Stream SerSchedule, long Time) OpenReadSchedule(string groupTitle, bool isSession)
         {
             string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 ScheduleFolder, groupTitle, isSession ? SessionScheduleFolder : RegularScheduleFolder);
@@ -81,7 +84,7 @@
             return (serSchedule, day);
         }
 
-        void SaveScheduleAsync(Schedule schedule)
+        Task SaveScheduleAsync(Schedule schedule)
         {
             string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 ScheduleFolder, schedule.Group.Title, schedule.IsSession ? SessionScheduleFolder : RegularScheduleFolder);
@@ -105,23 +108,31 @@
                 Directory.CreateDirectory(filePath);
             }
             filePath = Path.Combine(filePath, schedule.LastUpdate.Ticks + CurrentExtension);
-            this.serializer.Serialize(filePath, schedule);
+            return this.serializer.SerializeAndSaveAsync(filePath, schedule);
         }
 
-        async Task<Schedule> DownloadScheduleAsync(string groupTitle, bool isSession)
+        Task<Schedule> DownloadScheduleAsync(string groupTitle, bool isSession)
+        {
+            return DownloadScheduleAsync(groupTitle, isSession, CancellationToken.None);
+        }
+
+        async Task<Schedule> DownloadScheduleAsync(string groupTitle, bool isSession, CancellationToken ct)
         {
             string serSchedule;
             try
             {
-                System.Diagnostics.Debug.WriteLine("Download " + groupTitle + " Normal");
                 serSchedule = await this.downloader.DownloadSchedule(groupTitle, isSession);
             }
-            catch (Exception)
+            catch (WebException ex)
             {
+                if (ex.Status == WebExceptionStatus.RequestCanceled)
+                {
+                    throw ex;
+                }
                 return null;
             }
-            System.Diagnostics.Debug.WriteLine("Convert " + groupTitle + " Normal");
-            var schedule = await this.scheduleConverter.ConvertToScheduleAsync(serSchedule);
+            ct.ThrowIfCancellationRequested();
+            var schedule = await this.scheduleConverter.ConvertToScheduleAsync(serSchedule, Announce);
             if (schedule != null)
             {
                 schedule.IsSession = isSession;
@@ -131,21 +142,22 @@
 
         async Task<string[]> DownloadGroupListAsync()
         {
-            string[] groupList;
-            string serGroupList = await this.downloader.DownloadGroupListAsync();
-            groupList = await this.scheduleConverter.ConvertToGroupList(serGroupList);
+            string serGroupList;
             try
             {
-                await SaveGroupListAsync(groupList);
+                serGroupList = await this.downloader.DownloadGroupListAsync();
             }
-            catch (Exception ex)
+            catch (WebException)
             {
-                this.logger.Error(ex, "Saving group list error");
+                return null;
             }
-            return groupList;
+            return await this.scheduleConverter.ConvertToGroupList(serGroupList);
         }
 
+        readonly object key = new object();
+
         public event Action<string> Announce;
+        public event Action<int> DownloadProgressChanged;
 
         public Schedule Schedule { get; private set; }
         public string[] GroupList { get; private set; }
@@ -155,8 +167,8 @@
             this.logger = loggerFactory.Create<ScheduleModel>();
             this.downloader = new ScheduleDownloader(loggerFactory);
             this.scheduleConverter = new ScheduleConverter(loggerFactory);
-            this.serializer = DependencyInjector.GetISerializer();
-            this.deserializer = DependencyInjector.GetIDeserializer();
+            this.serializer = DependencyInjector.GetProtofubISerializer();
+            this.deserializer = DependencyInjector.GetProtofubIDeserializer();
         }
 
         public async Task<Schedule> GetScheduleAsync(string group, bool isSession, bool downloadNew)
@@ -168,7 +180,7 @@
                     this.Schedule = await DownloadScheduleAsync(group, isSession);
                     try
                     {
-                        SaveScheduleAsync(this.Schedule);
+                        await SaveScheduleAsync(this.Schedule);
                     }
                     catch (Exception ex)
                     {
@@ -181,14 +193,19 @@
                     try
                     {
                         Announce?.Invoke(StringProvider.GetString(StringId.ScheduleWasntFounded));
-                        var (serSchedule, time) = ReadSchedule(group, isSession);
+                        var (serSchedule, time) = OpenReadSchedule(group, isSession);
                         this.Schedule = await this.deserializer.DeserializeAsync<Schedule>(serSchedule);
                         if (this.Schedule == null)
                         {
                             throw new Exception("Read schedule from storage fail");
                         }
+                        if (Schedule.Version != System.Environment.GetEnvironmentVariable("ScheduleVersion"))
+                        {
+                            throw new Exception("Read schedule from storage fail");
+                        }
                         this.Schedule.LastUpdate = new DateTime(time);
                         this.Schedule.IsSession = isSession;
+                        this.Schedule.SetUpGroup();
                         Announce.Invoke(StringProvider.GetString(StringId.OfflineScheduleWasFounded));
                     }
                     catch (Exception ex2)
@@ -207,14 +224,19 @@
                 }
                 try
                 {
-                    var (serSchedule, time) = ReadSchedule(group, isSession);
+                    var (serSchedule, time) = OpenReadSchedule(group, isSession);
                     this.Schedule = await this.deserializer.DeserializeAsync<Schedule>(serSchedule);
                     if (this.Schedule == null)
                     {
                         throw new Exception("Read schedule from storage fail");
                     }
+                    if (Schedule.Version != System.Environment.GetEnvironmentVariable("ScheduleVersion"))
+                    {
+                        throw new Exception("Read schedule from storage fail");
+                    }
                     this.Schedule.LastUpdate = new DateTime(time);
                     this.Schedule.IsSession = isSession;
+                    this.Schedule.SetUpGroup();
                 }
                 catch (Exception ex1)
                 {
@@ -242,6 +264,14 @@
                 try
                 {
                     this.GroupList = await DownloadGroupListAsync();
+                    try
+                    {
+                        await SaveGroupListAsync(this.GroupList);
+                    }
+                    catch (Exception ex)
+                    {
+                        this.logger.Error(ex, "Saving group list error");
+                    }
                 }
                 catch (Exception ex1)
                 {
@@ -268,12 +298,12 @@
             return this.GroupList;
         }
 
-        public async Task<(Schedule[] Schedules, string[] LessonTitles, string[] Teachers, string[] Auditoriums, string[] LessonTypes)> 
-            GetSchedules(string[] groupList)
+        public async Task<(Schedule[] Schedules, string[] LessonTitles, string[] Teachers, string[] Auditoriums, string[] LessonTypes)>
+            GetSchedules(IList<string> groupList, CancellationToken ct)
         {
             return await Task.Run(() =>
             {
-                if (groupList == null || groupList.Length == 0)
+                if (groupList == null || groupList.Count == 0)
                 {
                     return (null, null, null, null, null);
                 }
@@ -282,40 +312,91 @@
                 var teachers = new ConcurrentDictionary<string, bool>();
                 var auditoriums = new ConcurrentDictionary<string, bool>();
                 var lessonTypes = new ConcurrentDictionary<string, bool>();
-                Parallel.ForEach(Partitioner.Create(0, groupList.Length), range =>
+                var po = new ParallelOptions
                 {
-                    for (int i = range.Item1; i < range.Item2; i++)
+                    CancellationToken = ct
+                };
+                this.scheduleCounter = 0;
+                int maxCount = groupList.Count * 3 + groupList.Count / 33;
+                ct.Register(() => this.downloader.Abort());
+                    Parallel.ForEach(Partitioner.Create(0, groupList.Count), po, range =>
                     {
-                        System.Diagnostics.Debug.WriteLine(i + " Normal");
-                        var schedule = DownloadScheduleAsync(groupList[i], false).GetAwaiter().GetResult();
-                        if (schedule != null)
+                        for (int i = range.Item1; i < range.Item2; i++)
                         {
-                            AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes);
-                            collection.Add(schedule);
+                            try
+                            {
+                                Interlocked.Increment(ref this.scheduleCounter);
+                                lock (key)
+                                {
+                                    DownloadProgressChanged?.Invoke(this.scheduleCounter * 10000 / maxCount);
+                                }
+                                po.CancellationToken.ThrowIfCancellationRequested();
+                                var schedule = DownloadScheduleAsync(groupList[i], false, po.CancellationToken).GetAwaiter().GetResult();
+                                if (schedule != null)
+                                {
+                                    schedule.ToNormal();
+                                    AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes, po.CancellationToken);
+                                    collection.Add(schedule);
+                                }
+                                Interlocked.Increment(ref this.scheduleCounter);
+                                lock (key)
+                                {
+                                    DownloadProgressChanged?.Invoke(this.scheduleCounter * 10000 / maxCount);
+                                }
+                                po.CancellationToken.ThrowIfCancellationRequested();
+                                schedule = DownloadScheduleAsync(groupList[i], true, po.CancellationToken).GetAwaiter().GetResult();
+                                if (schedule != null)
+                                {
+                                    schedule.ToNormal();
+                                    AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes, po.CancellationToken);
+                                    collection.Add(schedule);
+                                }
+                                Interlocked.Increment(ref this.scheduleCounter);
+                                lock (key)
+                                {
+                                    DownloadProgressChanged?.Invoke(this.scheduleCounter * 10000 / maxCount);
+                                }
+                            }
+                            catch (WebException ex)
+                            {
+                                if (ex.Status == WebExceptionStatus.RequestCanceled)
+                                {
+                                    po.CancellationToken.ThrowIfCancellationRequested();
+                                }
+                            }
                         }
-                        System.Diagnostics.Debug.WriteLine(i + " Session");
-                        schedule = DownloadScheduleAsync(groupList[i], true).GetAwaiter().GetResult();
-                        if (schedule != null)
-                        {
-                            schedule.ToNormal();
-                            AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes);
-                            collection.Add(schedule);
-                        }
-                    }
-                });
-                return (collection.ToArray(), lessonTitles.Keys.ToArray(), teachers.Keys.ToArray(), 
-                auditoriums.Keys.ToArray(), lessonTypes.Keys.ToArray());
-            });
+                    });
+                int last = this.scheduleCounter * 10000 / maxCount;
+                int delta = (10000 - last) / 12;
+                var lessonArray = lessonTitles.Keys.ToArray();
+                DownloadProgressChanged?.Invoke(last += delta);
+                var teacherArray = teachers.Keys.ToArray();
+                DownloadProgressChanged?.Invoke(last += delta);
+                var auditoriumArray = auditoriums.Keys.ToArray();
+                DownloadProgressChanged?.Invoke(last += delta);
+                var typeArray = lessonTypes.Keys.ToArray();
+                DownloadProgressChanged?.Invoke(last += delta);
+                Array.Sort(lessonArray);
+                DownloadProgressChanged?.Invoke(last += 2 * delta);
+                Array.Sort(teacherArray);
+                DownloadProgressChanged?.Invoke(last += 2 * delta);
+                Array.Sort(auditoriumArray);
+                DownloadProgressChanged?.Invoke(last += 2 * delta);
+                Array.Sort(typeArray);
+                DownloadProgressChanged?.Invoke(10000);
+                return (collection.ToArray(), lessonArray, teacherArray, auditoriumArray, typeArray);
+            }, ct);
         }
 
         void AddAllDataFromSchedule(Schedule schedule, ConcurrentDictionary<string, bool> lessonTitles,
             ConcurrentDictionary<string, bool> teachers, ConcurrentDictionary<string, bool> auditoriums,
-            ConcurrentDictionary<string, bool> lessonTypes)
+            ConcurrentDictionary<string, bool> lessonTypes, CancellationToken ct)
         {
             foreach (var dayliSchedule in schedule)
             {
                 foreach (var lesson in dayliSchedule)
                 {
+                    ct.ThrowIfCancellationRequested();
                     lessonTitles.TryAdd(lesson.Title, false);
                     foreach (var teacher in lesson.Teachers)
                     {
@@ -329,64 +410,5 @@
                 }
             }
         }
-
-        //public async Task<(Schedule[] Schedules, string[] LessonTitles, string[] Teachers, string[] Auditoriums, string[] LessonTypes)>
-        //    GetSchedules(string[] groupList)
-        //{
-        //    return await Task.Run(() =>
-        //    {
-        //        var collection = new List<Schedule>();
-        //        var lessonTitles = new List<string>();
-        //        var teachers = new List<string>();
-        //        var auditoriums = new List<string>();
-        //        var lessonTypes = new List<string>();
-        //        foreach (var groupTitle in groupList)
-        //        {
-        //            System.Diagnostics.Debug.WriteLine(groupTitle + " Normal");
-        //            var schedule = DownloadScheduleAsync(groupTitle, false).GetAwaiter().GetResult();
-        //            if (schedule != null)
-        //            {
-        //                AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes);
-        //                collection.Add(schedule);
-        //            }
-        //            System.Diagnostics.Debug.WriteLine(groupTitle + " Session");
-        //            schedule = DownloadScheduleAsync(groupTitle, true).GetAwaiter().GetResult();
-        //            if (schedule != null)
-        //            {
-        //                schedule.ToNormal();
-        //                AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes);
-        //                collection.Add(schedule);
-        //            }
-        //        }
-        //        return (collection.ToArray(), lessonTitles.ToArray(), teachers.ToArray(),
-        //        auditoriums.ToArray(), lessonTypes.ToArray());
-        //    });
-        //}
-
-        //void AddAllDataFromSchedule(Schedule schedule, List<string> lessonTitles,
-        //    List<string> teachers, List<string> auditoriums,
-        //    List<string> lessonTypes)
-        //{
-        //    foreach (var dayliSchedule in schedule)
-        //    {
-        //        foreach (var lesson in dayliSchedule)
-        //        {
-        //            if (!lessonTitles.Contains(lesson.Title))
-        //                lessonTitles.Add(lesson.Title);
-        //            foreach (var teacher in lesson.Teachers)
-        //            {
-        //                if (!teachers.Contains(teacher.GetFullName()))
-        //                    teachers.Add(teacher.GetFullName());
-        //            }
-        //            foreach (var auditorium in lesson.Auditoriums)
-        //            {
-        //                if (!auditoriums.Contains(auditorium.Name))
-        //                    auditoriums.Add(auditorium.Name);
-        //            }
-        //            if (!lessonTypes.Contains(lesson.Type))
-        //                lessonTypes.Add(lesson.Type);
-        //        }
-        //    }
-        //}
     }
 }

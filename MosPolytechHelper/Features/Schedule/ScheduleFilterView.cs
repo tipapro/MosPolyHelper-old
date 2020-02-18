@@ -3,17 +3,14 @@
     using Android.Graphics;
     using Android.Graphics.Drawables;
     using Android.OS;
-    using Android.Support.V7.Widget;
     using Android.Views;
-    using Android.Widget;
+    using AndroidX.Fragment.App;
+    using AndroidX.RecyclerView.Widget;
     using MosPolyHelper.Adapters;
-    using System;
 
-    class ScheduleFilterView : Android.Support.V4.App.DialogFragment
+    class ScheduleFilterView : DialogFragment
     {
         AdvancedSearchAdapter adapter;
-
-        public event EventHandler<AdapterView.ItemClickEventArgs> ItemClick;
 
         public void SetAdapter(AdvancedSearchAdapter adapter)
         {
@@ -33,10 +30,6 @@
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
             this.Dialog.Window.SetGravity(GravityFlags.CenterHorizontal | GravityFlags.Top);
-            //var p = Dialog.Window.Attributes;
-            //p.Width = ViewGroup.LayoutParams.MatchParent;
-            //p.SoftInputMode = SoftInput.StateAlwaysVisible;
-            //p.X = 200;
             return inflater.Inflate(Resource.Layout.fragment_schedule_filter, container);
         }
 
@@ -52,8 +45,10 @@
                 if (recyclerView != null)
                 {
                     var layoutManager = new LinearLayoutManager(recyclerView.Context);
-                    var divider = new DividerItemDecoration(recyclerView.Context, layoutManager.Orientation);
-                    divider.SetDrawable(this.Context.GetDrawable(Resource.Drawable.all_divider));
+                    var divider = new DividerItemDecoration(recyclerView.Context, layoutManager.Orientation)
+                    {
+                        Drawable = this.Context.GetDrawable(Resource.Drawable.all_divider)
+                    };
                     recyclerView.AddItemDecoration(divider);
                     recyclerView.SetLayoutManager(layoutManager);
                     recyclerView.SetAdapter(this.adapter);
@@ -67,11 +62,6 @@
                 }
             }
         }
-
-        //public override void OnResume()
-        //{
-        //    base.OnResume();
-        //}
 
         public static ScheduleFilterView NewInstance()
         {

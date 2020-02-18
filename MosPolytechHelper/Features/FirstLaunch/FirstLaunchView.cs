@@ -1,7 +1,7 @@
 ﻿namespace MosPolyHelper.Features.FirstLaunch
 {
     using Android.OS;
-    using Android.Support.V7.App;
+    using AndroidX.AppCompat.App;
 
     class FirstLaunchView : AppCompatActivity
     {

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#212121</color>
+    <color name="colorPrimary">#0C0C0C</color>
     <color name="colorPrimaryDark">#000000</color>
-  <color name="colorPrimaryLight">#484848</color>
+  <color name="colorPrimaryLight">#474747</color>
   <color name="textColorPrimary">#ffffff</color>
   <color name="colorSecondary">#ff5722</color>
   <color name="colorSecondaryDark">#c41c00</color>
@@ -10,4 +10,6 @@
   <color name="textColorSecondary">#000000</color>
   <color name="schedulePageBackgroundColor">@color/colorPrimaryLight</color>
   <color name="pairBackgroundColor">@color/colorPrimaryDark</color>
+  <color name="pill_switch_thumb_disabled">#111111</color>
+  <color name="pill_switch_thumb">#333333</color>
 </resources>

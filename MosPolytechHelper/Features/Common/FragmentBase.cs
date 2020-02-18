@@ -1,10 +1,26 @@
 ﻿namespace MosPolyHelper.Features.Common
 {
-    abstract class FragmentBase : Android.Support.V4.App.Fragment
+    using AndroidX.Fragment.App;
+    using AndroidX.Preference;
+    using MosPolyHelper.Features.Common.Interfaces;
+
+    public abstract class FragmentBase : Fragment, IFragmentBase
     {
         public Fragments FragmentType { get; }
+        public Fragment Fragment => this;
 
-        public FragmentBase(Fragments fragmentType)
+        public FragmentBase(Fragments fragmentType) : base()
+        {
+            this.FragmentType = fragmentType;
+        }
+    }
+
+    public abstract class FragmentPreferenceBase : PreferenceFragmentCompat, IFragmentBase
+    {
+        public Fragments FragmentType { get; }
+        public Fragment Fragment => this;
+
+        public FragmentPreferenceBase(Fragments fragmentType) : base()
         {
             this.FragmentType = fragmentType;
         }
@@ -15,6 +31,8 @@
         ScheduleMain,
         ScheduleManager,
         Settings,
-        Other
+        Buildings,
+        Other,
+        ScheduleLessonInfo
     }
 }

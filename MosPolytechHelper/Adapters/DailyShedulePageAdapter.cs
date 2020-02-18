@@ -1,30 +1,35 @@
 ﻿namespace MosPolyHelper.Adapters
 {
-    using Android.Support.V4.View;
-    using Android.Support.V7.Widget;
     using Android.Views;
     using Android.Widget;
+    using AndroidX.RecyclerView.Widget;
+    using AndroidX.ViewPager.Widget;
     using Java.Lang;
-    using MosPolyHelper.Domain;
+    using MosPolyHelper.Domains.ScheduleDomain;
     using System;
+    using System.Globalization;
+    using System.Linq;
     using Object = Java.Lang.Object;
 
     public class DailyShedulePageAdapter : PagerAdapter
     {
         readonly View[] views;
+        readonly TextView[] textViews;
         readonly PairAdapter[] recyclerAdapters;
         readonly RecyclerView[] recyclerViews;
         public Schedule Schedule;
         Schedule.Filter scheduleFilter;
         bool showEmptyLessons;
         bool showColoredLessons;
+        bool showGroup;
         int count;
+        CultureInfo customFormat;
 
-        void SetFirstPosDate(bool isSession)
+        void SetFirstPosDate(Schedule schedule)
         {
-            if (!isSession)
+            if (!schedule.IsByDate)
             {
-                this.FirstPosDate = DateTime.Today.AddDays(-this.Count / 2);
+                this.FirstPosDate = this.count == 400 ? DateTime.Today.AddDays(-200) : schedule.From;
             }
             else if (this.Schedule == null)
             {
@@ -37,23 +42,43 @@
         }
 
         public DateTime FirstPosDate { get; private set; }
+        public event Action<Lesson, DateTime> LessonClick;
         public override int Count => this.count;
 
         public DailyShedulePageAdapter(Schedule schedule, Schedule.Filter scheduleFilter,
-            bool showEmptyLessons, bool showColoredLessons)
+            bool showEmptyLessons, bool showColoredLessons, bool showGroup)
         {
             this.Schedule = schedule;
             this.scheduleFilter = scheduleFilter;
             this.showEmptyLessons = showEmptyLessons;
             this.showColoredLessons = showColoredLessons;
+            this.showGroup = showGroup;
             SetCount(schedule);
             if (this.Schedule != null)
             {
-                SetFirstPosDate(schedule.IsByDate);
+                SetFirstPosDate(this.Schedule);
             }
             this.recyclerAdapters = new PairAdapter[3];
             this.views = new View[3];
+            this.textViews = new TextView[3];
             this.recyclerViews = new RecyclerView[3];
+
+            this.customFormat = CultureInfo.CurrentUICulture;
+            this.customFormat = (CultureInfo)this.customFormat.Clone();
+            this.customFormat.DateTimeFormat.MonthNames =
+                (from m in this.customFormat.DateTimeFormat.MonthNames
+                 select m.Length == 0 || m.Length == 1 ? m : char.ToUpper(m[0]) + m.Substring(1))
+                    .ToArray();
+
+            this.customFormat.DateTimeFormat.MonthGenitiveNames =
+                (from m in this.customFormat.DateTimeFormat.MonthGenitiveNames
+                 select m.Length == 0 || m.Length == 1 ? m : char.ToUpper(m[0]) + m.Substring(1))
+                    .ToArray();
+
+            this.customFormat.DateTimeFormat.DayNames =
+                (from m in this.customFormat.DateTimeFormat.DayNames
+                 select m.Length == 0 || m.Length == 1 ? m : char.ToUpper(m[0]) + m.Substring(1))
+                    .ToArray();
         }
 
         public void SetCount(Schedule schedule)
@@ -69,7 +94,11 @@
             }
             else
             {
-                this.count = 200 * 2;
+                this.count = (schedule.To - schedule.From).Days + 1;
+                if (this.count > 400)
+                {
+                    this.count = 400;
+                }
             }
         }
 
@@ -82,12 +111,12 @@
             if (this.Schedule.IsByDate)
             {
                 return new Java.Lang.String(new DateTime(this.Schedule.GetSchedule(0).Day)
-                    .AddDays(position).ToString(" ddd d MMM ").Replace('.', '\0'));
+                    .AddDays(position).ToString(" ddd d MMM ").Replace('.', '\0').ToUpper());
             }
             else
             {
                 return new Java.Lang.String(this.FirstPosDate
-                    .AddDays(position).ToString(" ddd d MMM ").Replace('.', '\0'));
+                    .AddDays(position).ToString(" ddd d MMM ").Replace('.', '\0').ToUpper());
             }
         }
 
@@ -114,17 +143,36 @@
             {
                 this.recyclerAdapters[position % 3] = new PairAdapter(
                        this.views[position % 3].FindViewById<TextView>(Resource.Id.text_null_lesson),
-                       this.Schedule.GetSchedule(date, scheduleFilter),
-                       scheduleFilter, date, this.Schedule.Group,
-                       this.showEmptyLessons, this.showColoredLessons);
+                       this.Schedule.GetSchedule(date, this.scheduleFilter),
+                       this.scheduleFilter, date, this.showEmptyLessons, this.showColoredLessons, this.showGroup);
                 this.recyclerViews[position % 3].SetItemAnimator(null);
                 this.recyclerViews[position % 3].SetLayoutManager(new LinearLayoutManager(container.Context));
                 this.recyclerViews[position % 3].SetAdapter(this.recyclerAdapters[position % 3]);
+                this.recyclerAdapters[position % 3].LessonClick +=
+                    lesson => LessonClick?.Invoke(lesson, this.recyclerAdapters[position % 3].Date);
             }
             else
             {
-                this.recyclerAdapters[position % 3].BuildSchedule(this.Schedule.GetSchedule(date, scheduleFilter),
-                    scheduleFilter, date, this.Schedule.Group, this.showEmptyLessons, this.showColoredLessons);
+                this.recyclerAdapters[position % 3].BuildSchedule(this.Schedule.GetSchedule(date, this.scheduleFilter),
+                    this.scheduleFilter, date, this.showEmptyLessons, this.showColoredLessons, this.showGroup);
+            }
+            if (this.textViews[position % 3] == null)
+            {
+                this.textViews[position % 3] = this.views[position % 3].FindViewById<TextView>(Resource.Id.text_day);
+            }
+            if (this.Schedule == null)
+            {
+                this.textViews[position % 3].Text = "Нет расписания";
+            }
+            if (this.Schedule.IsByDate)
+            {
+                this.textViews[position % 3].Text = new DateTime(this.Schedule.GetSchedule(0).Day)
+                    .AddDays(position).ToString("dddd, d MMMM", this.customFormat);
+            }
+            else
+            {
+                this.textViews[position % 3].Text = this.FirstPosDate
+                    .AddDays(position).ToString("dddd, d MMMM", this.customFormat);
             }
             return this.views[position % 3];
         }
@@ -140,6 +188,11 @@
         public override int GetItemPosition(Object @object)
         {
             return PagerAdapter.PositionNone;
+        }
+
+        public View GetView(int position)
+        {
+            return this.views[position % 3];
         }
     }
 }

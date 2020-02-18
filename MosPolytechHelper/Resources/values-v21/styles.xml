@@ -6,6 +6,10 @@
     <item name="colorSecondary">@color/colorSecondary</item>
     <item name="colorAccent">@color/colorSecondaryLight</item>
     <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
+    <item name="android:actionBarStyle">@style/AppTheme.ActionBar</item>
+  </style>
+  <style name="AppTheme.ActionBar">
+    <item name="background">@color/colorPrimaryLight</item>
   </style>
 
   <style name="AppTheme.PreferenceThemeOverlay" parent="@style/PreferenceThemeOverlay">
@@ -39,13 +43,18 @@
   <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
   <style name="AppTheme.ViewPagerTabStrip">
-    <item name="android:textSize">15sp</item>
-    <item name="android:background">?attr/colorPrimary</item>
+    <item name="android:textSize">12sp</item>
     <item name="android:textColor">#FFFFFF</item>
+    
+  </style>
+
+  <style name="AppTheme.ViewPagerTabStripText">
+    <item name="android:fontFamily">sans-serif-medium</item>
   </style>
 
   <style name="PopupWindowAnimation1">
     <item name="android:windowEnterAnimation">@anim/popup_show</item>
     <item name="android:windowExitAnimation">@anim/popup_hide</item>
   </style>
+
 </resources>

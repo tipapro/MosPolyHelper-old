@@ -1,10 +1,11 @@
 ﻿namespace MosPolyHelper.Adapters
 {
-    using Android.Support.V7.Widget;
     using Android.Views;
     using Android.Widget;
+    using AndroidX.RecyclerView.Widget;
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Linq;
     using System.Text.RegularExpressions;
 
@@ -23,7 +24,7 @@
 
         public void UpdateTemplate(string template)
         {
-            this.dataSet = filter.GetFiltered(template);
+            this.dataSet = this.filter.GetFiltered(template);
             NotifyDataSetChanged();
         }
 
@@ -36,7 +37,7 @@
 
         void CheckBoxChanged(int position, bool isChecked)
         {
-            filter.SetChecked(this.dataSet[position], isChecked);
+            this.filter.SetChecked(this.dataSet[position], isChecked);
         }
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder vh, int position)
@@ -64,21 +65,24 @@
         {
             readonly IList<string> originDataSet;
             readonly Dictionary<string, (string Normalized, bool IsChecked)> dataSetDictionary;
-            readonly List<string> checkedList;
+            readonly ObservableCollection<string> checkedList;
 
-            public AdvancedFilter(IList<string> originDataSet, List<string> checkedList)
+            public AdvancedFilter(IList<string> originDataSet, ObservableCollection<string> checkedList)
             {
                 this.originDataSet = originDataSet;
-                this.dataSetDictionary = new Dictionary<string, (string, bool)>(originDataSet.Count);
-                foreach (string str in originDataSet)
+                if (this.originDataSet != null)
                 {
-                    this.dataSetDictionary[str] = (new string(
-                        (from s in str where char.IsLetterOrDigit(s) select s).ToArray()), false);
-                }
-                this.checkedList = checkedList;
-                foreach (var str in checkedList)
-                {
-                    this.dataSetDictionary[str] = (this.dataSetDictionary[str].Normalized, true);
+                    this.dataSetDictionary = new Dictionary<string, (string, bool)>(originDataSet.Count);
+                    foreach (string str in originDataSet)
+                    {
+                        this.dataSetDictionary[str] = (new string(
+                            (from s in str where char.IsLetterOrDigit(s) select s).ToArray()), false);
+                    }
+                    this.checkedList = checkedList;
+                    foreach (string str in checkedList)
+                    {
+                        this.dataSetDictionary[str] = (this.dataSetDictionary[str].Normalized, true);
+                    }
                 }
             }
 
@@ -89,20 +93,24 @@
 
             public void SetChecked(string str, bool isChecked)
             {
+                if (this.dataSetDictionary[str].IsChecked == isChecked)
+                {
+                    return;
+                }
                 this.dataSetDictionary[str] = (this.dataSetDictionary[str].Normalized, isChecked);
                 if (isChecked)
                 {
-                    checkedList.Add(str);
+                    this.checkedList.Add(str);
                 }
                 else
                 {
-                    checkedList.Remove(str);
+                    this.checkedList.Remove(str);
                 }
             }
 
             public IList<string> GetFiltered(string template)
             {
-                if (string.IsNullOrEmpty(template))
+                if (string.IsNullOrEmpty(template) || this.originDataSet == null)
                 {
                     return this.originDataSet;
                 }
@@ -166,20 +174,23 @@
         {
             readonly IList<string> originDataSet;
             readonly Dictionary<string, bool> dataSetDictionary;
-            readonly List<string> checkedList;
+            readonly ObservableCollection<string> checkedList;
 
-            public SimpleFilter(IList<string> originDataSet, List<string> checkedList)
+            public SimpleFilter(IList<string> originDataSet, ObservableCollection<string> checkedList)
             {
                 this.originDataSet = originDataSet;
-                this.dataSetDictionary = new Dictionary<string, bool>(originDataSet.Count);
-                foreach (string str in originDataSet)
+                if (this.originDataSet != null)
                 {
-                    this.dataSetDictionary[str] =  false;
-                }
-                this.checkedList = checkedList;
-                foreach (var str in checkedList)
-                {
-                    this.dataSetDictionary[str] = true;
+                    this.dataSetDictionary = new Dictionary<string, bool>(originDataSet.Count);
+                    foreach (string str in originDataSet)
+                    {
+                        this.dataSetDictionary[str] = false;
+                    }
+                    this.checkedList = checkedList;
+                    foreach (string str in checkedList)
+                    {
+                        this.dataSetDictionary[str] = true;
+                    }
                 }
             }
 
@@ -190,20 +201,24 @@
 
             public void SetChecked(string str, bool isChecked)
             {
+                if (this.dataSetDictionary[str] == isChecked)
+                {
+                    return;
+                }
                 this.dataSetDictionary[str] = isChecked;
                 if (isChecked)
                 {
-                    checkedList.Add(str);
+                    this.checkedList.Add(str);
                 }
                 else
                 {
-                    checkedList.Remove(str);
+                    this.checkedList.Remove(str);
                 }
             }
 
             public IList<string> GetFiltered(string template)
             {
-                if (string.IsNullOrEmpty(template))
+                if (string.IsNullOrEmpty(template) || this.originDataSet == null)
                 {
                     return this.originDataSet;
                 }
