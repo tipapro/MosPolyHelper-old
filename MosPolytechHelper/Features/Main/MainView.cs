@@ -8,11 +8,12 @@
     using Android.Views;
     using Android.Widget;
     using AndroidX.AppCompat.App;
+    using AndroidX.Core.App;
     using AndroidX.Core.View;
     using AndroidX.DrawerLayout.Widget;
     using AndroidX.Preference;
     using Google.Android.Material.Navigation;
-    using MosPolyHelper.Features.Buildings;
+    using MosPolyHelper.Features.Addresses;
     using MosPolyHelper.Features.Common;
     using MosPolyHelper.Features.Common.Interfaces;
     using MosPolyHelper.Features.Schedule;
@@ -64,7 +65,7 @@
                 //ChangeFragment(this.SupportFragmentManager.GetBackStackEntryAt(0)., Fragments.ScheduleMain, false);
             }
 
-            Android.Support.V4.App.ActivityCompat.RequestPermissions(this,
+            ActivityCompat.RequestPermissions(this,
                 new string[] { Android.Manifest.Permission.Internet }, 123);
 
             this.logger = this.loggerFactory.Create<MainView>();
@@ -99,9 +100,15 @@
             }
 
             var drawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
+            var settingsDrawer = FindViewById<DrawerLayout>(Resource.Id.drawer_layout_schedule);
             if (drawer.IsDrawerOpen(GravityCompat.Start))
             {
                 drawer.CloseDrawer(GravityCompat.Start);
+                actionDone = true;
+            }
+            if (settingsDrawer != null && settingsDrawer.IsDrawerOpen(GravityCompat.End))
+            {
+                settingsDrawer.CloseDrawer(GravityCompat.End);
                 actionDone = true;
             }
 
@@ -173,14 +180,14 @@
             else if (id == Resource.Id.nav_buildings)
             {
                 fragmentId = Fragments.Buildings;
-                fragmentCreator = () => new BuildingsView();
+                fragmentCreator = () => new AddressesView();
             }
             else if (id == Resource.Id.nav_settings)
             {
                 fragmentId = Fragments.Settings;
                 fragmentCreator = () => SettingsView.NewInstance();
             }
-            if (this.currFragment.FragmentType == fragmentId)
+            if (this.currFragment?.FragmentType == fragmentId)
             {
                 drawer.CloseDrawer(GravityCompat.Start);
                 return false;

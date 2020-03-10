@@ -11,7 +11,7 @@
         android:layout_height="wrap_content">
             <TextView 
         android:layout_marginLeft="17.7dp" 
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="9dp"
         android:id="@+id/text_label"
         android:fontFamily="sans-serif-thin" 
         android:layout_width="wrap_content" 
@@ -20,7 +20,7 @@
                 android:layout_weight="0" 
         android:paddingVertical="3dp" 
                 android:layout_height="wrap_content" 
-                android:textColor="?android:attr/textColorPrimary" 
+                android:textColor="@color/textAccent" 
                 android:textSize="19sp" 
                 android:text="@string/group_title_label"/>
             <AutoCompleteTextView 
@@ -45,32 +45,31 @@
                 android:focusedByDefault="false" 
         android:layout_toLeftOf="@id/button_schedule_type"
                 android:id="@+id/text_group_title"/>
-    <!--android:background="@drawable/shape_advanced_search_text"-->
             <Button android:id="@+id/button_schedule_type" 
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="9dp"
         android:layout_marginBottom="2dp"
                 android:layout_width="wrap_content" 
                 android:background="@drawable/selector_schedule_type" 
                 android:layout_height="32sp" 
                 android:layout_marginRight="16dp" 
         android:layout_alignParentRight="true"
-        android:fontFamily="sans-serif-thin" 
+        android:fontFamily="sans-serif-light" 
                 android:textAllCaps="false" 
         android:paddingHorizontal="16dp"
                 android:textSize="15sp" 
                 android:text="@string/text_schedule_type_regular" />
     <FrameLayout
         android:layout_below="@id/button_schedule_type"
-        android:layout_marginBottom="10dp"
-        android:layout_marginTop="6dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="5dp"
         android:layout_width="220dp"
         android:layout_height="wrap_content">
         <View
-            android:background="#292929"
+            android:background="@color/allDividerColor"
             android:layout_gravity="center_vertical"
             android:layout_width="wrap_content"
             android:layout_height="1dp"/>
-    <android.support.design.widget.TabLayout
+    <com.google.android.material.tabs.TabLayout
         android:layout_marginLeft="17.7dp" 
         android:id="@+id/tab_day_week"
         app:tabGravity="center"

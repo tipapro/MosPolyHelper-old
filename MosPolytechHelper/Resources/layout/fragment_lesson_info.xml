@@ -1,7 +1,7 @@
 
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="#000000"
+    android:background="@color/scheduleBackgroundColor"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <LinearLayout
@@ -10,17 +10,20 @@
         android:layout_height="match_parent">
         <include layout="@layout/toolbar_lesson_info"/>
         <TextView android:layout_width="wrap_content"
+            android:textIsSelectable="true"
         android:paddingRight="6dp"
         android:paddingTop="5dp"
-            android:text="Practise"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginTop="14dp"
         android:layout_height="wrap_content"
         android:textColor="@android:color/white"
         android:id="@+id/text_schedule_type"
         android:fontFamily="sans-serif-medium"
-        android:textSize="10.5sp"/>
+        android:textSize="16.5sp"/>
         <TextView android:id="@+id/text_schedule_title"
-            android:text="Qredgsd s fgsd fgds gsd gsddndg sdf sdf"
-        android:layout_marginTop="-3sp"
+            android:textIsSelectable="true"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginBottom="15dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hyphenationFrequency="none"
@@ -28,30 +31,116 @@
         android:textColor="@color/textColorPrimary"
         android:breakStrategy="balanced"
         android:paddingBottom="2dp"
-        android:textSize="14.5sp" />
+        android:textSize="20sp" />
         <TextView
             android:id="@+id/text_schedule_time"
+            android:textIsSelectable="true"
+            android:drawableLeft="@drawable/access_time_24px"
+            android:drawablePadding="15dp"
+            android:textSize="17sp"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="15dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
+        <View
+            android:layout_marginRight="18dp"
+            android:layout_marginLeft="57dp"
+            android:background="@color/allDividerColor"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"/>
         <TextView
             android:id="@+id/text_schedule_auditoriums"
+            android:textIsSelectable="true"
+            android:drawableLeft="@drawable/location_on_24px"
+            android:drawablePadding="18dp"
+            android:textSize="17sp"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="15dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
+        <View
+            android:layout_marginRight="18dp"
+            android:layout_marginLeft="57dp"
+            android:background="@color/allDividerColor"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"/>
         <TextView
             android:id="@id/text_schedule_teachers"
+            android:textIsSelectable="true"
+            android:drawableLeft="@drawable/school_24px"
+            android:drawablePadding="18dp"
+            android:textSize="17sp"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="15dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
+        <View
+            android:layout_marginRight="18dp"
+            android:layout_marginLeft="57dp"
+            android:background="@color/allDividerColor"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"/>
         <TextView
             android:id="@+id/text_schedule_date"
+            android:textIsSelectable="true"
+            android:drawableLeft="@drawable/date_range_24px"
+            android:drawablePadding="18dp"
+            android:textSize="17sp"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="15dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/text_schedule_other_info"
+        <View
+            android:layout_marginRight="18dp"
+            android:layout_marginLeft="57dp"
+            android:background="@color/allDividerColor"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="1dp"/>
         <TextView
             android:id="@+id/text_schedule_group"
+            android:textIsSelectable="true"
+            android:drawableLeft="@drawable/group_24px"
+            android:drawablePadding="18dp"
+            android:textSize="17sp"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="15dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
+        <View
+            android:visibility="gone"
+            android:layout_marginRight="18dp"
+            android:layout_marginLeft="57dp"
+            android:background="@color/allDividerColor"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"/>
+        <EditText
+            android:visibility="gone"
+            android:id="@+id/edit_text_schedule_note"
+            android:inputType="textMultiLine"
+            android:background="@null"
+            android:hint="@string/enter_note"
+            android:drawableLeft="@drawable/notes_24px"
+            android:drawablePadding="18dp"
+            android:textSize="17sp"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginTop="14dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <ImageButton
+                    android:id="@+id/button_note_accept"
+            android:padding="3dp"
+            android:visibility="gone"
+  android:layout_marginHorizontal="18dp"
+                        android:layout_marginBottom="15dp"
+            android:layout_gravity="right"
+            android:background="?android:selectableItemBackground"
+                android:src="@drawable/done_24px"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
     </LinearLayout>
     </ScrollView>

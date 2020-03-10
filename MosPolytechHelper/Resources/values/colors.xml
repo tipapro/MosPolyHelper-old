@@ -1,15 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#ff9800</color>
-    <color name="colorPrimaryDark">#c66900</color>
-  <color name="colorPrimaryLight">#ffc947</color>
+  <color name="splashScreenStartColor">#00b0ff</color>
+  <color name="splashScreenEndColor">#ff5722</color>
+    <color name="colorPrimary">#F4F4F4</color>
+    <color name="colorPrimaryDark">#EEEEF0</color>
+  <color name="colorPrimaryLight">#FFFFFF</color>
   <color name="textColorPrimary">#000000</color>
   <color name="colorSecondary">#00b0ff</color>
   <color name="colorSecondaryDark">#0081cb</color>
   <color name="colorSecondaryLight">#69e2ff</color>
   <color name="textColorSecondary">#000000</color>
-  <color name="schedulePageBackgroundColor">#FFFFFF</color>
-  <color name="pairBackgroundColor">#EEEEFE</color>
-  <color name="pill_switch_thumb_disabled">#BDBDBD</color>
-  <color name="pill_switch_thumb">#FFFFFF</color>
+  <color name="scheduleBackgroundColor">#F4F4F4</color>
+  <color name="lessonBackground">#FBFBFF</color>
+  <color name="lessonHeadDivider">#E6E6E6</color>
+  <color name="allDividerColor">#DADADA</color>
+  <color name="drawerColor">#D5D5D5</color>
+  <color name="advancedSearchColor">#E0E0E0</color>
+  <color name="advancedSearchBorderColor">#D5D5D5</color>
+  <color name="calendarDivider">#DDDDDD</color>
+  <color name="calendarParagraph">#D0D0D0</color>
+  <color name="calendarTimeBackground">#E0E0E0</color>
+<color name="buttonPressed">#E6E6E6</color>
+<color name="buttonStroke">#DADADA</color>
+
+  <color name="textAccent">#444444</color>
+  <color name="textAccentDisabled">#CCCCCC</color>
+  <color name="textSecondary">#888888</color>
+  <color name="textSecondaryDisabled">#E0E0E0</color>
+  <color name="textScheduleDay">#707070</color>
 </resources>

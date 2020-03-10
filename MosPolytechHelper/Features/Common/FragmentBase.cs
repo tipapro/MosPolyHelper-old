@@ -33,6 +33,7 @@
         Settings,
         Buildings,
         Other,
-        ScheduleLessonInfo
+        ScheduleLessonInfo,
+        ScheduleCalendar
     }
 }

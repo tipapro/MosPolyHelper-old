@@ -60,8 +60,8 @@
             string groupTitle = prefs.GetString(PreferencesConstants.ScheduleGroupTitle, null);
 
             var scheduleFilter = Domains.ScheduleDomain.Schedule.Filter.DefaultFilter;
-            scheduleFilter.DateFitler = (DateFilter)prefs.GetInt(PreferencesConstants.ScheduleDateFilter,
-                (int)scheduleFilter.DateFitler);
+            scheduleFilter.DateFilter = (DateFilter)prefs.GetInt(PreferencesConstants.ScheduleDateFilter,
+                (int)scheduleFilter.DateFilter);
             scheduleFilter.SessionFilter = prefs.GetBoolean(PreferencesConstants.ScheduleSessionFilter,
                 scheduleFilter.SessionFilter);
 

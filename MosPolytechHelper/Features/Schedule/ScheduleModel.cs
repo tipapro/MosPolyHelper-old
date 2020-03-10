@@ -84,7 +84,7 @@
             return (serSchedule, day);
         }
 
-        Task SaveScheduleAsync(Schedule schedule)
+        public Task SaveScheduleAsync(Schedule schedule)
         {
             string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 ScheduleFolder, schedule.Group.Title, schedule.IsSession ? SessionScheduleFolder : RegularScheduleFolder);

@@ -9,10 +9,14 @@
     using System.Linq;
     using System.Text.RegularExpressions;
 
+
+    // TODO: add id to viewHolder
     class AdvancedSearchAdapter : RecyclerView.Adapter
     {
-        IList<string> dataSet;
+        IList<int> dataSet;
         readonly IAdvancedSearchFilter filter;
+
+        public event Action<bool> AllCheckedChanged;
 
         public AdvancedSearchAdapter(IAdvancedSearchFilter filter)
         {
@@ -26,6 +30,12 @@
         {
             this.dataSet = this.filter.GetFiltered(template);
             NotifyDataSetChanged();
+            AllCheckedChanged?.Invoke(IsAllChecked());
+        }
+
+        public bool IsAllChecked()
+        {
+            return this.filter.IsAllChecked(this.dataSet);
         }
 
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
@@ -38,7 +48,18 @@
         void CheckBoxChanged(int position, bool isChecked)
         {
             this.filter.SetChecked(this.dataSet[position], isChecked);
+            AllCheckedChanged?.Invoke(IsAllChecked());
         }
+
+        public void SetCheckAll(bool flag)
+        {
+            for (int i = 0; i < this.dataSet.Count; i++)
+            {
+                this.filter.SetChecked(this.dataSet[i], flag);
+            }
+            NotifyDataSetChanged();
+        }
+
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder vh, int position)
         {
@@ -46,7 +67,7 @@
             {
                 return;
             }
-            viewHolder.CheckBox.Text = this.dataSet[position];
+            viewHolder.CheckBox.Text = this.filter.GetValue(this.dataSet[position]);
             viewHolder.CheckBox.Checked = this.filter.GetChecked(this.dataSet[position]);
         }
 
@@ -64,55 +85,93 @@
         public class AdvancedFilter : IAdvancedSearchFilter
         {
             readonly IList<string> originDataSet;
-            readonly Dictionary<string, (string Normalized, bool IsChecked)> dataSetDictionary;
-            readonly ObservableCollection<string> checkedList;
+            readonly bool[] checkedArray;
+            readonly string[] normalized;
+            readonly ObservableCollection<int> checkedIndexes;
 
-            public AdvancedFilter(IList<string> originDataSet, ObservableCollection<string> checkedList)
+            public bool IsAllChecked(IList<int> localDataSet)
+            {
+                if (localDataSet.Count > checkedIndexes.Count)
+                {
+                    return false;
+                }
+                foreach (var index in localDataSet)
+                {
+                    if (!GetChecked(index))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            public AdvancedFilter(IList<string> originDataSet, ObservableCollection<int> checkedList)
             {
                 this.originDataSet = originDataSet;
                 if (this.originDataSet != null)
                 {
-                    this.dataSetDictionary = new Dictionary<string, (string, bool)>(originDataSet.Count);
-                    foreach (string str in originDataSet)
+                    this.normalized = new string[originDataSet.Count];
+                    for (int i = 0; i < this.normalized.Length; i++)
                     {
-                        this.dataSetDictionary[str] = (new string(
-                            (from s in str where char.IsLetterOrDigit(s) select s).ToArray()), false);
+                        this.normalized[i] = new string(
+                            (from s in originDataSet[i] where char.IsLetterOrDigit(s) select s).ToArray());
                     }
-                    this.checkedList = checkedList;
-                    foreach (string str in checkedList)
+
+                    this.checkedArray = new bool[originDataSet.Count];
+                    this.checkedIndexes = checkedList;
+                    foreach (int value in checkedList)
                     {
-                        this.dataSetDictionary[str] = (this.dataSetDictionary[str].Normalized, true);
+                        this.checkedArray[value] = true;
                     }
                 }
             }
 
-            public bool GetChecked(string str)
+            public string GetValue(int index)
             {
-                return this.dataSetDictionary[str].IsChecked;
+                return this.originDataSet[index];
             }
 
-            public void SetChecked(string str, bool isChecked)
+            public bool GetChecked(int index)
             {
-                if (this.dataSetDictionary[str].IsChecked == isChecked)
+                return this.checkedArray[index];
+            }
+
+            public void SetChecked(int index, bool isChecked)
+            {
+                if (this.checkedArray[index] == isChecked)
                 {
                     return;
                 }
-                this.dataSetDictionary[str] = (this.dataSetDictionary[str].Normalized, isChecked);
+                this.checkedArray[index] = isChecked;
                 if (isChecked)
                 {
-                    this.checkedList.Add(str);
+                    this.checkedIndexes.Add(index);
                 }
                 else
                 {
-                    this.checkedList.Remove(str);
+                    this.checkedIndexes.Remove(index);
                 }
             }
 
-            public IList<string> GetFiltered(string template)
+            public IList<int> GetFiltered(string template)
             {
                 if (string.IsNullOrEmpty(template) || this.originDataSet == null)
                 {
-                    return this.originDataSet;
+                    int[] array = new int[this.originDataSet.Count];
+                    for (int i = 0, j = 0; i < array.Length; i++)
+                    {
+                        if (GetChecked(i))
+                        {
+                            array[i] = array[j];
+                            array[j] = i;
+                            j++;
+                        }
+                        else
+                        {
+                            array[i] = i;
+                        }
+                    }
+                    return array;
                 }
                 var templateRegex = BuildRegex(template);
 
@@ -121,13 +180,24 @@
                 {
                     capacity = 4;
                 }
-                var newList = new List<string>(capacity);
-                var query = from str in this.originDataSet
-                            where templateRegex.IsMatch(this.dataSetDictionary[str].Normalized)
-                            select str;
-                newList.AddRange(query);
+                var newList = new List<int>(capacity);
+                for (int i = 0, j = 0; i < this.originDataSet.Count; i++)
+                {
+                    if (templateRegex.IsMatch(this.normalized[i]))
+                    {
+                        newList.Add(i);
+                        if (GetChecked(newList[^1]))
+                        {
+                            int buf = newList[j];
+                            newList[j] = newList[^1];
+                            newList[^1] = buf;
+                            j++;
+                        }
+                    }
+                }
                 return newList;
             }
+
 
             Regex BuildRegex(string str)
             {
@@ -173,54 +243,85 @@
         public class SimpleFilter : IAdvancedSearchFilter
         {
             readonly IList<string> originDataSet;
-            readonly Dictionary<string, bool> dataSetDictionary;
-            readonly ObservableCollection<string> checkedList;
+            readonly bool[] checkedArray;
+            readonly ObservableCollection<int> checkedIndexes;
 
-            public SimpleFilter(IList<string> originDataSet, ObservableCollection<string> checkedList)
+            public bool IsAllChecked(IList<int> localDataSet)
+            {
+                if (localDataSet.Count > checkedIndexes.Count)
+                {
+                    return false;
+                }
+                foreach (var index in localDataSet)
+                {
+                    if (!GetChecked(index))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            public SimpleFilter(IList<string> originDataSet, ObservableCollection<int> checkedList)
             {
                 this.originDataSet = originDataSet;
                 if (this.originDataSet != null)
                 {
-                    this.dataSetDictionary = new Dictionary<string, bool>(originDataSet.Count);
-                    foreach (string str in originDataSet)
+                    this.checkedArray = new bool[originDataSet.Count];
+                    this.checkedIndexes = checkedList;
+                    foreach (int value in checkedList)
                     {
-                        this.dataSetDictionary[str] = false;
-                    }
-                    this.checkedList = checkedList;
-                    foreach (string str in checkedList)
-                    {
-                        this.dataSetDictionary[str] = true;
+                        this.checkedArray[value] = true;
                     }
                 }
             }
 
-            public bool GetChecked(string str)
+            public string GetValue(int index)
             {
-                return this.dataSetDictionary[str];
+                return this.originDataSet[index];
             }
 
-            public void SetChecked(string str, bool isChecked)
+            public bool GetChecked(int index)
             {
-                if (this.dataSetDictionary[str] == isChecked)
+                return this.checkedArray[index];
+            }
+
+            public void SetChecked(int index, bool isChecked)
+            {
+                if (this.checkedArray[index] == isChecked)
                 {
                     return;
                 }
-                this.dataSetDictionary[str] = isChecked;
+                this.checkedArray[index] = isChecked;
                 if (isChecked)
                 {
-                    this.checkedList.Add(str);
+                    this.checkedIndexes.Add(index);
                 }
                 else
                 {
-                    this.checkedList.Remove(str);
+                    this.checkedIndexes.Remove(index);
                 }
             }
 
-            public IList<string> GetFiltered(string template)
+            public IList<int> GetFiltered(string template)
             {
                 if (string.IsNullOrEmpty(template) || this.originDataSet == null)
                 {
-                    return this.originDataSet;
+                    int[] array = new int[this.originDataSet.Count];
+                    for (int i = 0, j = 0; i < array.Length; i++)
+                    {
+                        if (GetChecked(i))
+                        {
+                            array[i] = array[j];
+                            array[j] = i;
+                            j++;
+                        }
+                        else
+                        {
+                            array[i] = i;
+                        }
+                    }
+                    return array;
                 }
 
 
@@ -229,11 +330,21 @@
                 {
                     capacity = 4;
                 }
-                var newList = new List<string>(capacity);
-                var query = from str in this.originDataSet
-                            where str.Contains(template, StringComparison.OrdinalIgnoreCase)
-                            select str;
-                newList.AddRange(query);
+                var newList = new List<int>(capacity);
+                for (int i = 0, j = 0; i < this.originDataSet.Count; i++)
+                {
+                    if (this.originDataSet[i].Contains(template, StringComparison.OrdinalIgnoreCase))
+                    {
+                        newList.Add(i);
+                        if (GetChecked(newList[^1]))
+                        {
+                            int buf = newList[j];
+                            newList[j] = newList[^1];
+                            newList[^1] = buf;
+                            j++;
+                        }
+                    }
+                }
                 return newList;
             }
         }
@@ -241,8 +352,10 @@
 
     interface IAdvancedSearchFilter
     {
-        public bool GetChecked(string str);
-        public void SetChecked(string str, bool isChecked);
-        public IList<string> GetFiltered(string template);
+        public bool IsAllChecked(IList<int> localDataSet);
+        public string GetValue(int index);
+        public bool GetChecked(int index);
+        public void SetChecked(int index, bool isChecked);
+        public IList<int> GetFiltered(string template);
     }
 }

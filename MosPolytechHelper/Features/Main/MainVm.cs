@@ -12,11 +12,11 @@
 
         public void ChangeShowEmptyLessons(bool showEmptyLessons)
         {
-            Send(ViewModels.ScheduleLessonInfo, "ShowEmptyLessons", showEmptyLessons);
+            Send(ViewModels.Schedule, "ShowEmptyLessons", showEmptyLessons);
         }
         public void ChangeShowColoredLessons(bool showColoredLessons)
         {
-            Send(ViewModels.ScheduleLessonInfo, "ShowColoredLessons", showColoredLessons);
+            Send(ViewModels.Schedule, "ShowColoredLessons", showColoredLessons);
         }
     }
 }

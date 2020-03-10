@@ -2,7 +2,8 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
   <item>
     <shape android:shape="rectangle">
-      <gradient android:startColor="#ff3c1d" android:endColor="#fdcc44"  android:angle="90" />
+      <gradient android:startColor="@color/splashScreenStartColor" 
+                android:endColor="@color/splashScreenEndColor"  android:angle="270" />
     </shape>
   </item>
   <item>

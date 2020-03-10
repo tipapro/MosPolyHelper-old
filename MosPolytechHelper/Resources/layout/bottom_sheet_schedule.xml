@@ -1,96 +1,146 @@
+
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/bottom_sheet"
-    android:layout_width="match_parent"
-    android:layout_height="300dp"
-    android:clickable="true"
-    android:background="@color/colorPrimary"
+    android:elevation="3dp"
     android:orientation="vertical"
     app:behavior_hideable="true"
-    app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
-    
+    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+    android:layout_height="440dp"
+    android:layout_width="match_parent">
+    <TextView
+                android:background="@drawable/shape_bottom_sheet"
+            android:paddingHorizontal="18dp"
+        android:paddingTop="10dp"
+            android:paddingBottom="1.5dp"
+            android:text="@string/advanced_search"
+            android:textSize="25sp"
+            android:fontFamily="sans-serif-black"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    <TextView
+        android:background="@color/lessonHeadDivider"
+        android:textColor="#848484"
+            android:paddingHorizontal="18dp"
+            android:paddingBottom="14dp"
+            android:text="@string/advanced_search_hint"
+        android:breakStrategy="balanced" 
+            android:textSize="13sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    <androidx.core.widget.NestedScrollView
+    android:background="@color/lessonBackground"
+        android:clickable="true"
+    android:fillViewport="true"
+    android:layout_width="match_parent"
+            android:layout_height="match_parent">
         <RelativeLayout
+            
+        android:paddingTop="18dp"
             android:id="@+id/linLayout"
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-<!--        <android.support.design.chip.ChipGroup
-    android:id="@+id/chipGroup"
-                android:layout_marginHorizontal="10dp"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content" />
-            <Button
-                android:layout_below="@id/chipGroup"
-                android:layout_alignParentLeft="true"
-                    android:id="@+id/btn1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />-->
             <TextView
                 android:layout_alignParentTop="true"
                    android:layout_width="match_parent"
                    android:layout_height="wrap_content"
-                android:text="Any groups"
-                android:padding="6dp"
-                android:layout_margin="4dp"
+            android:maxLines="5"
+            android:ellipsize="end"
+                android:text="@string/all_groups"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginBottom="8dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="10dp"
+                android:paddingHorizontal="14dp"
                 android:background="@drawable/shape_advanced_search_text"
             android:id="@+id/text_groups" />
             <Button
                 android:layout_below="@id/text_groups"
+            android:textAllCaps="false"
+            android:layout_height="32sp" 
+            android:paddingHorizontal="16dp"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/selector_schedule_type" 
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Download schedules"
+                android:text="@string/download_schedules"
             android:id="@+id/btn_acceptGroups" />
             <TextView
                 android:layout_below="@id/btn_acceptGroups"
+            android:visibility="gone"
                    android:layout_width="match_parent"
                    android:layout_height="wrap_content"
-                android:text="Any subjects"
-                android:padding="6dp"
-                android:layout_margin="4dp"
+            android:maxLines="5"
+            android:ellipsize="end"
+                android:text="@string/all_subjects"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginBottom="8dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="10dp"
+                android:paddingHorizontal="14dp"
                 android:background="@drawable/shape_advanced_search_text"
             android:id="@+id/text_lesson_titles" />
             <TextView
                 android:layout_below="@id/text_lesson_titles"
+            android:visibility="gone"
                    android:layout_width="match_parent"
                    android:layout_height="wrap_content"
-                android:text="Any lesson types"
-                android:padding="6dp"
-                android:layout_margin="4dp"
+            android:maxLines="5"
+            android:ellipsize="end"
+                android:text="@string/all_lesson_types"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginBottom="8dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="10dp"
+                android:paddingHorizontal="14dp"
                 android:background="@drawable/shape_advanced_search_text"
             android:id="@+id/text_lesson_types" />
             <TextView
                 android:layout_below="@id/text_lesson_types"
+            android:visibility="gone"
                    android:layout_width="match_parent"
                    android:layout_height="wrap_content"
-                android:text="Any auditoriums"
-                android:padding="6dp"
-                android:layout_margin="4dp"
+            android:maxLines="5"
+            android:ellipsize="end"
+                android:text="@string/all_auditoriums"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginBottom="8dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="10dp"
+                android:paddingHorizontal="14dp"
                 android:background="@drawable/shape_advanced_search_text"
             android:id="@+id/text_auditoriums" />
             <TextView
                 android:layout_below="@id/text_auditoriums"
+            android:visibility="gone"
                    android:layout_width="match_parent"
                    android:layout_height="wrap_content"
-                android:text="Any teachers"
-                android:padding="6dp"
-                android:layout_margin="4dp"
+            android:maxLines="5"
+            android:ellipsize="end"
+                android:text="@string/all_teachers"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginBottom="8dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="10dp"
+                android:paddingHorizontal="14dp"
                 android:background="@drawable/shape_advanced_search_text"
             android:id="@+id/text_teachers" />
             <Button
                 android:layout_below="@id/text_teachers"
+            android:visibility="gone"
+            android:textAllCaps="false"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginBottom="8dp"
+            android:layout_height="32sp" 
+            android:paddingHorizontal="16dp"
+            android:background="@drawable/selector_schedule_type" 
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Apply"
+                android:text="@string/apply"
             android:id="@+id/btn_search" />
-            <RelativeLayout
-            android:elevation="2dp"
-            android:clickable="true"
-            android:id="@+id/layout_block"
+            <ProgressBar
                 android:layout_below="@id/btn_acceptGroups"
-                android:background="#DD222222"
-                 android:layout_width="match_parent"
-                 android:layout_height="match_parent" >
-                <ProgressBar
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"
                 android:visibility="gone"
@@ -104,15 +154,16 @@
         android:max="10000" />
             <TextView
                 android:id="@+id/text_progress"
+            android:layout_below="@id/btn_acceptGroups"
                 android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
                 android:visibility="gone"
                 android:textAlignment="center"
                 android:text="0 %"
                 android:textStyle="bold"
                 android:textColor="@color/textColorPrimary"
+            android:layout_marginTop="60dp"
                 android:textSize="40sp"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
                 <Button
                 android:textSize="16sp"
@@ -120,11 +171,11 @@
                 android:layout_centerHorizontal="true"
                 android:visibility="gone"
                 android:id="@+id/btn_cancel"
-                    android:text="Cancel"
+                    android:text="@string/cancel"
                     android:layout_width="wrap_content"
                     android:textColor="@color/colorSecondary"
                     android:background="@android:color/transparent"
                     android:layout_height="wrap_content"/>
-            </RelativeLayout>
         </RelativeLayout>
+</androidx.core.widget.NestedScrollView>
 </LinearLayout>

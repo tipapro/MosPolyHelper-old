@@ -101,7 +101,7 @@
             public static Filter DefaultFilter =>
                 new Filter(DateFilter.Show, ModuleFilter.Off, WeekFilter.Off, false, WeekType.None);
 
-            public DateFilter DateFitler { get; set; }
+            public DateFilter DateFilter { get; set; }
             public ModuleFilter ModuleFilter { get; set; }
             public WeekFilter WeekFilter { get; set; }
             public WeekType FirstWeekType { get; set; }
@@ -114,7 +114,7 @@
             public Filter(DateFilter dateFilter, ModuleFilter moduleFilter, WeekFilter weekFilter,
                 bool sessionFilter, WeekType firstWeekType)
             {
-                this.DateFitler = dateFilter;
+                this.DateFilter = dateFilter;
                 this.ModuleFilter = moduleFilter;
                 this.WeekFilter = weekFilter;
                 this.SessionFilter = sessionFilter;
@@ -132,7 +132,7 @@
                 var currWeek = DetermineWeekType(date);
                 foreach (var lesson in dailySchedule)
                 {
-                    if (this.DateFitler == DateFilter.Hide)
+                    if (this.DateFilter == DateFilter.Hide)
                     {
                         if (date > lesson.DateTo)
                         {
@@ -191,7 +191,7 @@
                 {
                     return false;
                 }
-                return this.DateFitler == filter2.DateFitler && this.ModuleFilter == filter2.ModuleFilter
+                return this.DateFilter == filter2.DateFilter && this.ModuleFilter == filter2.ModuleFilter
                     && this.SessionFilter == filter2.SessionFilter && this.WeekFilter == filter2.WeekFilter
                     && this.FirstWeekType == filter2.FirstWeekType;
             }
@@ -199,7 +199,7 @@
             public override int GetHashCode()
             {
                 string hash = string.Empty;
-                hash += this.DateFitler.GetHashCode() + this.FirstWeekType.GetHashCode() +
+                hash += this.DateFilter.GetHashCode() + this.FirstWeekType.GetHashCode() +
                     this.ModuleFilter.GetHashCode() + this.SessionFilter.GetHashCode() + this.WeekFilter.GetHashCode();
                 return hash.GetHashCode();
             }

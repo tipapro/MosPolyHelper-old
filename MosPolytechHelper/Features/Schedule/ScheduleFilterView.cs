@@ -4,6 +4,7 @@
     using Android.Graphics.Drawables;
     using Android.OS;
     using Android.Views;
+    using Android.Widget;
     using AndroidX.Fragment.App;
     using AndroidX.RecyclerView.Widget;
     using MosPolyHelper.Adapters;
@@ -11,6 +12,9 @@
     class ScheduleFilterView : DialogFragment
     {
         AdvancedSearchAdapter adapter;
+        bool checkedAll;
+        string selectAll;
+        string unselectAll;
 
         public void SetAdapter(AdvancedSearchAdapter adapter)
         {
@@ -29,8 +33,23 @@
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
+            selectAll = GetString(Resource.String.select_all);
+            unselectAll = GetString(Resource.String.unselect_all);
             this.Dialog.Window.SetGravity(GravityFlags.CenterHorizontal | GravityFlags.Top);
-            return inflater.Inflate(Resource.Layout.fragment_schedule_filter, container);
+            var view = inflater.Inflate(Resource.Layout.fragment_schedule_filter, container);
+            var checkAll = view.FindViewById<Button>(Resource.Id.button_check_all);
+            checkAll.Text = this.checkedAll ? unselectAll : selectAll;
+            checkAll.Click += (obj, arg) =>
+            {
+                this.adapter.SetCheckAll(this.checkedAll = !this.checkedAll);
+                checkAll.Text = this.checkedAll ? unselectAll : selectAll;
+            };
+            this.adapter.AllCheckedChanged += flag =>
+            {
+                this.checkedAll = flag;
+                checkAll.Text = this.checkedAll ? unselectAll : selectAll;
+            };
+            return view;
         }
 
         public override void OnStart()
@@ -54,7 +73,7 @@
                     recyclerView.SetAdapter(this.adapter);
                     recyclerView.GetAdapter().NotifyDataSetChanged();
 
-                    var searchView = this.Dialog.FindViewById<Android.Widget.SearchView>(Resource.Id.searchView1);
+                    var searchView = this.Dialog.FindViewById<SearchView>(Resource.Id.searchView1);
                     if (searchView != null)
                     {
                         searchView.QueryTextChange += (obj, arg) => this.adapter.UpdateTemplate(arg.NewText);

@@ -3,10 +3,12 @@
     public enum ViewModels
     {
         Main,
-        ScheduleLessonInfo,
+        Schedule,
         ScheduleManager,
         ScheduleFilter,
+        ScheduleLessonInfo,
         SchedulePreferences,
-        Buildings
+        Buildings,
+        ScheduleCalendar
     }
 }

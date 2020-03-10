@@ -80,15 +80,36 @@
             return new Group(title, course.Value, dateFrom.Value, dateTo.Value, isEvening.Value, comment);
         }
 
-        Schedule.Daily[] ConvertToScheduleArray(JToken jToken, bool isSession, Group group)
+        Schedule.Daily[] ConvertToScheduleArray(JToken jToken, bool isByDate, Group group)
         {
             var serSchedule = jToken as JObject ??
                 throw new JsonException($"Key {ScheduleGridKey} wasn't found");
-            var schedule = new List<Schedule.Daily>(isSession ? SessionDaysNumber : WeekDayNumber);
+            var schedule = new List<Schedule.Daily>(isByDate ? SessionDaysNumber : WeekDayNumber);
             var lessonList = new List<Lesson>();
             // Cycle for each day
             foreach (var (serDay, serDailySchedule) in serSchedule)
             {
+                if ((serDailySchedule as JObject).Count == 0)
+                {
+                    continue;
+                }
+                long day;
+                DateTime date;
+                if (isByDate)
+                {
+                    date = DateTime.Parse(serDay).Date;
+                    day = date.Ticks;
+                }
+                else
+                {
+                    date = DateTime.MinValue;
+                    day = long.Parse(serDay);
+                    if (day == 7)
+                    {
+                        day = 0;
+                    }
+                }
+
                 if (lessonList.Count != 0)
                 {
                     lessonList = new List<Lesson>();
@@ -103,7 +124,7 @@
                         {
                             continue;
                         }
-                        var lesson = ConvertToLesson(serLesson, index, group);
+                        var lesson = ConvertToLesson(serLesson, index, group, date, isByDate);
                         if (lesson == null)
                         {
                             continue;
@@ -115,25 +136,12 @@
                 {
                     continue;
                 }
-                long day;
-                if (isSession)
-                {
-                    day = DateTime.Parse(serDay).Date.Ticks;
-                }
-                else
-                {
-                    day = long.Parse(serDay);
-                    if (day == 7)
-                    {
-                        day = 0;
-                    }
-                }
                 schedule.Add(new Schedule.Daily(lessonList.ToArray(), day));
             }
             return schedule.ToArray();
         }
 
-        Lesson ConvertToLesson(JToken jToken, string index, Group group)
+        Lesson ConvertToLesson(JToken jToken, string index, Group group, DateTime date, bool isByDate)
         {
             string subjectTitle = jToken[LessonSubjectKey]?.ToObject<string>();
             if (subjectTitle == null)
@@ -142,13 +150,13 @@
             }
             int order = int.Parse(index) - 1;
             string[] teachers = ConvertToTeachers(jToken[LessonTeacherKey]);
-            var dateFrom = jToken[LessonDateFromKey]?.ToObject<DateTime>();
+            var dateFrom = isByDate ? date : jToken[LessonDateFromKey]?.ToObject<DateTime>();
             if (!dateFrom.HasValue)
             {
                 dateFrom = DateTime.MinValue;
                 this.logger.Warn($"Key {GroupDateFromKey} wasn't found");
             }
-            var dateTo = jToken[LessonDateToKey]?.ToObject<DateTime>();
+            var dateTo = isByDate ? date : jToken[LessonDateToKey]?.ToObject<DateTime>();
             if (!dateTo.HasValue)
             {
                 dateTo = DateTime.MaxValue;
