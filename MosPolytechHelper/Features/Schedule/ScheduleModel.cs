@@ -1,8 +1,8 @@
 ﻿namespace MosPolyHelper.Features.Schedule
 {
+    using MosPolyHelper.Domains.ScheduleDomain;
     using MosPolyHelper.Utilities;
     using MosPolyHelper.Utilities.Interfaces;
-    using MosPolyHelper.Domains.ScheduleDomain;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -29,11 +29,11 @@
 
         int scheduleCounter;
 
-        async Task<string> ReadGroupListAsync()
+        Stream OpenReadGroupList()
         {
             string backingFile = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "group_list");
-            return await File.ReadAllTextAsync(backingFile);
+            return File.OpenRead(backingFile);
         }
 
         Task SaveGroupListAsync(string[] groupList)
@@ -111,9 +111,15 @@
             return this.serializer.SerializeAndSaveAsync(filePath, schedule);
         }
 
-        Task<Schedule> DownloadScheduleAsync(string groupTitle, bool isSession)
+        async Task<Schedule> DownloadScheduleAsync(string groupTitle, bool isSession)
         {
-            return DownloadScheduleAsync(groupTitle, isSession, CancellationToken.None);
+            string serSchedule = await this.downloader.DownloadSchedule(groupTitle, isSession);
+            var schedule = await this.scheduleConverter.ConvertToScheduleAsync(serSchedule, Announce);
+            if (schedule != null)
+            {
+                schedule.IsSession = isSession;
+            }
+            return schedule;
         }
 
         async Task<Schedule> DownloadScheduleAsync(string groupTitle, bool isSession, CancellationToken ct)
@@ -142,15 +148,7 @@
 
         async Task<string[]> DownloadGroupListAsync()
         {
-            string serGroupList;
-            try
-            {
-                serGroupList = await this.downloader.DownloadGroupListAsync();
-            }
-            catch (WebException)
-            {
-                return null;
-            }
+            string serGroupList = await this.downloader.DownloadGroupListAsync();
             return await this.scheduleConverter.ConvertToGroupList(serGroupList);
         }
 
@@ -160,6 +158,7 @@
         public event Action<int> DownloadProgressChanged;
 
         public Schedule Schedule { get; private set; }
+        public string SerializedSchedule { get; private set; }
         public string[] GroupList { get; private set; }
 
         public ScheduleModel(ILoggerFactory loggerFactory)
@@ -178,6 +177,10 @@
                 try
                 {
                     this.Schedule = await DownloadScheduleAsync(group, isSession);
+                    if (this.Schedule == null)
+                    {
+                        Announce?.Invoke(StringProvider.GetString(StringId.ScheduleWasntFounded));
+                    }
                     try
                     {
                         await SaveScheduleAsync(this.Schedule);
@@ -199,7 +202,7 @@
                         {
                             throw new Exception("Read schedule from storage fail");
                         }
-                        if (Schedule.Version != System.Environment.GetEnvironmentVariable("ScheduleVersion"))
+                        if (this.Schedule.Version != Schedule.RequiredVersion)
                         {
                             throw new Exception("Read schedule from storage fail");
                         }
@@ -230,7 +233,7 @@
                     {
                         throw new Exception("Read schedule from storage fail");
                     }
-                    if (Schedule.Version != System.Environment.GetEnvironmentVariable("ScheduleVersion"))
+                    if (this.Schedule.Version != Schedule.RequiredVersion)
                     {
                         throw new Exception("Read schedule from storage fail");
                     }
@@ -279,7 +282,7 @@
                     try
                     {
                         Announce?.Invoke(StringProvider.GetString(StringId.GroupListWasntFounded));
-                        string serGroupList = await ReadGroupListAsync();
+                        var serGroupList = OpenReadGroupList();
                         this.GroupList = await this.deserializer.DeserializeAsync<string[]>(serGroupList);
                         if (this.GroupList.Length == 0)
                         {
@@ -319,62 +322,62 @@
                 this.scheduleCounter = 0;
                 int maxCount = groupList.Count * 3 + groupList.Count / 33;
                 ct.Register(() => this.downloader.Abort());
-                    Parallel.ForEach(Partitioner.Create(0, groupList.Count), po, range =>
+                Parallel.ForEach(Partitioner.Create(0, groupList.Count), po, range =>
+                {
+                    for (int i = range.Item1; i < range.Item2; i++)
                     {
-                        for (int i = range.Item1; i < range.Item2; i++)
+                        try
                         {
-                            try
+                            Interlocked.Increment(ref this.scheduleCounter);
+                            lock (this.key)
                             {
-                                Interlocked.Increment(ref this.scheduleCounter);
-                                lock (key)
-                                {
-                                    DownloadProgressChanged?.Invoke(this.scheduleCounter * 10000 / maxCount);
-                                }
-                                po.CancellationToken.ThrowIfCancellationRequested();
-                                var schedule = DownloadScheduleAsync(groupList[i], false, po.CancellationToken).GetAwaiter().GetResult();
-                                if (schedule != null)
-                                {
-                                    schedule.ToNormal();
-                                    AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes, po.CancellationToken);
-                                    collection.Add(schedule);
-                                }
-                                Interlocked.Increment(ref this.scheduleCounter);
-                                lock (key)
-                                {
-                                    DownloadProgressChanged?.Invoke(this.scheduleCounter * 10000 / maxCount);
-                                }
-                                po.CancellationToken.ThrowIfCancellationRequested();
-                                schedule = DownloadScheduleAsync(groupList[i], true, po.CancellationToken).GetAwaiter().GetResult();
-                                if (schedule != null)
-                                {
-                                    schedule.ToNormal();
-                                    AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes, po.CancellationToken);
-                                    collection.Add(schedule);
-                                }
-                                Interlocked.Increment(ref this.scheduleCounter);
-                                lock (key)
-                                {
-                                    DownloadProgressChanged?.Invoke(this.scheduleCounter * 10000 / maxCount);
-                                }
+                                DownloadProgressChanged?.Invoke(this.scheduleCounter * 10000 / maxCount);
                             }
-                            catch (WebException ex)
+                            po.CancellationToken.ThrowIfCancellationRequested();
+                            var schedule = DownloadScheduleAsync(groupList[i], false, po.CancellationToken).GetAwaiter().GetResult();
+                            if (schedule != null)
                             {
-                                if (ex.Status == WebExceptionStatus.RequestCanceled)
-                                {
-                                    po.CancellationToken.ThrowIfCancellationRequested();
-                                }
+                                schedule.ToNormal();
+                                AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes, po.CancellationToken);
+                                collection.Add(schedule);
+                            }
+                            Interlocked.Increment(ref this.scheduleCounter);
+                            lock (this.key)
+                            {
+                                DownloadProgressChanged?.Invoke(this.scheduleCounter * 10000 / maxCount);
+                            }
+                            po.CancellationToken.ThrowIfCancellationRequested();
+                            schedule = DownloadScheduleAsync(groupList[i], true, po.CancellationToken).GetAwaiter().GetResult();
+                            if (schedule != null)
+                            {
+                                schedule.ToNormal();
+                                AddAllDataFromSchedule(schedule, lessonTitles, teachers, auditoriums, lessonTypes, po.CancellationToken);
+                                collection.Add(schedule);
+                            }
+                            Interlocked.Increment(ref this.scheduleCounter);
+                            lock (this.key)
+                            {
+                                DownloadProgressChanged?.Invoke(this.scheduleCounter * 10000 / maxCount);
                             }
                         }
-                    });
+                        catch (WebException ex)
+                        {
+                            if (ex.Status == WebExceptionStatus.RequestCanceled)
+                            {
+                                po.CancellationToken.ThrowIfCancellationRequested();
+                            }
+                        }
+                    }
+                });
                 int last = this.scheduleCounter * 10000 / maxCount;
                 int delta = (10000 - last) / 12;
-                var lessonArray = lessonTitles.Keys.ToArray();
+                string[] lessonArray = lessonTitles.Keys.ToArray();
                 DownloadProgressChanged?.Invoke(last += delta);
-                var teacherArray = teachers.Keys.ToArray();
+                string[] teacherArray = teachers.Keys.ToArray();
                 DownloadProgressChanged?.Invoke(last += delta);
-                var auditoriumArray = auditoriums.Keys.ToArray();
+                string[] auditoriumArray = auditoriums.Keys.ToArray();
                 DownloadProgressChanged?.Invoke(last += delta);
-                var typeArray = lessonTypes.Keys.ToArray();
+                string[] typeArray = lessonTypes.Keys.ToArray();
                 DownloadProgressChanged?.Invoke(last += delta);
                 Array.Sort(lessonArray);
                 DownloadProgressChanged?.Invoke(last += 2 * delta);

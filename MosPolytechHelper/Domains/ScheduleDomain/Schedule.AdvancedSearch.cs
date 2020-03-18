@@ -70,8 +70,7 @@
                     dayList[i].Sort();
                     dailySchedules[i] = new Schedule.Daily(dayList[i].ToArray(), i);
                 }
-                return new Schedule(dailySchedules, null, false, DateTime.Now, 
-                    System.Environment.GetEnvironmentVariable("ScheduleVersion"), from, to);
+                return new Schedule(dailySchedules, null, false, DateTime.Now, Schedule.RequiredVersion, from, to);
             }
         }
     }

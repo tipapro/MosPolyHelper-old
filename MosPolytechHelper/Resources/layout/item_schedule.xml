@@ -30,7 +30,7 @@
         android:layout_height="wrap_content" 
         android:layout_marginLeft="18dp" 
         android:clickable="false" 
-        android:textSize="14.5sp" />
+        android:textSize="14.2sp" />
         <View
             android:id="@+id/indicator"
             android:background="@drawable/shape_s"
@@ -52,8 +52,8 @@
         android:layout_height="wrap_content" 
             android:fontFamily="sans-serif-black"
         android:clickable="false" 
-        android:textColor="@color/textSecondary" 
-        android:textSize="14.5sp"/>
+        android:textColor="@color/textLessonHead" 
+        android:textSize="14.2sp"/>
         <TextView android:id="@+id/text_schedule_auditoriums" 
             android:textStyle="bold" 
             android:textSize="12.5sp" 

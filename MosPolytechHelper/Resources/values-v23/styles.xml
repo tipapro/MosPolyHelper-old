@@ -4,7 +4,8 @@
     <item name="colorPrimary">@color/colorPrimary</item>
     <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
     <item name="colorSecondary">@color/colorSecondary</item>
-    <item name="colorAccent">@color/colorSecondaryLight</item>
+    <item name="colorAccent">@color/colorSecondary</item>
+    <item name="android:colorEdgeEffect">@color/colorSecondary</item>
     <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
     <item name="android:actionBarStyle">@style/AppTheme.ActionBar</item>
     <item name="android:navigationBarColor">#0C0C0C</item>
@@ -32,6 +33,7 @@
     <item name="android:windowTranslucentNavigation">true</item>
     <item name="android:windowContentOverlay">@null</item>
     <item name="android:windowActionBar">true</item>
+    <item name="android:windowLightStatusBar">false</item>
   </style>
 
   <style name="AppTheme.Chip" parent="@style/Theme.MaterialComponents"></style>

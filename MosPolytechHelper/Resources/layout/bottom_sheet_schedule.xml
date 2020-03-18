@@ -14,14 +14,15 @@
             android:paddingHorizontal="18dp"
         android:paddingTop="10dp"
             android:paddingBottom="1.5dp"
+        android:textColor="@color/advancedSearchTextHead"
             android:text="@string/advanced_search"
             android:textSize="25sp"
             android:fontFamily="sans-serif-black"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
     <TextView
-        android:background="@color/lessonHeadDivider"
-        android:textColor="#848484"
+        android:background="@color/advancedSearchHead"
+        android:textColor="@color/advancedSearchTextHeadSecondary"
             android:paddingHorizontal="18dp"
             android:paddingBottom="14dp"
             android:text="@string/advanced_search_hint"
@@ -30,7 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     <androidx.core.widget.NestedScrollView
-    android:background="@color/lessonBackground"
+    android:background="@color/advancedSearchBody"
         android:clickable="true"
     android:fillViewport="true"
     android:layout_width="match_parent"
@@ -64,6 +65,7 @@
             android:layout_marginHorizontal="18dp"
             android:layout_marginBottom="8dp"
             android:background="@drawable/selector_schedule_type" 
+                android:textColor="@color/accent_text_color"
                 android:layout_width="wrap_content"
                 android:text="@string/download_schedules"
             android:id="@+id/btn_acceptGroups" />
@@ -136,6 +138,7 @@
             android:layout_height="32sp" 
             android:paddingHorizontal="16dp"
             android:background="@drawable/selector_schedule_type" 
+                android:textColor="@color/textAccent"
                 android:layout_width="wrap_content"
                 android:text="@string/apply"
             android:id="@+id/btn_search" />

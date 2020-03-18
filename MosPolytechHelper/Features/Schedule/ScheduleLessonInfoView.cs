@@ -1,8 +1,10 @@
 ﻿namespace MosPolyHelper.Features.Schedule
 {
+    using Android.Content.Res;
     using Android.Graphics;
     using Android.OS;
     using Android.Text;
+    using Android.Text.Method;
     using Android.Text.Style;
     using Android.Views;
     using Android.Views.InputMethods;
@@ -16,8 +18,6 @@
 
     class ScheduleLessonInfoView : FragmentBase
     {
-        const string Exam = "экзамен";
-        const string Credit = "зачет";
         readonly ScheduleLessonInfoVm viewModel;
 
         readonly Color[] lessonTypeColors = new Color[]
@@ -25,19 +25,6 @@
             new Color(235, 65, 65),     // Exam, Credit
             new Color(41, 182, 246)   // Other
         };
-
-        Color GetLessonTypeColor(string lessonType)
-        {
-            if (lessonType.Contains(Exam, StringComparison.OrdinalIgnoreCase) ||
-                lessonType.Contains(Credit, StringComparison.OrdinalIgnoreCase))
-            {
-                return this.lessonTypeColors[0];
-            }
-            else
-            {
-                return this.lessonTypeColors[1];
-            }
-        }
 
         public bool NoteEdited { get; private set; }
 
@@ -83,7 +70,7 @@
 
         void SetType(TextView textView, Lesson lesson)
         {
-            textView.SetTextColor(GetLessonTypeColor(lesson.Type));
+            textView.SetTextColor(lesson.IsImportant() ? this.lessonTypeColors[0] : this.lessonTypeColors[1]);
             textView.Text = lesson.Type.ToUpper();
         }
 
@@ -108,25 +95,67 @@
                 textView.SetText("", TextView.BufferType.Normal);
                 return;
             }
+            var nightMode = (textView.Context.Resources.Configuration.UiMode & UiMode.NightMask) == UiMode.NightYes;
             for (int i = 0; i < lesson.Auditoriums.Length - 1; i++)
             {
-                var color = Color.ParseColor(lesson.Auditoriums[i].Color);
-                color = Color.HSVToColor(new float[] { color.GetHue(), color.GetSaturation(), color.GetBrightness() * 3f });
-                auditoriums.Append(lesson.Auditoriums[i].Name.ToLower() + ", ",
-                    new ForegroundColorSpan(color),
-                    SpanTypes.ExclusiveExclusive);
+                var audTitle = Html.FromHtml(lesson.Auditoriums[i].Name.ToLower(), FromHtmlOptions.ModeLegacy);
+                if (!string.IsNullOrEmpty(lesson.Auditoriums[i].Color))
+                {
+                    var colorString = lesson.Auditoriums[i].Color;
+                    if (colorString.Length == 4)
+                    {
+                        colorString = "#" +
+                            colorString[1] + colorString[1] +
+                            colorString[2] + colorString[2] +
+                            colorString[3] + colorString[3];
+                    }
+                    var color = Color.ParseColor(colorString);
+                    if (nightMode)
+                    {
+                        color = Color.HSVToColor(
+                            new float[] { color.GetHue(), color.GetSaturation(), color.GetBrightness() * 3f });
+                    }
+                    auditoriums.Append(audTitle + ", ",
+                        new ForegroundColorSpan(color),
+                        SpanTypes.ExclusiveExclusive);
+                }
+                else
+                {
+                    auditoriums.Append(audTitle + ", ");
+                }
             }
             if (lesson.Auditoriums.Length != 0)
             {
-                var color = Color.ParseColor(lesson.Auditoriums[^1].Color);
-                color = Color.HSVToColor(new float[] { color.GetHue(), color.GetSaturation(), color.GetBrightness() * 3f });
-                auditoriums.Append(lesson.Auditoriums[^1].Name.ToLower(),
-                    new ForegroundColorSpan(color),
-                    SpanTypes.ExclusiveExclusive);
+                var audTitle = Html.FromHtml(lesson.Auditoriums[^1].Name.ToLower(), FromHtmlOptions.ModeLegacy);
+                if (!string.IsNullOrEmpty(lesson.Auditoriums[^1].Color))
+                {
+                    var colorString = lesson.Auditoriums[^1].Color;
+                    if (colorString.Length == 4)
+                    {
+                        colorString = "#" +
+                            colorString[1] + colorString[1] +
+                            colorString[2] + colorString[2] +
+                            colorString[3] + colorString[3];
+                    }
+                    var color = Color.ParseColor(colorString);
+                    if (nightMode)
+                    {
+                        color = Color.HSVToColor(
+                            new float[] { color.GetHue(), color.GetSaturation(), color.GetBrightness() * 3f });
+                    }
+                    auditoriums.Append(audTitle,
+                        new ForegroundColorSpan(color),
+                        SpanTypes.ExclusiveExclusive);
+                }
+                else
+                {
+                    auditoriums.Append(audTitle);
+                }
             }
-
+            textView.MovementMethod = LinkMovementMethod.Instance;
             textView.SetText(auditoriums, TextView.BufferType.Normal);
         }
+
 
         void SetTeachers(TextView textView, Lesson lesson)
         {

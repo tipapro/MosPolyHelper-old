@@ -8,7 +8,7 @@
         ScheduleFilter,
         ScheduleLessonInfo,
         SchedulePreferences,
-        Buildings,
+        Addresses,
         ScheduleCalendar
     }
 }

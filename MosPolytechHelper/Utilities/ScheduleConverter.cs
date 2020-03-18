@@ -27,17 +27,17 @@
         const string GroupCommentKey = "comment";
         const string GroupCourseKey = "course";
 
-        const string LessonSubjectKey = "subject";
+        const string LessonSubjectKey = "sbj";
         const string LessonTeacherKey = "teacher";
-        const string LessonDateFromKey = "date_from";
-        const string LessonDateToKey = "date_to";
+        const string LessonDateFromKey = "df";
+        const string LessonDateToKey = "dt";
         const string LessonAuditoriumsKey = "auditories";
         const string LessonTypeKey = "type";
         const string LessonWeekKey = "week";
 
-        const string FirstModuleKey = "first_module";
-        const string SecondModuleKey = "second_module";
-        const string NoModuleKey = "no_module";
+        const string FirstModuleKey = "fm";
+        const string SecondModuleKey = "sm";
+        const string NoModuleKey = "no";
 
         const string AuditoriumTitleKey = "title";
         const string AuditoriumColorKey = "color";
@@ -304,7 +304,7 @@
                     var group = ConvertToGroup(serObj[GroupInfoKey]);
                     var schedule = ConvertToScheduleArray(serObj[ScheduleGridKey], isByDate, group);
 
-                    return new Schedule(schedule, group, isByDate, DateTime.Now, System.Environment.GetEnvironmentVariable("ScheduleVersion"));
+                    return new Schedule(schedule, group, isByDate, DateTime.Now, Schedule.RequiredVersion);
                 }
                 catch (Exception)
                 {

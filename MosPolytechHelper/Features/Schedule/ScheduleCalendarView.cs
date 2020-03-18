@@ -9,7 +9,6 @@
     using MosPolyHelper.Features.Common;
     using MosPolyHelper.Features.Main;
     using MosPolyHelper.Utilities;
-    using System;
 
     class ScheduleCalendarView : FragmentBase
     {
@@ -19,7 +18,7 @@
         public ScheduleCalendarView() : base(Fragments.ScheduleCalendar)
         {
             this.viewModel = new ScheduleCalendarVm(DependencyInjector.GetILoggerFactory(), DependencyInjector.GetIMediator());
-            dateChanged = false;
+            this.dateChanged = false;
         }
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -27,33 +26,35 @@
             var view = inflater.Inflate(Resource.Layout.fragment_schedule_calendar, container, false);
             var toolbar = view.FindViewById<AndroidX.AppCompat.Widget.Toolbar>(Resource.Id.toolbar);
 
-            (this.Activity as MainView)?.SetSupportActionBar(toolbar);
-            (this.Activity as MainView)?.SupportActionBar.SetDisplayHomeAsUpEnabled(true);
-            (this.Activity as MainView)?.SupportActionBar.SetHomeButtonEnabled(true);
             string groupTitle = this.viewModel.Schedule.Group?.Title;
             if (string.IsNullOrEmpty(groupTitle))
             {
-                groupTitle = "Any groups";
+                groupTitle = GetString(Resource.String.advanced_search);
             }
             else
             {
-#warning move to Resources
-                groupTitle = groupTitle + " (" + (this.viewModel.Schedule.IsSession ? 
-                    "сессия" : "обычное") + ")";
+                groupTitle = groupTitle + " (" + (this.viewModel.Schedule.IsSession ?
+                    GetString(Resource.String.text_schedule_type_session_s) :
+                    GetString(Resource.String.text_schedule_type_regular_s)) + ")";
             }
             toolbar.Title = groupTitle;
+
+            (this.Activity as MainView)?.SetSupportActionBar(toolbar);
+            (this.Activity as MainView)?.SupportActionBar.SetDisplayHomeAsUpEnabled(true);
+            (this.Activity as MainView)?.SupportActionBar.SetHomeButtonEnabled(true);
             var drawer = this.Activity.FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             drawer.SetDrawerLockMode(DrawerLayout.LockModeLockedClosed);
 
             var recyclerView = view.FindViewById<RecyclerView>(Resource.Id.recycler_schedule_day);
-
+            var colorTitle = new Color(Context.GetColor(Resource.Color.calendarTitle));
+            var colorCurrentTitle = new Color(Context.GetColor(Resource.Color.calendarCurrentTitle));
             var recyclerAdapter = new DailyShceduleGridAdapter(this.viewModel.Schedule, this.viewModel.ScheduleFilter,
                 this.viewModel.IsAdvancedSearch, new Color(view.Context.GetColor(Resource.Color.calendarParagraph)),
-                new Color(view.Context.GetColor(Resource.Color.calendarTimeBackground)));
+                new Color(view.Context.GetColor(Resource.Color.calendarTimeBackground)), colorTitle, colorCurrentTitle);
             recyclerAdapter.ItemClick += date =>
             {
                 this.viewModel.Date = date;
-                dateChanged = true;
+                this.dateChanged = true;
                 this.Activity.OnBackPressed();
             };
 
@@ -99,7 +100,7 @@
         {
             var drawer = this.Activity.FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
             drawer.SetDrawerLockMode(DrawerLayout.LockModeUnlocked);
-            if (dateChanged)
+            if (this.dateChanged)
             {
                 this.viewModel.DateChanged();
             }

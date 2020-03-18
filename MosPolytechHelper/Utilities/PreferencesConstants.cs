@@ -10,6 +10,7 @@
         public const string ScheduleTypePreference = "ScheduleTypePreference";
         public const string ScheduleShowEmptyLessons = "ScheduleShowEmptyLessons";
         public const string ScheduleShowColoredLessons = "ScheduleShowColoredLessons";
+        public const string Schedule = "Schedule";
         public const string FirstLaunch = "FirstLaunch";
     }
 }

@@ -10,7 +10,7 @@
     using AndroidX.RecyclerView.Widget;
     using AndroidX.SwipeRefreshLayout.Widget;
     using MosPolyHelper.Adapters;
-    using MosPolyHelper.Domains.BuildingsDomain;
+    using MosPolyHelper.Domains.AddressesDomain;
     using MosPolyHelper.Features.Common;
     using MosPolyHelper.Features.Main;
     using MosPolyHelper.Utilities;
@@ -18,7 +18,7 @@
 
     class AddressesView : FragmentBase
     {
-        AddressesVm viewModel;
+        readonly AddressesVm viewModel;
         RecyclerView recyclerView;
         SwipeRefreshLayout swipeToRefresh;
         Toolbar toolbar;
@@ -28,15 +28,15 @@
         {
             switch (e.PropertyName)
             {
-                case nameof(this.viewModel.Buildings):
-                    SetUpBuildings(this.viewModel.Buildings);
+                case nameof(this.viewModel.Addresses):
+                    SetUpBuildings(this.viewModel.Addresses);
                     break;
                 default:
                     break;
             }
         }
 
-        void SetUpBuildings(Buildings buildings)
+        void SetUpBuildings(Addresses buildings)
         {
             if (buildings != null)
             {
@@ -58,19 +58,19 @@
         public override void OnViewCreated(View view, Bundle savedInstanceState)
         {
             base.OnViewCreated(view, savedInstanceState);
-            toolbar = view.FindViewById<Toolbar>(Resource.Id.toolbar);
-            (this.Activity as MainView)?.SetSupportActionBar(toolbar);
+            this.toolbar = view.FindViewById<Toolbar>(Resource.Id.toolbar);
+            this.toolbar.Title = GetString(Resource.String.addresses_title);
+            (this.Activity as MainView)?.SetSupportActionBar(this.toolbar);
             //(this.Activity as MainView).SupportActionBar.SetDisplayShowTitleEnabled(false);
-            toolbar.Title = GetString(Resource.String.addresses_title);
             var drawer = this.Activity.FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
-            var toggle = new ActionBarDrawerToggle(this.Activity, drawer, toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
+            var toggle = new ActionBarDrawerToggle(this.Activity, drawer, this.toolbar, Resource.String.navigation_drawer_open, Resource.String.navigation_drawer_close);
             drawer.AddDrawerListener(toggle);
             toggle.SyncState();
             toggle.DrawerIndicatorEnabled = true;
             drawer.SetDrawerLockMode(DrawerLayout.LockModeUnlocked);
-            if (recyclerView.GetAdapter() == null)
+            if (this.recyclerView.GetAdapter() == null)
             {
-                SetUpBuildings(this.viewModel.Buildings);
+                SetUpBuildings(this.viewModel.Addresses);
             }
         }
 
@@ -89,7 +89,7 @@
         public override void OnAttach(Context context)
         {
             base.OnAttach(context);
-            this.viewModel.SetUpBuildings();
+            this.viewModel.SetUpAddresses();
         }
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -99,19 +99,19 @@
             this.recyclerView.SetLayoutManager(new LinearLayoutManager(container.Context));
             float scale = view.Context.Resources.DisplayMetrics.Density;
             this.recyclerView.AddItemDecoration(new AddressesAdapter.ItemDecoration((int)(8 * scale + 0.5f)));
-            var dp8 = TypedValue.ApplyDimension(ComplexUnitType.Dip, 8f, container.Resources.DisplayMetrics);
-            var dp32 = dp8 * 4;
+            float dp8 = TypedValue.ApplyDimension(ComplexUnitType.Dip, 8f, container.Resources.DisplayMetrics);
+            float dp32 = dp8 * 4;
             this.recyclerView.ScrollChange += (obj, arg) =>
             {
                 if (this.recyclerView.CanScrollVertically(-1))
                 {
-                    accumulator -= arg.OldScrollY;
-                    toolbar.Elevation =
-                    accumulator > dp32 ? dp8 : accumulator / 4f;
+                    this.accumulator -= arg.OldScrollY;
+                    this.toolbar.Elevation =
+                    this.accumulator > dp32 ? dp8 : this.accumulator / 4f;
                 }
                 else
                 {
-                    toolbar.Elevation = accumulator = 0;
+                    this.toolbar.Elevation = this.accumulator = 0;
                 }
             };
             this.swipeToRefresh = view.FindViewById<SwipeRefreshLayout>(Resource.Id.addresses_update);
@@ -122,10 +122,11 @@
             return view;
         }
 
-        protected override void Dispose(bool disposing)
+
+        public override void OnDestroy()
         {
             this.viewModel.PropertyChanged -= OnPropertyChanged;
-            base.Dispose(disposing);
+            base.OnDestroy();
         }
     }
 }

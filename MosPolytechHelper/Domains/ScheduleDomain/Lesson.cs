@@ -7,6 +7,19 @@
     [ProtoContract]
     public class Lesson : IComparable<Lesson>
     {
+        #region LessonTypeConstants
+        const string CourseProject = "кп";
+        const string Exam = "экзамен";
+        const string Credit = "зачет";
+        const string CreditWithRating = "зсо";
+        const string ExaminationShow = "эп";
+        const string Consultation = "консультация";
+        const string Laboratory = "лаб";
+        const string Practice = "практика";
+        const string Lecture = "лекция";
+        const string Other = "другое";
+        #endregion LessonTypeConstants
+
         readonly static (TimeSpan StartTime, TimeSpan EndTime) FirstPair = (new TimeSpan(9, 0, 0), new TimeSpan(10, 30, 0));
         readonly static (TimeSpan StartTime, TimeSpan EndTime) SecondPair = (new TimeSpan(10, 40, 0), new TimeSpan(12, 10, 0));
         readonly static (TimeSpan StartTime, TimeSpan EndTime) ThirdPair = (new TimeSpan(12, 20, 0), new TimeSpan(13, 50, 0));
@@ -228,6 +241,11 @@
             return this.Title == string.Empty && this.Type == string.Empty;
         }
 
+        public bool IsImportant()
+        {
+            return IsTypeImportant(this.Type);
+        }
+
         public (string StartTime, string EndTime) GetTime(DateTime date)
         {
             switch (this.Order)
@@ -280,6 +298,22 @@
                     //this.logger.Warn("Suspicious behavior: Unplanned lesson number {num}. " +
                     //"Additional data: {groupIsEvening}, {groupDateFrom}", lessonPosition, groupIsEvening, groupDateFrom);
                     return (string.Empty, string.Empty);
+            }
+        }
+
+        public static bool IsTypeImportant(string type)
+        {
+            if (type.Contains(Exam, StringComparison.OrdinalIgnoreCase) ||
+                type.Contains(Credit, StringComparison.OrdinalIgnoreCase) ||
+                type.Contains(CourseProject, StringComparison.OrdinalIgnoreCase) ||
+                type.Contains(CreditWithRating, StringComparison.OrdinalIgnoreCase) ||
+                type.Contains(ExaminationShow, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 

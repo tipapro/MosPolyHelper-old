@@ -18,7 +18,7 @@
         app:defaultValue="true"/>
 </PreferenceScreen>-->
   <PreferenceScreen
-      app:title="Оформление"
+      app:title="@string/appearance"
       app:key="DecorScreen"
       app:persistent="false">
     <SwitchPreferenceCompat

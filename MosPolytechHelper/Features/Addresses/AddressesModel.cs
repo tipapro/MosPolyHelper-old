@@ -1,6 +1,6 @@
 ﻿namespace MosPolyHelper.Features.Addresses
 {
-    using MosPolyHelper.Domains.BuildingsDomain;
+    using MosPolyHelper.Domains.AddressesDomain;
     using MosPolyHelper.Utilities;
     using MosPolyHelper.Utilities.Interfaces;
     using System;
@@ -10,33 +10,33 @@
 
     class AddressesModel
     {
-        const string BuildingsFile = "cached_buildings";
-        const string BuildingsUrl = "https://raw.githubusercontent.com/tipapro/MosPolyHelper-UpdatedData/master/buildings.json";
+        const string BuildingsFile = "cached_addresses";
+        const string BuildingsUrl = "https://raw.githubusercontent.com/tipapro/MosPolyHelper-UpdatedData/master/addresses.json";
 
         IDeserializer deserializer;
         ISerializer serializer;
 
-        Task<Buildings> ReadBuildingsAsync()
+        Task<Addresses> ReadAddressesAsync()
         {
             string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), BuildingsFile);
             if (!File.Exists(filePath))
             {
-                return Task.FromResult<Buildings>(null);
+                return Task.FromResult<Addresses>(null);
             }
             else
             {
                 var serBuildings = File.OpenRead(filePath);
-                return deserializer.DeserializeAsync<Buildings>(serBuildings);
+                return deserializer.DeserializeAsync<Addresses>(serBuildings);
             }
         }
 
-        async Task<Buildings> DownloadBuildingsAsync()
+        async Task<Addresses> DownloadAddressesAsync()
         {
             try
             {
                 var client = new WebClient();
                 var serBuildings = await client.DownloadStringTaskAsync(BuildingsUrl);
-                return await deserializer.DeserializeAsync<Buildings>(serBuildings);
+                return await deserializer.DeserializeAsync<Addresses>(serBuildings);
             }
             catch (Exception ex)
             {
@@ -44,16 +44,16 @@
             }
         }
 
-        Task SaveBuildingsAsync(Buildings buildings)
+        Task SaveAddressesAsync(Addresses buildings)
         {
             string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), BuildingsFile);
             File.Delete(filePath);
             return serializer.SerializeAndSaveAsync(filePath, buildings);
         }
 
-        Task<Buildings> GetBuildingsFromAssets()
+        Task<Addresses> GetAddressesFromAssets()
         {
-            return deserializer.DeserializeAsync<Buildings>(AssetProvider.GetAsset("buildings.json"));
+            return deserializer.DeserializeAsync<Addresses>(AssetProvider.GetAsset("addresses.json"));
         }
 
         public AddressesModel()
@@ -62,33 +62,33 @@
             this.deserializer = DependencyInjector.GetJsonIDeserializer();
         }
 
-        public async Task<Buildings> GetBuildingsAsync(bool downloadNew)
+        public async Task<Addresses> GetAddressesAsync(bool downloadNew)
         {
-            Buildings buildings = null;
+            Addresses addresses = null;
             if (!downloadNew)
             {
                 try
                 {
-                    buildings = await ReadBuildingsAsync();
+                    addresses = await ReadAddressesAsync();
                 }
                 catch (Exception ex)
                 {
 
                 }
             }
-            if (buildings == null)
+            if (addresses == null)
             {
-                buildings = await DownloadBuildingsAsync();
-                if (buildings == null)
+                addresses = await DownloadAddressesAsync();
+                if (addresses == null)
                 {
                     if (downloadNew)
                     {
                         try
                         {
-                            buildings = await ReadBuildingsAsync();
-                            if (buildings != null)
+                            addresses = await ReadAddressesAsync();
+                            if (addresses != null)
                             {
-                                return buildings;
+                                return addresses;
                             }
                         }
                         catch (Exception ex)
@@ -96,14 +96,14 @@
 
                         }
                     }
-                    buildings = await GetBuildingsFromAssets();
+                    addresses = await GetAddressesFromAssets();
                 }
                 else
                 {
-                    await SaveBuildingsAsync(buildings);
+                    await SaveAddressesAsync(addresses);
                 }
             }
-            return buildings;
+            return addresses;
         }
     }
 }

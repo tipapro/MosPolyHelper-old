@@ -13,23 +13,14 @@
 
     public class DailyShceduleGridAdapter : RecyclerView.Adapter
     {
-        #region LessonTypeConstants
-        const string CourseProject = "кп";
-        const string Exam = "экзамен";
-        const string Credit = "зачет";
-        const string Consultation = "консультация";
-        const string Laboratory = "лаб";
-        const string Practice = "практика";
-        const string Lecture = "лекция";
-        const string Other = "другое";
-        #endregion LessonTypeConstants
-
         Schedule schedule;
         Schedule.Filter scheduleFilter;
         CultureInfo customFormat;
         int itemCount;
         Color colorParagraph;
         Color colorTimeBackground;
+        Color colorTitle;
+        Color colorCurrentTitle;
 
         readonly Color[] lessonTimeColors = new Color[]
         {
@@ -49,28 +40,17 @@
             new Color(41, 182, 246)   // Other
         };
 
-        Color GetLessonTypeColor(string lessonType)
-        {
-            if (lessonType.Contains(Exam, StringComparison.OrdinalIgnoreCase) ||
-                lessonType.Contains(Credit, StringComparison.OrdinalIgnoreCase))
-            {
-                return this.lessonTypeColors[0];
-            }
-            else
-            {
-                return this.lessonTypeColors[1];
-            }
-        }
-
         public override int ItemCount => this.itemCount;
         public event Action<DateTime> ItemClick;
         public bool ShowGroup { get; set; }
 
         public DailyShceduleGridAdapter(Schedule schedule, Schedule.Filter scheduleFilter, bool showGroup,
-            Color colorParagraph, Color colorTimeBackground)
+            Color colorParagraph, Color colorTimeBackground, Color colorTitle, Color colorCurrentTitle)
         {
             this.scheduleFilter = scheduleFilter;
             this.schedule = schedule;
+            this.colorTitle = colorTitle;
+            this.colorCurrentTitle = colorCurrentTitle;
             this.ShowGroup = showGroup;
             SetCount(schedule);
             if (schedule != null)
@@ -111,10 +91,10 @@
             void SetHead(ViewHolder viewHolder, DateTime date)
             {
                 using var res = new SpannableStringBuilder();
-                viewHolder.LessonTime.SetTextColor(new Color(120, 142, 161));
+                viewHolder.LessonTime.SetTextColor(colorTitle);
                 if (date == DateTime.Today)
                 {
-                    viewHolder.LessonTime.SetTextColor(new Color(0, 163, 0));
+                    viewHolder.LessonTime.SetTextColor(colorCurrentTitle);
                 }
                 viewHolder.LessonTime.SetText(date.ToString("ddd, d MMM", this.customFormat).Replace('.', '\0'), TextView.BufferType.Normal);
             }
@@ -137,13 +117,13 @@
                 {
                     SpansAppend(res, "\n" + dailySchedule[0].Type.ToUpper() + "  " +
                         dailySchedule[0].Group.Title, SpanTypes.ExclusiveExclusive,
-                    new ForegroundColorSpan(GetLessonTypeColor(dailySchedule[0].Type)),
+                    new ForegroundColorSpan(dailySchedule[0].IsImportant() ? this.lessonTypeColors[0] : this.lessonTypeColors[1]),
                     new RelativeSizeSpan(0.8f), new TypefaceSpan("sans-serif-medium"));
                 }
                 else
                 {
                     SpansAppend(res, "\n" + dailySchedule[0].Type.ToUpper(), SpanTypes.ExclusiveExclusive,
-                    new ForegroundColorSpan(GetLessonTypeColor(dailySchedule[0].Type)),
+                    new ForegroundColorSpan(dailySchedule[0].IsImportant() ? this.lessonTypeColors[0] : this.lessonTypeColors[1]),
                     new RelativeSizeSpan(0.8f), new TypefaceSpan("sans-serif-medium"));
                 }
 
@@ -166,13 +146,13 @@
                     {
                         SpansAppend(res, "\n" + dailySchedule[i].Type.ToUpper() + "  " +
                             dailySchedule[i].Group.Title, SpanTypes.ExclusiveExclusive,
-                        new ForegroundColorSpan(GetLessonTypeColor(dailySchedule[i].Type)),
+                        new ForegroundColorSpan(dailySchedule[i].IsImportant() ? this.lessonTypeColors[0] : this.lessonTypeColors[1]),
                         new RelativeSizeSpan(0.8f), new TypefaceSpan("sans-serif-medium"));
                     }
                     else
                     {
                         SpansAppend(res, "\n" + dailySchedule[i].Type.ToUpper(), SpanTypes.ExclusiveExclusive,
-                        new ForegroundColorSpan(GetLessonTypeColor(dailySchedule[i].Type)),
+                        new ForegroundColorSpan(dailySchedule[i].IsImportant() ? this.lessonTypeColors[0] : this.lessonTypeColors[1]),
                         new RelativeSizeSpan(0.8f), new TypefaceSpan("sans-serif-medium"));
                     }
                     title = dailySchedule[i].Title;
@@ -226,7 +206,7 @@
             else
             {
                 this.itemCount = (schedule.To - schedule.From).Days + 1;
-                if (this.itemCount > 400)
+                if (this.itemCount > 400 || this.itemCount < 0)
                 {
                     this.itemCount = 400;
                 }

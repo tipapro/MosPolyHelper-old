@@ -8,6 +8,8 @@
     [ProtoContract(IgnoreListHandling = true)]
     public partial class Schedule : IEnumerable<Schedule.Daily>
     {
+        public const int RequiredVersion = 2;
+
         [ProtoMember(1)]
         Daily[] dailyShedules { get; set; } // get and set for correct work of protofub
 
@@ -22,7 +24,7 @@
         [ProtoIgnore]
         public int Count => this.dailyShedules?.Length ?? 0;
         [ProtoMember(4)]
-        public string Version { get; set; }
+        public int Version { get; set; }
         [ProtoMember(5)]
         public DateTime From { get; set; }
         [ProtoMember(6)]
@@ -32,7 +34,7 @@
         {
         }
 
-        public Schedule(Schedule.Daily[] schedule, Group group, bool isByDate, DateTime lastUpdate, string version)
+        public Schedule(Schedule.Daily[] schedule, Group group, bool isByDate, DateTime lastUpdate, int version)
         {
             this.dailyShedules = schedule;
             this.Group = group;
@@ -42,7 +44,7 @@
             (this.From, this.To) = GetScheduduleBorders();
         }
 
-        public Schedule(Schedule.Daily[] schedule, Group group, bool isByDate, DateTime lastUpdate, string version,
+        public Schedule(Schedule.Daily[] schedule, Group group, bool isByDate, DateTime lastUpdate, int version,
             DateTime from, DateTime to)
         {
             this.dailyShedules = schedule;

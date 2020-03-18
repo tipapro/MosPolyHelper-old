@@ -1,6 +1,6 @@
 ﻿namespace MosPolyHelper.Features.Addresses
 {
-    using MosPolyHelper.Domains.BuildingsDomain;
+    using MosPolyHelper.Domains.AddressesDomain;
     using MosPolyHelper.Features.Common;
     using MosPolyHelper.Utilities;
     using MosPolyHelper.Utilities.Interfaces;
@@ -8,19 +8,19 @@
     class AddressesVm : ViewModelBase
     {
         ILogger logger;
-        AddressesModel model;
-        Buildings buildings;
+        readonly AddressesModel model;
+        Addresses addresses;
 
-        public Buildings Buildings
+        public Addresses Addresses
         {
-            get => this.buildings;
-            set => SetValue(ref this.buildings, value);
+            get => this.addresses;
+            set => SetValue(ref this.addresses, value);
         }
         public ICommand RefreshCommand { get; }
         public ICommand InfoCommand { get; }
 
         public AddressesVm(ILoggerFactory loggerFactory, IMediator<ViewModels, VmMessage> mediator) :
-            base(mediator, ViewModels.Buildings)
+            base(mediator, ViewModels.Addresses)
         {
             this.logger = loggerFactory.Create<AddressesVm>();
             this.model = new AddressesModel();
@@ -30,12 +30,12 @@
 
         async void Refresh()
         {
-            this.Buildings = await this.model.GetBuildingsAsync(true);
+            this.Addresses = await this.model.GetAddressesAsync(true);
         }
 
-        public async void SetUpBuildings()
+        public async void SetUpAddresses()
         {
-            this.Buildings = await this.model.GetBuildingsAsync(false);
+            this.Addresses = await this.model.GetAddressesAsync(false);
         }
 
         void GetInfo()

@@ -99,7 +99,7 @@
             }
 
             public static Filter DefaultFilter =>
-                new Filter(DateFilter.Show, ModuleFilter.Off, WeekFilter.Off, false, WeekType.None);
+                new Filter(DateFilter.Hide, ModuleFilter.Off, WeekFilter.Off, true, WeekType.None);
 
             public DateFilter DateFilter { get; set; }
             public ModuleFilter ModuleFilter { get; set; }
@@ -138,10 +138,7 @@
                         {
                             continue;
                         }
-                        if (date < lesson.DateFrom &&
-                            !lesson.Type.Contains("зачет", StringComparison.OrdinalIgnoreCase) &&
-                            !lesson.Type.Contains("экзамен", StringComparison.OrdinalIgnoreCase) &&
-                            !lesson.Type.Contains("зачёт", StringComparison.OrdinalIgnoreCase))
+                        if (date < lesson.DateFrom && !lesson.IsImportant())
                         {
                             continue;
                         }
@@ -159,10 +156,7 @@
 
                     if (this.SessionFilter)
                     {
-                        if ((date < lesson.DateFrom || date > lesson.DateTo)
-                            && (lesson.Type.Contains("зачет", StringComparison.OrdinalIgnoreCase) ||
-                            lesson.Type.Contains("экзамен", StringComparison.OrdinalIgnoreCase) ||
-                            lesson.Type.Contains("зачёт", StringComparison.OrdinalIgnoreCase)))
+                        if ((date < lesson.DateFrom || date > lesson.DateTo) && lesson.IsImportant())
                         {
                             continue;
                         }

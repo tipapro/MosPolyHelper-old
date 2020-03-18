@@ -20,7 +20,6 @@
         string[] groupList;
         Schedule schedule;
         DateTime date;
-        ScheduleType scheduleType;
 
         void HandleMessage(VmMessage message)
         {
@@ -74,6 +73,8 @@
                 ScheduleEndDownloading?.Invoke();
             }
         }
+
+        public string SerializedSchedule => this.model.SerializedSchedule;
         public DateTime Date
         {
             get => this.date;
@@ -96,16 +97,13 @@
             get => this.groupList;
             set => SetValue(ref this.groupList, value);
         }
-        public ScheduleType ScheduleType
-        {
-            get => this.scheduleType;
-            set => SetValue(ref this.scheduleType, value);
-        }
+        public bool ScheduleDownloaded { get; private set; }
+
         public ICommand SubmitGroupCommand { get; }
         public ICommand GoHomeCommand { get; }
         public Schedule.Filter ScheduleFilter { get; set; }
         public bool ShowEmptyLessons { get; set; }
-        public bool ShowColoredLessons { get; set; }
+        //public bool ShowColoredLessons { get; set; }
         public bool IsAdvancedSearch { get; set; }
 
         public ICommand ScheduleTypeChanged { get; }
@@ -135,7 +133,8 @@
             this.ScheduleFilter = scheduleFilter;
             Subscribe(HandleMessage);
             GetGroupList(true);
-            this.ScheduleTypeChanged = new Command<ScheduleType>(ChangeScheduleType);
+            this.ScheduleTypeChanged = new Command<bool>(ChangeScheduleType);
+            ScheduleDownloaded = false;
         }
 
         public void UpdateSchedule()
@@ -177,6 +176,7 @@
             Send(ViewModels.ScheduleLessonInfo, "LessonInfo", par.Item1, par.Item2);
         }
 
+
         public void OpenCalendar(DateTime date)
         {
             Send(ViewModels.ScheduleCalendar, "CalendarMode", this.Schedule, date, this.ScheduleFilter, this.IsAdvancedSearch);
@@ -184,6 +184,31 @@
 
         public void GoHome()
         {
+            this.Date = DateTime.Today;
+        }
+
+        //public async void ScheduleFromPreferences(string serSchedule)
+        //{
+        //    if (serSchedule == null)
+        //    {
+        //        if (groupTitle != null)
+        //        {
+        //            SetUpScheduleAsync(false, true);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        // TODO: FixDate
+        //        await this.model.ScheduleFromSerializedAsync(serSchedule, this.IsSession, DateTime.Today);
+        //        this.schedule = this.model.Schedule;
+        //        ScheduleDownloaded = true;
+        //        MainThread.BeginInvokeOnMainThread(() => OnPropertyChanged(nameof(this.Schedule)));
+        //    }
+        //}
+
+        public void SetUpSchedule(Schedule schedule)
+        {
+            this.schedule = schedule;
             OnPropertyChanged(nameof(this.Schedule));
         }
 
@@ -195,21 +220,29 @@
             }
             if (string.IsNullOrEmpty(this.GroupTitle))
             {
-                this.Schedule = null;
+                this.schedule = this.model.Schedule;
+                ScheduleDownloaded = true;
+                OnPropertyChanged(nameof(this.Schedule));
                 return;
             }
             await this.model.GetScheduleAsync(this.GroupTitle, this.IsSession, downloadNew);
-            if (this.model.Schedule == null && !downloadNew)
+            if (this.model.Schedule == null)
             {
                 await this.model.GetScheduleAsync(this.GroupTitle, this.IsSession, !downloadNew);
             }
             if (notMainThread)
             {
-                MainThread.BeginInvokeOnMainThread(() => this.Schedule = this.model.Schedule);
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    this.schedule = this.model.Schedule;
+                    ScheduleDownloaded = true;
+                    OnPropertyChanged(nameof(this.Schedule));
+                });
             }
             else
             {
                 this.schedule = this.model.Schedule;
+                ScheduleDownloaded = true;
                 OnPropertyChanged(nameof(this.Schedule));
                 ScheduleEndDownloading?.Invoke();
             }
@@ -218,16 +251,13 @@
         public async Task<(Schedule[] Schedules, string[] LessonTitles, string[] Teachers, string[] Auditoriums, string[] LessonTypes)>
             GetAdvancedSearchData(IList<string> groupList, CancellationToken ct, Action<int> onProgressChanged)
         {
-
             this.model.DownloadProgressChanged += onProgressChanged;
             return await this.model.GetSchedules(groupList, ct);
-
         }
 
-        public void ChangeScheduleType(ScheduleType scheduleType)
+        public void ChangeScheduleType(bool isSession)
         {
-            this.scheduleType = scheduleType;
-            this.IsSession = scheduleType == ScheduleType.Session;
+            this.IsSession = isSession;
             SetUpScheduleAsync(true);
         }
 

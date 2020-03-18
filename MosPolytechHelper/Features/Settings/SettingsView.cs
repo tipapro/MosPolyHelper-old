@@ -26,8 +26,8 @@
         {
             base.OnViewCreated(view, savedInstanceState);
             var toolbar = view.FindViewById<Toolbar>(Resource.Id.toolbar);
-            (this.Activity as MainView)?.SetSupportActionBar(toolbar);
             toolbar.Title = GetString(Resource.String.settings_title);
+            (this.Activity as MainView)?.SetSupportActionBar(toolbar);
             if (this.PreferenceScreen.Key == "MainScreen")
             {
                 var drawer = this.Activity.FindViewById<DrawerLayout>(Resource.Id.drawer_layout);

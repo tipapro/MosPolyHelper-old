@@ -13,21 +13,24 @@
     using AndroidX.DrawerLayout.Widget;
     using AndroidX.Preference;
     using Google.Android.Material.Navigation;
+    using MosPolyHelper.Domains.ScheduleDomain;
     using MosPolyHelper.Features.Addresses;
     using MosPolyHelper.Features.Common;
     using MosPolyHelper.Features.Common.Interfaces;
     using MosPolyHelper.Features.Schedule;
     using MosPolyHelper.Features.Settings;
-    using MosPolyHelper.Features.Splash;
     using MosPolyHelper.Utilities;
     using MosPolyHelper.Utilities.Interfaces;
     using System;
     using System.Threading.Tasks;
 
-    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = false,
+    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.Splash", MainLauncher = true,
     ScreenOrientation = ScreenOrientation.Portrait, WindowSoftInputMode = SoftInput.AdjustPan)]
     public class MainView : AppCompatActivity, ISharedPreferencesOnSharedPreferenceChangeListener
     {
+        const int launchCode = 0;
+        Task<ScheduleVm> ScheduleVmPreloadTask;
+
         string clickBackAgain;
         bool doubleBackToExitPressedOnce;
         IFragmentBase prevFragment;
@@ -36,9 +39,73 @@
         ILogger logger;
         MainVm viewModel;
 
+        public MainView()
+        {
+            this.viewModel = new MainVm(DependencyInjector.GetIMediator());
+        }
+
+        ScheduleVm PrepareSchdeuleVm(ISharedPreferences prefs)
+        {
+            var loggerFactory = DependencyInjector.GetILoggerFactory(this.Assets.Open("NLog.config"));
+            string groupTitle = prefs.GetString(PreferencesConstants.ScheduleGroupTitle, DefaultSettings.ScheduleGroupTitle);
+
+            var scheduleFilter = Schedule.Filter.DefaultFilter;
+            scheduleFilter.DateFilter = (DateFilter)prefs.GetInt(PreferencesConstants.ScheduleDateFilter,
+                (int)scheduleFilter.DateFilter);
+            scheduleFilter.SessionFilter = prefs.GetBoolean(PreferencesConstants.ScheduleSessionFilter,
+                scheduleFilter.SessionFilter);
+
+#warning fix on release
+            bool isSession;
+            try
+            {
+                isSession = prefs.GetBoolean(PreferencesConstants.ScheduleTypePreference,
+                    DefaultSettings.ScheduleTypePreference);
+            }
+            catch
+            {
+                isSession = prefs.GetInt(PreferencesConstants.ScheduleTypePreference, 0) == 1;
+            }
+
+            var viewModel = new ScheduleVm(loggerFactory, DependencyInjector.GetIMediator(), isSession, scheduleFilter)
+            {
+                GroupTitle = groupTitle
+            };
+            viewModel.ShowEmptyLessons = prefs.GetBoolean(PreferencesConstants.ScheduleShowEmptyLessons, 
+                DefaultSettings.ScheduleShowEmptyLessons);
+            //viewModel.ShowColoredLessons = prefs.GetBoolean(PreferencesConstants.ScheduleShowColoredLessons, );
+            viewModel.SetUpScheduleAsync(false, true);
+            return viewModel;
+        }
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
+            if (savedInstanceState == null)
+            {
+                var prefs = PreferenceManager.GetDefaultSharedPreferences(this);
+                AppCompatDelegate.DefaultNightMode = prefs.GetBoolean("NightMode", default) ?
+                            AppCompatDelegate.ModeNightYes : AppCompatDelegate.ModeNightNo;
+
+
+
+#warning fix on release
+                int firstLaunch;
+                try
+                {
+                    firstLaunch = prefs.GetInt(PreferencesConstants.FirstLaunch, launchCode);
+                }
+                catch
+                {
+                    firstLaunch = launchCode;
+                }
+                if (firstLaunch == launchCode)
+                {
+                    prefs.Edit().Clear().Apply();
+                    prefs.Edit().PutInt(PreferencesConstants.FirstLaunch, launchCode + 1).Apply();
+                }
+                this.ScheduleVmPreloadTask = Task.Run(() => PrepareSchdeuleVm(prefs));
+            }
+            SetTheme(Resource.Style.AppTheme_NoActionBar);
             base.OnCreate(savedInstanceState);
             SetContentView(Resource.Layout.activity_main);
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
@@ -46,18 +113,14 @@
             {
                 this.loggerFactory = DependencyInjector.GetILoggerFactory();
             }
-            this.viewModel = new MainVm(DependencyInjector.GetIMediator());
+            StringProvider.Context = this;
+            AssetProvider.AssetManager = this.Assets;
             StringProvider.SetUpLogger(this.loggerFactory);
-            var awaiter = SplashView.ScheduleVmPreloadTask?.GetAwaiter();
-            ScheduleVm scheduleVm = null;
-            if (awaiter.HasValue)
-            {
-                scheduleVm = awaiter.Value.GetResult();
-            }
-            SplashView.ScheduleVmPreloadTask = null;
+
             if (savedInstanceState == null)
             {
-                ChangeFragment(ScheduleView.NewInstance(scheduleVm), true);
+                ChangeFragment(ScheduleView.NewInstance(this.ScheduleVmPreloadTask), true);
+                //SplashView.ScheduleVmPreloadTask = null;
             }
             else
             {
@@ -69,7 +132,6 @@
                 new string[] { Android.Manifest.Permission.Internet }, 123);
 
             this.logger = this.loggerFactory.Create<MainView>();
-            var currentNightMode = this.Resources.Configuration.UiMode;
 
             var navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
             navigationView.NavigationItemSelected += (obj, arg) => OnNavigationItemSelected(arg.MenuItem);
@@ -159,12 +221,6 @@
             this.doubleBackToExitPressedOnce = false;
         }
 
-        public override bool OnOptionsItemSelected(IMenuItem item)
-        {
-
-            return base.OnOptionsItemSelected(item);
-        }
-
         public bool OnNavigationItemSelected(IMenuItem item)
         {
             int id = item.ItemId;
@@ -223,12 +279,12 @@
         public void ChangeFragment(IFragmentBase fragment, bool disposePrevious)
         {
             this.prevFragment = this.SupportFragmentManager.FindFragmentById(Resource.Id.frame_schedule) as FragmentBase;
-            if (this.prevFragment != null && disposePrevious)
-            {
-                this.prevFragment.Fragment.Dispose();
-            }
             if (disposePrevious)
             {
+                if (this.prevFragment != null)
+                {
+                    //this.prevFragment.Fragment.Dispose();
+                }
                 this.SupportFragmentManager.BeginTransaction().Replace(Resource.Id.frame_schedule, fragment.Fragment).Commit();
             }
             else
@@ -241,7 +297,7 @@
 
         protected override void OnDestroy()
         {
-            NLog.LogManager.Flush();
+            //NLog.LogManager.Flush();
             PreferenceManager.GetDefaultSharedPreferences(this)
                 .UnregisterOnSharedPreferenceChangeListener(this);
             base.OnDestroy();
@@ -249,7 +305,7 @@
 
         protected override void OnStop()
         {
-            NLog.LogManager.Flush();
+            //NLog.LogManager.Flush();
             base.OnStop();
         }
 

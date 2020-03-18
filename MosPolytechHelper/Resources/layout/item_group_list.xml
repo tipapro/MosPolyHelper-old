@@ -4,6 +4,6 @@
     android:layout_height="match_parent" 
     android:padding="10dp" 
     android:textSize="16sp" 
-    android:background="#353535" 
+    android:background="@color/drawerColor" 
     android:textColor="@color/textColorPrimary">
 </TextView> 

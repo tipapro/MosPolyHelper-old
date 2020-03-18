@@ -2,6 +2,8 @@
 {
     using MosPolyHelper.Utilities.Interfaces;
     using ProtoBuf;
+    using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
 
@@ -9,12 +11,8 @@
     {
         MemoryStream GenerateStreamFromString(string s)
         {
-            var stream = new MemoryStream();
-            var streamWriter = new StreamWriter(stream);
-            streamWriter.Write(s);
-            streamWriter.Flush();
-            stream.Position = 0;
-            return stream;
+            byte[] byteAfter64 = Convert.FromBase64String(s);
+            return new MemoryStream(byteAfter64);
         }
 
         public Task<T> DeserializeAsync<T>(string serializedObj)
@@ -35,11 +33,13 @@
 
         public Task<string> SerializeAsync<T>(T obj)
         {
-            var stream = new MemoryStream();
-            Serializer.Serialize(stream, obj);
-            stream.Position = 0;
-            using var sr = new StreamReader(stream);
-            return sr.ReadToEndAsync();
+            return Task.Run(() =>
+            {
+                var stream = new MemoryStream();
+                Serializer.Serialize(stream, obj);
+                var str = Convert.ToBase64String(stream.GetBuffer(), 0, (int)stream.Length);
+                return str;
+            });
         }
 
         public Task SerializeAndSaveAsync<T>(string filePath, T obj)

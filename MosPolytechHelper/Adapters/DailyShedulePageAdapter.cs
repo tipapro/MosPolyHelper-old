@@ -25,7 +25,7 @@
         public Schedule Schedule;
         Schedule.Filter scheduleFilter;
         bool showEmptyLessons;
-        bool showColoredLessons;
+        //bool showColoredLessons;
         bool showGroup;
         bool loading;
         int count;
@@ -34,13 +34,13 @@
 
         void SetFirstPosDate(Schedule schedule)
         {
-            if (!schedule.IsByDate)
+            if (schedule == null)
+            {
+                return;
+            }
+            else if (!schedule.IsByDate)
             {
                 this.FirstPosDate = this.count == 400 ? DateTime.Today.AddDays(-200) : schedule.From;
-            }
-            else if (this.Schedule == null)
-            {
-                this.FirstPosDate = DateTime.Today;
             }
             else
             {
@@ -56,19 +56,16 @@
         public event Action<Lesson, DateTime> LessonClick;
 
         public DailyShedulePageAdapter(Schedule schedule, Schedule.Filter scheduleFilter,
-            bool showEmptyLessons, bool showColoredLessons, bool showGroup, bool loading)
+            bool showEmptyLessons, bool showGroup, bool loading)
         {
             this.Schedule = schedule;
             this.scheduleFilter = scheduleFilter;
             this.showEmptyLessons = showEmptyLessons;
-            this.showColoredLessons = showColoredLessons;
+            //this.showColoredLessons = showColoredLessons;
             this.showGroup = showGroup;
             this.loading = loading;
             SetCount(schedule);
-            if (this.Schedule != null)
-            {
-                SetFirstPosDate(this.Schedule);
-            }
+            SetFirstPosDate(this.Schedule);
             this.recyclerAdapters = new PairAdapter[3];
             this.views = new View[3];
             this.dayBtn = new Button[3];
@@ -108,7 +105,7 @@
             else
             {
                 this.count = (schedule.To - schedule.From).Days + 1;
-                if (this.count > 400)
+                if (this.count > 400 || this.count < 0)
                 {
                     this.count = 400;
                 }
@@ -196,11 +193,13 @@
             {
                 var nightMode = (container.Context.Resources.Configuration.UiMode & UiMode.NightMask) == UiMode.NightYes;
                 var disabledColor = new Color(container.Context.GetColor(Resource.Color.textSecondaryDisabled));
+                var headColor = new Color(container.Context.GetColor(Resource.Color.textLessonHead));
+                var headCurrentColor = new Color(container.Context.GetColor(Resource.Color.textLessonHeadCurrent));
                 this.recyclerAdapters[position % 3] = new PairAdapter(
                        this.views[position % 3].FindViewById<TextView>(Resource.Id.text_null_lesson),
                        this.Schedule.GetSchedule(date, this.scheduleFilter),
-                       this.scheduleFilter, date, this.showEmptyLessons, this.showColoredLessons, this.showGroup, 
-                       nightMode, disabledColor);
+                       this.scheduleFilter, date, this.showEmptyLessons, this.showGroup, 
+                       nightMode, disabledColor, headColor, headCurrentColor);
                 this.recyclerViews[position % 3].SetItemAnimator(null);
                 this.recyclerViews[position % 3].SetLayoutManager(new LinearLayoutManager(container.Context));
                 this.recyclerViews[position % 3].SetAdapter(this.recyclerAdapters[position % 3]);
@@ -210,7 +209,7 @@
             else
             {
                 this.recyclerAdapters[position % 3].BuildSchedule(this.Schedule.GetSchedule(date, this.scheduleFilter),
-                    this.scheduleFilter, date, this.showEmptyLessons, this.showColoredLessons, this.showGroup);
+                    this.scheduleFilter, date, this.showEmptyLessons, this.showGroup);
                 this.recyclerViews[position % 3].ScrollToPosition(0);
                 this.dayBtn[position % 3].Elevation = accumulators[position % 3] = 0;
             }

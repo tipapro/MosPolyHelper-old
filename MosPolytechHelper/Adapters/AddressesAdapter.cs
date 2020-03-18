@@ -5,20 +5,20 @@
     using Android.Views;
     using Android.Widget;
     using AndroidX.RecyclerView.Widget;
-    using MosPolyHelper.Domains.BuildingsDomain;
+    using MosPolyHelper.Domains.AddressesDomain;
 
     class AddressesAdapter : RecyclerView.Adapter
     {
-        Buildings buildings;
+        Addresses buildings;
 
         public override int ItemCount => this.buildings.Count;
 
-        public AddressesAdapter(Buildings buildings)
+        public AddressesAdapter(Addresses buildings)
         {
             this.buildings = buildings;
         }
 
-        public void Update(Buildings buildings)
+        public void Update(Addresses buildings)
         {
             this.buildings = buildings;
             NotifyDataSetChanged();
