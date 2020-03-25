@@ -1,7 +1,7 @@
 ﻿namespace MosPolyHelper.Utilities
 {
-    using MosPolyHelper.Utilities.Interfaces;
     using MosPolyHelper.Domains.ScheduleDomain;
+    using MosPolyHelper.Utilities.Interfaces;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
@@ -146,10 +146,11 @@
             string subjectTitle = jToken[LessonSubjectKey]?.ToObject<string>();
             if (subjectTitle == null)
             {
-                return null;
+                subjectTitle = "Не найден ключ названия занятия. Возможно, структура расписания была обновлена: " +
+                    jToken.ToString();
             }
             int order = int.Parse(index) - 1;
-            string[] teachers = ConvertToTeachers(jToken[LessonTeacherKey]);
+            string[] teachers = ConvertToTeachers(jToken);
             var dateFrom = isByDate ? date : jToken[LessonDateFromKey]?.ToObject<DateTime>();
             if (!dateFrom.HasValue)
             {
@@ -168,9 +169,9 @@
                 dateFrom = dateTo;
                 dateTo = bufDateFrom;
             }
-            var auditoriums = ConvertToAuditoriums(jToken[LessonAuditoriumsKey]);
-            string type = jToken[LessonTypeKey]?.ToObject<string>();
-            var week = ConvertToWeekType(jToken[LessonWeekKey]);
+            var auditoriums = ConvertToAuditoriums(jToken);
+            string type = jToken[LessonTypeKey]?.ToObject<string>() ?? string.Empty;
+            var week = ConvertToWeekType(jToken);
             var module = ConvertToModule(jToken);
 
             return new Lesson(order, subjectTitle, teachers, dateFrom.Value, dateTo.Value,
@@ -199,30 +200,40 @@
 
         string[] ConvertToTeachers(JToken jToken)
         {
-            string teacher = jToken?.ToObject<string>();
+            string teacher = jToken[LessonTeacherKey]?.ToObject<string>();
             if (string.IsNullOrEmpty(teacher))
             {
                 this.logger.Warn($"Key {LessonTeacherKey} wasn't found");
+                return new string[] { string.Empty };
             }
-            return teacher?.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            else
+            {
+                return teacher.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            }
         }
 
         Auditorium[] ConvertToAuditoriums(JToken jToken)
         {
-            var jArray = (JArray)jToken;
-            var auditoriums = new Auditorium[jArray.Count];
-            for (int i = 0; i < jArray.Count; i++)
+            if (jToken[LessonAuditoriumsKey] is JArray jArray)
             {
-                string name = jArray[i][AuditoriumTitleKey]?.ToObject<string>();
-                string color = jArray[i][AuditoriumColorKey]?.ToObject<string>();
-                auditoriums[i] = new Auditorium(name, color);
+                var auditoriums = new Auditorium[jArray.Count];
+                for (int i = 0; i < jArray.Count; i++)
+                {
+                    string name = jArray[i][AuditoriumTitleKey]?.ToObject<string>() ?? string.Empty;
+                    string color = jArray[i][AuditoriumColorKey]?.ToObject<string>();
+                    auditoriums[i] = new Auditorium(name, color);
+                }
+                return auditoriums;
             }
-            return auditoriums;
+            else
+            {
+                return null;
+            }
         }
 
         WeekType ConvertToWeekType(JToken jToken)
         {
-            string week = jToken?.ToObject<string>();
+            string week = jToken[LessonWeekKey]?.ToObject<string>();
             if (string.IsNullOrEmpty(week))
             {
                 return WeekType.None;

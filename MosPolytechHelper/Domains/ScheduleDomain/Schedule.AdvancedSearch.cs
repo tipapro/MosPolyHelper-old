@@ -35,12 +35,15 @@
                             }
 
                             bool auditoriumFlag = true;
-                            foreach (var auditorium in lesson.Auditoriums)
+                            if (lesson.Auditoriums != null)
                             {
-                                if (auditoriums.Count == 0 || auditoriums.Contains(auditorium.Name))
+                                foreach (var auditorium in lesson.Auditoriums)
                                 {
-                                    auditoriumFlag = false;
-                                    break;
+                                    if (auditoriums.Count == 0 || auditoriums.Contains(auditorium.Name))
+                                    {
+                                        auditoriumFlag = false;
+                                        break;
+                                    }
                                 }
                             }
                             if (auditoriumFlag)

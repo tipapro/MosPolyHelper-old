@@ -458,6 +458,15 @@
             };
         }
 
+        public override void OnResume()
+        { 
+            base.OnResume();
+            if (string.IsNullOrEmpty(this.textGroupTitle.Text))
+            {
+                this.textGroupTitle.RequestFocus();
+            }
+        }
+
         void ViewModel_ScheduleBeginDownloading()
         {
             SetUpSchedule(null, true);
@@ -474,11 +483,6 @@
             {
                 Toast.MakeText(this.Activity, msg, ToastLength.Short).Show();
             }
-        }
-
-        public override void OnResume()
-        {
-            base.OnResume();
         }
 
         void SetUpBotomSheet(View view)
@@ -740,7 +744,10 @@
                 //  (int)scheduleFilter.ModuleFilter);
                 scheduleFilter.SessionFilter = prefs.GetBoolean(PreferencesConstants.ScheduleSessionFilter, 
                     scheduleFilter.SessionFilter);
-                string groupTitle = prefs.GetString(PreferencesConstants.ScheduleGroupTitle, DefaultSettings.ScheduleGroupTitle);
+
+
+                string groupTitle = prefs.GetString(PreferencesConstants.ScheduleGroupTitle, 
+                    DefaultSettings.ScheduleGroupTitle);
 
 #warning fix on release
                 bool isSession;

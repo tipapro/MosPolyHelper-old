@@ -58,6 +58,15 @@
                 this.Activity.OnBackPressed();
             };
 
+            recyclerView.InterceptTouchEvent += (obj, arg) =>
+            {
+                if (arg.Event.Action == MotionEventActions.Down &&
+                recyclerView.ScrollState == RecyclerView.ScrollStateSettling)
+                {
+                    recyclerView.StopScroll();
+                }
+                arg.Handled = false;
+            };
             recyclerView.SetItemAnimator(null);
             recyclerView.SetLayoutManager(new GridLayoutManager(container.Context, 3));
             recyclerView.SetAdapter(recyclerAdapter);

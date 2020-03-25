@@ -245,8 +245,20 @@
                         var color = Color.ParseColor(colorString);
                         if (this.nightMode)
                         {
+                            var hue = color.GetHue();
+                            if (hue > 214f && hue < 286f)
+                            {
+                                if (hue >= 250f)
+                                {
+                                    hue = 214f;
+                                }
+                                else
+                                {
+                                    hue = 286f;
+                                }
+                            }
                             color = Color.HSVToColor(
-                                new float[] { color.GetHue(), color.GetSaturation(), color.GetBrightness() * 3f });
+                                new float[] { hue, color.GetSaturation(), color.GetBrightness() * 3 });
                         }
                         auditoriums.Append(audTitle + ", ",
                             new ForegroundColorSpan(color),
@@ -273,8 +285,20 @@
                         var color = Color.ParseColor(colorString);
                         if (this.nightMode)
                         {
+                            var hue = color.GetHue();
+                            if (hue > 214f && hue < 286f)
+                            {
+                                if (hue >= 250f)
+                                {
+                                    hue = 214f;
+                                }
+                                else
+                                {
+                                    hue = 286f;
+                                }
+                            }
                             color = Color.HSVToColor(
-                                new float[] { color.GetHue(), color.GetSaturation(), color.GetBrightness() * 3f });
+                                new float[] { hue, color.GetSaturation(), color.GetBrightness() * 3 });
                         }
                         auditoriums.Append(audTitle,
                             new ForegroundColorSpan(color),
@@ -437,9 +461,7 @@
             bool enabledFrom = viewHolder.Lesson.DateFrom <= this.Date || this.filter?.DateFilter != DateFilter.Desaturate;
             bool enabledTo = viewHolder.Lesson.DateTo >= this.Date || this.filter?.DateFilter != DateFilter.Desaturate;
             bool enabled = enabledFrom && enabledTo;
-            if (viewHolder.Lesson.Type.Contains("зачет", StringComparison.OrdinalIgnoreCase) ||
-                viewHolder.Lesson.Type.Contains("экзамен", StringComparison.OrdinalIgnoreCase) ||
-                viewHolder.Lesson.Type.Contains("зачёт", StringComparison.OrdinalIgnoreCase))
+            if (viewHolder.Lesson.IsImportant())
             {
                 enabled = enabledTo;
             }

@@ -405,9 +405,12 @@
                     {
                         teachers.TryAdd(teacher.GetFullName(), false);
                     }
-                    foreach (var auditorium in lesson.Auditoriums)
+                    if (lesson.Auditoriums != null)
                     {
-                        auditoriums.TryAdd(auditorium.Name, false);
+                        foreach (var auditorium in lesson.Auditoriums)
+                        {
+                            auditoriums.TryAdd(auditorium.Name, false);
+                        }
                     }
                     lessonTypes.TryAdd(lesson.Type, false);
                 }

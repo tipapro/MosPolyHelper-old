@@ -1,5 +1,6 @@
 ﻿namespace MosPolyHelper.Features.Schedule
 {
+    using Android.Animation;
     using Android.Content.Res;
     using Android.Graphics;
     using Android.OS;
@@ -10,6 +11,7 @@
     using Android.Views.InputMethods;
     using Android.Widget;
     using AndroidX.DrawerLayout.Widget;
+    using AndroidX.Transitions;
     using MosPolyHelper.Domains.ScheduleDomain;
     using MosPolyHelper.Features.Common;
     using MosPolyHelper.Features.Main;
@@ -28,9 +30,12 @@
 
         public bool NoteEdited { get; private set; }
 
+
         public ScheduleLessonInfoView() : base(Fragments.ScheduleLessonInfo)
         {
             this.viewModel = new ScheduleLessonInfoVm(DependencyInjector.GetILoggerFactory(), DependencyInjector.GetIMediator());
+            EnterTransition = new Slide((int)GravityFlags.Right);
+            ExitTransition = new Slide((int)GravityFlags.Left);
         }
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -112,8 +117,20 @@
                     var color = Color.ParseColor(colorString);
                     if (nightMode)
                     {
+                        var hue = color.GetHue();
+                        if (hue > 214f && hue < 286f)
+                        {
+                            if (hue >= 250f)
+                            {
+                                hue = 214f;
+                            }
+                            else
+                            {
+                                hue = 286f;
+                            }
+                        }
                         color = Color.HSVToColor(
-                            new float[] { color.GetHue(), color.GetSaturation(), color.GetBrightness() * 3f });
+                            new float[] { hue, color.GetSaturation(), color.GetBrightness() * 3 });
                     }
                     auditoriums.Append(audTitle + ", ",
                         new ForegroundColorSpan(color),
@@ -140,8 +157,20 @@
                     var color = Color.ParseColor(colorString);
                     if (nightMode)
                     {
+                        var hue = color.GetHue();
+                        if (hue > 214f && hue < 286f)
+                        {
+                            if (hue >= 250f)
+                            {
+                                hue = 214f;
+                            }
+                            else
+                            {
+                                hue = 286f;
+                            }
+                        }
                         color = Color.HSVToColor(
-                            new float[] { color.GetHue(), color.GetSaturation(), color.GetBrightness() * 3f });
+                            new float[] { hue, color.GetSaturation(), color.GetBrightness() * 3 });
                     }
                     auditoriums.Append(audTitle,
                         new ForegroundColorSpan(color),

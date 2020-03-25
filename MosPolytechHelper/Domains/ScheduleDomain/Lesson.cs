@@ -147,8 +147,15 @@
             this.Teachers = new Teacher[teachers.Length];
             for (int i = 0; i < teachers.Length; i++)
             {
-                this.Teachers[i] = new Teacher(teachers[i].Replace(" - ", "-").Replace(" -", "-").Replace("- ", "-")
-                    .Split(' ', StringSplitOptions.RemoveEmptyEntries));
+                if (teachers[i] == string.Empty)
+                {
+                    this.Teachers[i] = new Teacher(new string[] { string.Empty });
+                }
+                else
+                {
+                    this.Teachers[i] = new Teacher(teachers[i].Replace(" - ", "-").Replace(" -", "-").Replace("- ", "-")
+                                        .Split(' ', StringSplitOptions.RemoveEmptyEntries));
+                }
             }
             this.DateFrom = dateFrom;
             this.DateTo = dateTo;

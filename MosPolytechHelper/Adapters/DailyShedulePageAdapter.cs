@@ -114,20 +114,7 @@
 
         public override ICharSequence GetPageTitleFormatted(int position)
         {
-            if (this.Schedule == null)
-            {
-                return new Java.Lang.String("Нет расписания");
-            }
-            if (this.Schedule.IsByDate)
-            {
-                return new Java.Lang.String(new DateTime(this.Schedule.GetSchedule(0).Day)
-                    .AddDays(position).ToString(" ddd d MMM ").Replace('.', '\0').ToUpper());
-            }
-            else
-            {
-                return new Java.Lang.String(this.FirstPosDate
-                    .AddDays(position).ToString(" ddd d MMM ").Replace('.', '\0').ToUpper());
-            }
+            return new Java.Lang.String("");
         }
 
         public override Object InstantiateItem(ViewGroup container, int position)
@@ -160,13 +147,22 @@
                 new DateTime(this.Schedule.GetSchedule(0).Day).AddDays(position) : this.FirstPosDate.AddDays(position);
             if (this.recyclerViews[position % 3] == null)
             {
-                this.recyclerViews[position % 3] = this.views[position % 3]
+                var rv = this.recyclerViews[position % 3] = this.views[position % 3]
                     .FindViewById<RecyclerView>(Resource.Id.recycler_schedule);
                 var dp8 = TypedValue.ApplyDimension(ComplexUnitType.Dip, 8f, container.Resources.DisplayMetrics);
                 var dp32 = dp8 * 4;
-                this.recyclerViews[position % 3].ScrollChange += (obj, arg) =>
+                rv.InterceptTouchEvent += (obj, arg) =>
                 {
-                    if (this.recyclerViews[position % 3].CanScrollVertically(-1))
+                    if (arg.Event.Action == MotionEventActions.Down &&
+                    rv.ScrollState == RecyclerView.ScrollStateSettling)
+                    {
+                        rv.StopScroll();
+                    }
+                    arg.Handled = false;
+                };
+                rv.ScrollChange += (obj, arg) =>
+                {
+                    if (rv.CanScrollVertically(-1))
                     {
                         accumulators[position % 3] -= arg.OldScrollY;
                         this.dayBtn[position % 3].Elevation = 

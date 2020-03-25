@@ -15,6 +15,7 @@
   
   <color name="scheduleBackgroundColor">#F5F5F5</color>
   <color name="lessonBackground">#FBFBFB</color>
+  <color name="lessonBackgroundRipple">#DEDEDE</color>
   <color name="lessonHeadDivider">#E6E6E6</color>
   <color name="lessonIndicator">#00C300</color>
   
@@ -40,7 +41,7 @@
   <color name="calendarTimeBackground">#E3E3E3</color>
   
 <color name="buttonPressed">#E6E6E6</color>
-<color name="buttonStroke">#D4D4D4</color>
+<color name="buttonStroke">#D3D3D3</color>
 
   <color name="textAccent">#444444</color>
   <color name="textAccentDisabled">#CCCCCC</color>
