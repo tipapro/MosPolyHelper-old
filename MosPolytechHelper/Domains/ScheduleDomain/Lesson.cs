@@ -270,14 +270,15 @@
                 case 5:
                     if (this.Group.IsEvening)
                     {
-                        if (this.Group.DateFrom >= new DateTime(date.Year, 1, 22))
-                        {
-                            return ("18:30", "20:00");
-                        }
-                        else
-                        {
-                            return ("18:20", "19:40");
-                        }
+                        //if (this.Group.DateFrom >= new DateTime(date.Year, 1, 22))
+                        //{
+                        //    return ("18:30", "20:00");
+                        //}
+                        //else
+                        //{
+                            
+                        //}
+                        return ("18:20", "19:40");
                     }
                     else
                     {
@@ -287,14 +288,15 @@
                 case 6:
                     if (this.Group.IsEvening)
                     {
-                        if (this.Group.DateFrom >= new DateTime(date.Year, 1, 22))
-                        {
-                            return ("20:10", "21:40");
-                        }
-                        else
-                        {
-                            return ("19:50", "21:10");
-                        }
+                        //if (this.Group.DateFrom >= new DateTime(date.Year, 1, 22))
+                        //{
+                        //    return ("20:10", "21:40");
+                        //}
+                        //else
+                        //{
+
+                        //}
+                        return ("19:50", "21:10");
                     }
                     else
                     {
@@ -342,14 +344,15 @@
                 case 5:
                     if (groupIsEvening)
                     {
-                        if (groupDateFrom >= new DateTime(date.Year, 1, 22))
-                        {
-                            return ("18:30", "20:00");
-                        }
-                        else
-                        {
-                            return ("18:20", "19:40");
-                        }
+                        //if (groupDateFrom >= new DateTime(date.Year, 1, 22))
+                        //{
+                        //    return ("18:30", "20:00");
+                        //}
+                        //else
+                        //{
+
+                        //}
+                        return ("18:20", "19:40");
                     }
                     else
                     {
@@ -359,14 +362,15 @@
                 case 6:
                     if (groupIsEvening)
                     {
-                        if (groupDateFrom >= new DateTime(date.Year, 1, 22))
-                        {
-                            return ("20:10", "21:40");
-                        }
-                        else
-                        {
-                            return ("19:50", "21:10");
-                        }
+                        //if (groupDateFrom >= new DateTime(date.Year, 1, 22))
+                        //{
+                        //    return ("20:10", "21:40");
+                        //}
+                        //else
+                        //{
+
+                        //}
+                        return ("19:50", "21:10");
                     }
                     else
                     {
