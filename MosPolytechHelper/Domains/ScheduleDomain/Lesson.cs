@@ -224,23 +224,7 @@
 
         public bool EqualsTime(Lesson lesson, DateTime date)
         {
-            var d = new DateTime(date.Year, 1, 22);
-            if (this.Order == lesson.Order && this.Group.IsEvening == lesson.Group.IsEvening)
-            {
-                if (this.Group.IsEvening)
-                {
-                    if ((this.Group.DateFrom >= d && lesson.Group.DateFrom >= d) ||
-                        (this.Group.DateFrom < d && lesson.Group.DateFrom < d))
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    return true;
-                }
-            }
-            return false;
+            return this.Order == lesson.Order && this.Group.IsEvening == lesson.Group.IsEvening
         }
 
         public bool IsEmpty()
