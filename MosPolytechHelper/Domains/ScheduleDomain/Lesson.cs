@@ -453,24 +453,12 @@
 
         public int CompareTo(Lesson other)
         {
-            int orderComparing = this.Order.CompareTo(other.Order);
-            if (orderComparing == 0)
+            int result = this.Order.CompareTo(other.Order);
+            if (result == 0)
             {
                 if (this.Group.IsEvening == other.Group.IsEvening)
                 {
-                    int maxYear = this.Group.DateFrom.Year;
-                    if (other.Group.DateFrom.Year > maxYear)
-                    {
-                        maxYear = other.Group.DateFrom.Year;
-                    }
-                    if ((this.Group.DateFrom >= new DateTime(maxYear, 1, 22)) == (other.Group.DateFrom >= new DateTime(maxYear, 1, 22)))
-                    {
-                        return this.Group.Title.CompareTo(other.Group.Title);
-                    }
-                    else
-                    {
-                        return this.Group.DateFrom >= new DateTime(maxYear, 1, 22) ? 1 : -1;
-                    }
+                    return this.Group.Title.CompareTo(other.Group.Title);
                 }
                 else
                 {
@@ -479,7 +467,7 @@
             }
             else
             {
-                return orderComparing;
+                return result;
             }
         }
     }
