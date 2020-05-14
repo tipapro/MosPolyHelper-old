@@ -224,7 +224,7 @@
 
         public bool EqualsTime(Lesson lesson, DateTime date)
         {
-            return this.Order == lesson.Order && this.Group.IsEvening == lesson.Group.IsEvening
+            return this.Order == lesson.Order && this.Group.IsEvening == lesson.Group.IsEvening;
         }
 
         public bool IsEmpty()
