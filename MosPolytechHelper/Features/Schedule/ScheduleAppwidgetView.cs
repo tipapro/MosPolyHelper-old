@@ -281,7 +281,7 @@
                 //viewHolder.LessonTime.Visibility = ViewStates.Visible;
                 //viewHolder.Divider.Visibility = ViewStates.Visible;
                 rv.SetInt(Resource.Id.layout_schedule, "setBackgroundResource", Resource.Drawable.top_stroke);
-                var (StartTime, EndTime) = lesson.GetTime(DateTime.Today);
+                var (StartTime, EndTime) = lesson.GetTime();
                 rv.SetTextViewText(Resource.Id.text_schedule_time, StartTime + " - " + EndTime);
                 rv.SetTextViewText(Resource.Id.text_schedule_order, "#" + (lesson.Order + 1));
             }

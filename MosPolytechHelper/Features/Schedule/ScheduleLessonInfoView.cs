@@ -86,7 +86,7 @@
 
         void SetTime(TextView textView, Lesson lesson, DateTime date)
         {
-            var (startTime, endTime) = lesson.GetTime(date);
+            var (startTime, endTime) = lesson.GetTime();
             string dateStr = date.ToString("dddd, d MMMM, ");
             dateStr = char.ToUpper(dateStr[0]) + dateStr.Substring(1);
             textView.Text = dateStr + $"с {startTime} до {endTime}, {lesson.Order + 1}-е занятие";

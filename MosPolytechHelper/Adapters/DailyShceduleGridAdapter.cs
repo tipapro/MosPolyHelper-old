@@ -106,7 +106,7 @@
             if (dailySchedule != null && dailySchedule.Count != 0)
             {
                 string title;
-                var time = dailySchedule[0].GetTime(date);
+                var time = dailySchedule[0].GetTime();
                 SpansAppend(res, (dailySchedule[0].Order + 1) + ") " + time.StartTime + "-" + time.EndTime,
                     SpanTypes.ExclusiveExclusive,
                     new QuoteSpan(colorParagraph),
@@ -135,7 +135,7 @@
                 {
                     if (!dailySchedule[i].EqualsTime(dailySchedule[i - 1], date))
                     {
-                        time = dailySchedule[i].GetTime(date);
+                        time = dailySchedule[i].GetTime();
                         SpansAppend(res, "\n" + (dailySchedule[i].Order + 1) + ") " + time.StartTime + "-" + time.EndTime,
                             SpanTypes.ExclusiveExclusive,
                             new QuoteSpan(colorParagraph),

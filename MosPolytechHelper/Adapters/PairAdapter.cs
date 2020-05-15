@@ -100,7 +100,7 @@
             int fixedOrder = -1;
             if (this.Date == DateTime.Today)
             {
-                currLessonOrder = Lesson.GetCurrentLessonOrder(this.dailySchedule[0].Group, DateTime.Now.TimeOfDay, this.Date);
+                currLessonOrder = Lesson.GetCurrentLessonOrder(this.dailySchedule[0].Group, DateTime.Now.TimeOfDay);
                 foreach (var lesson in this.dailySchedule)
                 {
                     if (this.filter.DateFilter != DateFilter.Desaturate ||
@@ -195,7 +195,7 @@
 
                 viewHolder.LessonOrder.SetText($"#{lesson.Order + 1}", TextView.BufferType.Normal);
 
-                var (timeStart, timeEnd) = lesson.GetTime(this.Date);
+                var (timeStart, timeEnd) = lesson.GetTime();
                 viewHolder.LessonTime.SetText(timeStart + " - " + timeEnd, TextView.BufferType.Normal);
             }
 
