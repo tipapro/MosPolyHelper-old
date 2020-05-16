@@ -53,6 +53,7 @@
                             bool teacherFlag = true;
                             foreach (var teacher in lesson.Teachers)
                             {
+#error Doesn't work for teacher names with " -" || "- " || " - "
                                 if (teachers.Count == 0 || teachers.Contains(teacher.GetFullName()))
                                 {
                                     teacherFlag = false;
